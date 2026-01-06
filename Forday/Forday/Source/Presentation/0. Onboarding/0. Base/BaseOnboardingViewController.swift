@@ -5,6 +5,7 @@
 //  Created by Subeen on 1/5/26.
 //
 
+
 import UIKit
 import SnapKit
 import Then
@@ -12,18 +13,20 @@ import Combine
 
 class BaseOnboardingViewController: UIViewController {
     
-    /// Properties
+    // Properties
     
-    let nextButton = UIButton(type: .system)
+    let nextButton = UIButton()
     private let progressBar = UIProgressView()
     var cancellables = Set<AnyCancellable>()
     
-    /// Layout Constants (수정 가능)
+    // Layout Constants (수정 가능)
     
-    var horizontalPadding: CGFloat = 20
-    var nextButtonHeight: CGFloat = 56
+    var horizontalPadding: CGFloat = 16
+    var nextButtonVerticalPadding: CGFloat = 18
     var nextButtonBottomMargin: CGFloat = 16
-
+    
+    // Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         style()
@@ -36,11 +39,13 @@ class BaseOnboardingViewController: UIViewController {
     }
 }
 
+// Setup
+
 extension BaseOnboardingViewController {
     private func style() {
         view.backgroundColor = .systemBackground
         
-        // 내비게이션 바
+        // 네비게이션 바
         let backButton = UIBarButtonItem(
             image: UIImage(systemName: "chevron.left"),
             style: .plain,
@@ -60,12 +65,19 @@ extension BaseOnboardingViewController {
         
         // 다음 버튼
         nextButton.do {
-            $0.setTitle("다음", for: .normal)
-            $0.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-            $0.backgroundColor = .systemOrange
-            $0.setTitleColor(.white, for: .normal)
-            $0.setTitleColor(.white.withAlphaComponent(0.5), for: .disabled)
-            $0.layer.cornerRadius = 12
+            var config = UIButton.Configuration.filled()
+            config.title = "다음"
+            config.baseBackgroundColor = .systemOrange
+            config.baseForegroundColor = .white
+            config.background.cornerRadius = 12
+            config.contentInsets = NSDirectionalEdgeInsets(
+                top: nextButtonVerticalPadding,
+                leading: 0,
+                bottom: nextButtonVerticalPadding,
+                trailing: 0
+            )
+            
+            $0.configuration = config
             $0.isEnabled = false
             $0.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         }
@@ -75,9 +87,9 @@ extension BaseOnboardingViewController {
         view.addSubview(nextButton)
         
         nextButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(horizontalPadding)
+            $0.leading.equalToSuperview().offset(horizontalPadding)
+            $0.trailing.equalToSuperview().offset(-horizontalPadding)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-nextButtonBottomMargin)
-            $0.height.equalTo(nextButtonHeight)
         }
     }
     
@@ -100,7 +112,7 @@ extension BaseOnboardingViewController {
 // Public Methods
 
 extension BaseOnboardingViewController {
-    /// 내비게이션 타이틀 설정
+    /// 네비게이션 타이틀 설정
     func setNavigationTitle(_ title: String) {
         navigationItem.title = title
     }
@@ -108,10 +120,12 @@ extension BaseOnboardingViewController {
     /// 다음 버튼 활성화 상태 설정
     func setNextButtonEnabled(_ isEnabled: Bool) {
         nextButton.isEnabled = isEnabled
+        
+        var config = nextButton.configuration
+        config?.baseBackgroundColor = isEnabled ? .systemOrange : .systemGray4
+        
         UIView.animate(withDuration: 0.2) {
-            self.nextButton.backgroundColor = isEnabled
-                ? .systemOrange 
-                : .systemGray4
+            self.nextButton.configuration = config
         }
     }
     

@@ -12,7 +12,10 @@ import Then
 
 class HobbySelectionView: UIView {
     
-    // MARK: - Properties
+    // Properties
+    
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     
     let titleLabel = UILabel()
     let subtitleLabel = UILabel()
@@ -25,7 +28,10 @@ class HobbySelectionView: UIView {
     }()
     let customInputButton = UIButton(type: .system)
     
-    // MARK: - Initialization
+    // CollectionView 높이 제약 (나중에 업데이트용)
+    private var collectionViewHeightConstraint: Constraint?
+    
+    // Initialization
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -38,11 +44,15 @@ class HobbySelectionView: UIView {
     }
 }
 
-// MARK: - Setup
+// Setup
 
 extension HobbySelectionView {
     private func style() {
         backgroundColor = .systemBackground
+        
+        scrollView.do {
+            $0.showsVerticalScrollIndicator = false
+        }
         
         titleLabel.do {
             $0.text = "어떤 취미를 시작하고 싶으세요?"
@@ -70,6 +80,7 @@ extension HobbySelectionView {
         collectionView.do {
             $0.backgroundColor = .clear
             $0.showsVerticalScrollIndicator = false
+            $0.isScrollEnabled = false  // CollectionView 스크롤 비활성화
             $0.register(HobbyCollectionViewCell.self, forCellWithReuseIdentifier: HobbyCollectionViewCell.identifier)
         }
         
@@ -82,31 +93,68 @@ extension HobbySelectionView {
     }
     
     private func layout() {
-        addSubview(titleLabel)
-        addSubview(subtitleLabel)
-        addSubview(collectionView)
-        addSubview(customInputButton)
+        addSubview(scrollView)
+        scrollView.addSubview(contentView)
         
-        titleLabel.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(subtitleLabel)
+        contentView.addSubview(collectionView)
+        contentView.addSubview(customInputButton)
+        
+        // ScrollView
+        scrollView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-80)  // 다음 버튼 위까지
         }
         
+        // ContentView
+        contentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+        }
+        
+        // Title
+        titleLabel.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(24)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+        }
+        
+        // Subtitle
         subtitleLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
         }
         
+        // CollectionView
         collectionView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(32)
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(customInputButton.snp.top).offset(-16)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+            collectionViewHeightConstraint = $0.height.equalTo(0).constraint  // 초기값 0
         }
         
+        // Custom Input Button
         customInputButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-80)
+            $0.top.equalTo(collectionView.snp.bottom).offset(16)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.height.equalTo(44)
+            $0.bottom.equalToSuperview().offset(-24)  // ContentView 하단 (중요!)
         }
+    }
+}
+
+// Public Methods
+
+extension HobbySelectionView {
+    /// CollectionView 높이 업데이트
+    func updateCollectionViewHeight() {
+        layoutIfNeeded()
+        let contentHeight = collectionView.collectionViewLayout.collectionViewContentSize.height
+        collectionViewHeightConstraint?.update(offset: contentHeight)
+        layoutIfNeeded()
     }
 }
