@@ -69,6 +69,22 @@ extension HobbySelectionViewController {
                 self?.hobbyView.updateCollectionViewHeight()
             }
             .store(in: &cancellables)
+        
+        // 선택된 취미 변경 시 CollectionView 업데이트
+        viewModel.$selectedHobby
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.hobbyView.collectionView.reloadData()
+            }
+            .store(in: &cancellables)
+        
+        // 다음 버튼 활성화 상태 변경 (추가!)
+        viewModel.$isNextButtonEnabled
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isEnabled in
+                self?.setNextButtonEnabled(isEnabled)
+            }
+            .store(in: &cancellables)
     }
     
     @objc private func customInputButtonTapped() {
