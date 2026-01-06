@@ -45,7 +45,7 @@ extension BaseOnboardingViewController {
     private func style() {
         view.backgroundColor = .systemBackground
         
-        // 네비게이션 바
+        // 내비게이션 바
         let backButton = UIBarButtonItem(
             image: UIImage(systemName: "chevron.left"),
             style: .plain,
@@ -102,9 +102,10 @@ extension BaseOnboardingViewController {
         navigationBar.addSubview(progressBar)
         
         progressBar.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalToSuperview()
-            $0.height.equalTo(4)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.bottom.equalToSuperview().offset(16)
+            $0.height.equalTo(8)
         }
     }
 }
@@ -149,4 +150,8 @@ extension BaseOnboardingViewController {
     @objc func nextButtonTapped() {
         fatalError("nextButtonTapped() must be overridden by subclass")
     }
+}
+
+#Preview {
+    UINavigationController(rootViewController: HobbySelectionViewController())
 }
