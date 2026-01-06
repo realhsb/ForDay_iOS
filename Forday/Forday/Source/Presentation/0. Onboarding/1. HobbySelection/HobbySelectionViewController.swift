@@ -5,7 +5,6 @@
 //  Created by Subeen on 1/5/26.
 //
 
-
 import UIKit
 import Combine
 
@@ -92,7 +91,7 @@ extension HobbySelectionViewController {
             }
             .store(in: &cancellables)
         
-        // 다음 버튼 활성화 상태 변경 (추가!)
+        // 다음 버튼 활성화 상태 변경
         viewModel.$isNextButtonEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isEnabled in
@@ -109,11 +108,9 @@ extension HobbySelectionViewController {
         // TODO: HobbyInputPopupViewController 표시
         print("Show custom input popup")
     }
-    
-    
 }
 
-// MARK: - UICollectionViewDataSource
+// UICollectionViewDataSource
 
 extension HobbySelectionViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -159,5 +156,8 @@ extension HobbySelectionViewController: UICollectionViewDelegateFlowLayout {
 }
 
 #Preview {
-    UINavigationController(rootViewController: HobbySelectionViewController())
+    let nav = UINavigationController()
+    let coordinator = OnboardingCoordinator(navigationController: nav)
+    coordinator.start()
+    return nav
 }

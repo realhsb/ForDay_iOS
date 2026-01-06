@@ -37,7 +37,6 @@ class OnboardingCoordinator: Coordinator {
             vc = HobbySelectionViewController(viewModel: viewModel)
             
         case .time:
-//            vc = UIViewController()
             let viewModel = TimeSelectionViewModel()
             vc = TimeSelectionViewController(viewModel: viewModel)
             
