@@ -14,7 +14,6 @@ import Combine
 class BaseOnboardingViewController: UIViewController {
     
     // Properties
-    
     let nextButton = UIButton()
     private let progressBar = UIProgressView()
     var cancellables = Set<AnyCancellable>()
@@ -23,7 +22,6 @@ class BaseOnboardingViewController: UIViewController {
     weak var coordinator: OnboardingCoordinator?
     
     // Layout Constants
-    
     var horizontalPadding: CGFloat = 16
     var nextButtonVerticalPadding: CGFloat = 18
     var nextButtonBottomMargin: CGFloat = 16
@@ -70,8 +68,8 @@ extension BaseOnboardingViewController {
         nextButton.do {
             var config = UIButton.Configuration.filled()
             config.title = "다음"
-            config.baseBackgroundColor = .systemOrange
-            config.baseForegroundColor = .white
+//            config.baseBackgroundColor = .systemOrange
+//            config.baseForegroundColor = .white
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(
                 top: nextButtonVerticalPadding,
@@ -126,7 +124,7 @@ extension BaseOnboardingViewController {
         nextButton.isEnabled = isEnabled
         
         var config = nextButton.configuration
-        config?.baseBackgroundColor = isEnabled ? .systemOrange : .systemGray4
+        config?.baseBackgroundColor = isEnabled ? .action001 : .action003
         
         UIView.animate(withDuration: 0.2) {
             self.nextButton.configuration = config
