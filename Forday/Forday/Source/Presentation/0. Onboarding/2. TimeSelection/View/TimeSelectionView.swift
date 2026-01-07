@@ -42,6 +42,7 @@ extension TimeSelectionView {
     private func style() {
         backgroundColor = .systemBackground
         
+        // TODO: 앞 뷰에서 선택한 취미에 따른 아이콘, 타이틀 적용
         selectedHobbyCard.configure(
             iconName: "book.fill",
             time: "30분",
@@ -105,8 +106,8 @@ extension TimeSelectionView {
         // Time Slider
         timeSlider.snp.makeConstraints {
             $0.top.equalTo(selectedHobbyCard.snp.bottom).offset(40)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.leading.equalToSuperview().offset(22)
+            $0.trailing.equalToSuperview().offset(-22)
         }
     }
 }

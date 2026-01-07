@@ -79,8 +79,8 @@ extension TimeSliderView {
         
         // Track
         trackView.do {
-            $0.backgroundColor = .systemGray5
-            $0.layer.cornerRadius = 2
+            $0.backgroundColor = .primary003
+            $0.layer.cornerRadius = 20
         }
         
         // Time Options StackView
@@ -98,6 +98,8 @@ extension TimeSliderView {
                 $0.font = .systemFont(ofSize: 16, weight: .medium)
                 $0.textColor = .secondaryLabel
                 $0.textAlignment = .center
+                $0.setContentHuggingPriority(.required, for: .horizontal)
+                $0.setContentCompressionResistancePriority(.required, for: .horizontal)
             }
             timeLabels.append(label)
             timeOptionsStackView.addArrangedSubview(label)
@@ -105,7 +107,7 @@ extension TimeSliderView {
         
         // Thumb
         thumbView.do {
-            $0.backgroundColor = .systemOrange
+            $0.backgroundColor = .primary001
             $0.layer.cornerRadius = 20
         }
         
@@ -120,7 +122,7 @@ extension TimeSliderView {
     private func layout() {
         addSubview(descriptionStackView)
         addSubview(trackView)
-        addSubview(timeOptionsStackView)
+        trackView.addSubview(timeOptionsStackView)
         addSubview(thumbView)
         thumbView.addSubview(thumbLabel)
         
@@ -133,30 +135,35 @@ extension TimeSliderView {
             $0.leading.trailing.equalToSuperview()
         }
         
-        // Time Options
-        timeOptionsStackView.snp.makeConstraints {
-            $0.top.equalTo(descriptionStackView.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview()
-        }
-        
         // Track
         trackView.snp.makeConstraints {
-            $0.top.equalTo(timeOptionsStackView.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview()
-            $0.height.equalTo(4)
+            $0.top.equalTo(descriptionStackView.snp.bottom).offset(8)
+            $0.leading.trailing.equalTo(descriptionStackView)
+            $0.height.equalTo(40)
             $0.bottom.equalToSuperview()
         }
         
+        // Time Options
+        timeOptionsStackView.snp.makeConstraints {
+            $0.centerY.equalTo(trackView.snp.centerY)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalToSuperview()
+        }
+
         // Thumb (centerX 사용!)
         thumbView.snp.makeConstraints {
             $0.centerY.equalTo(trackView)
-            thumbCenterXConstraint = $0.centerX.equalTo(trackView.snp.leading).constraint  // 저장!
-            $0.width.height.equalTo(40)
+            thumbCenterXConstraint = $0.centerX.equalTo(trackView.snp.leading).constraint
         }
         
         // Thumb Label
         thumbLabel.snp.makeConstraints {
             $0.center.equalToSuperview()
+            $0.top.equalToSuperview().offset(8)
+            $0.bottom.equalToSuperview().offset(-8)
+            $0.leading.equalToSuperview().offset(17)
+            $0.trailing.equalToSuperview().offset(-17)
+            
         }
     }
     
@@ -235,4 +242,8 @@ extension TimeSliderView {
         // Thumb 라벨 업데이트
         thumbLabel.text = timeOptions[selectedIndex]
     }
+}
+
+#Preview {
+    TimeSliderView()
 }
