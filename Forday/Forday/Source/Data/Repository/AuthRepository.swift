@@ -33,9 +33,10 @@ final class AuthRepository: AuthRepositoryInterface {
     
     // MARK: - Guest Login
     
-    func loginAsGuest() async throws -> AuthToken {
-        // TODO: 나중에 구현
-        fatalError("Guest Login not implemented yet")
+    func loginAsGuest(guestUserId: String?) async throws -> AuthToken {
+        let request = DTO.GuestLoginRequest(guestUserId: guestUserId)
+        let response = try await apiService.loginAsGuest(request: request)
+        return response.data.toDomain()
     }
     
     // MARK: - Refresh Token

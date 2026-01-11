@@ -11,21 +11,23 @@ import Combine
 
 class LoginViewController: UIViewController {
     
-    // Properties
+    // MARK: - Properties
     
     private let loginView = LoginView()
     private var cancellables = Set<AnyCancellable>()
     
     // UseCase
     private let kakaoLoginUseCase: KakaoLoginUseCase
+    private let guestLoginUseCase: GuestLoginUseCase
     
     // Coordinator
     weak var coordinator: AuthCoordinator?
     
-    // Initialization
+    // MARK: - Initialization
     
-    init(kakaoLoginUseCase: KakaoLoginUseCase = KakaoLoginUseCase(authRepository: AuthRepository())) {
-        self.kakaoLoginUseCase = kakaoLoginUseCase
+    init(useCaseFactory: AuthUseCaseFactory = AuthUseCaseFactory()) {
+        self.kakaoLoginUseCase = useCaseFactory.makeKakaoLoginUseCase()
+        self.guestLoginUseCase = useCaseFactory.makeGuestLoginUseCase()
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -33,7 +35,7 @@ class LoginViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // Lifecycle
+    // MARK: - Lifecycle
     
     override func loadView() {
         view = loginView
@@ -45,7 +47,7 @@ class LoginViewController: UIViewController {
     }
 }
 
-// Setup
+// MARK: - Setup
 
 extension LoginViewController {
     private func setupActions() {
@@ -68,6 +70,8 @@ extension LoginViewController {
         )
     }
     
+    // MARK: - Actions
+    
     @objc private func kakaoLoginButtonTapped() {
         Task {
             do {
@@ -89,11 +93,21 @@ extension LoginViewController {
     }
     
     @objc private func guestLoginButtonTapped() {
-        print("게스트 로그인")
-        // TODO: 게스트 로그인 처리
-        // 임시: 신규 유저로 온보딩
-        coordinator?.handleLoginSuccess(isNewUser: true)
+        Task {
+            do {
+                let isNewUser = try await guestLoginUseCase.execute()
+                await MainActor.run {
+                    coordinator?.handleLoginSuccess(isNewUser: isNewUser)
+                }
+            } catch {
+                await MainActor.run {
+                    showError(error)
+                }
+            }
+        }
     }
+    
+    // MARK: - Helper
     
     private func showError(_ error: Error) {
         let alert = UIAlertController(

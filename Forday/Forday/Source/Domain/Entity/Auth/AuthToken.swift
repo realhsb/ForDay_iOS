@@ -13,4 +13,5 @@ struct AuthToken {
     let refreshToken: String
     let isNewUser: Bool
     let socialType: SocialType
+    let guestUserId: String?
 }

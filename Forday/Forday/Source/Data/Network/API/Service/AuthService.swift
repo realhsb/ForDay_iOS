@@ -36,4 +36,24 @@ final class AuthService {
             }
         }
     }
+    
+    // MARK: - Guest Login
+        
+        func loginAsGuest(request: DTO.GuestLoginRequest) async throws -> DTO.LoginResponse {
+            return try await withCheckedThrowingContinuation { continuation in
+                provider.request(.guestLogin(request: request)) { result in
+                    switch result {
+                    case .success(let response):
+                        do {
+                            let decodedResponse = try JSONDecoder().decode(DTO.LoginResponse.self, from: response.data)
+                            continuation.resume(returning: decodedResponse)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        }
 }

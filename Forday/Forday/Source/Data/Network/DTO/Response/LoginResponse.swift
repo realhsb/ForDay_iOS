@@ -21,16 +21,18 @@ extension DTO {
         let refreshToken: String
         let newUser: Bool
         let socialType: String
+        let guestUserId: String?
     }
 }
 
 extension DTO.LoginData {
     func toDomain() -> AuthToken {
-        AuthToken(
+        return AuthToken(
             accessToken: accessToken,
             refreshToken: refreshToken,
             isNewUser: newUser,
-            socialType: SocialType(rawValue: socialType) ?? .kakao
+            socialType: SocialType(rawValue: socialType) ?? .guest,
+            guestUserId: guestUserId
         )
     }
 }
