@@ -236,6 +236,8 @@
 		};
 		6C944CB62F0ACF43007D9AB5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 6C944CA22F0ACF42007D9AB5 /* Forday */;
+			baseConfigurationReferenceRelativePath = Source/Data/Config/Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -300,6 +302,8 @@
 		};
 		6C944CB72F0ACF43007D9AB5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 6C944CA22F0ACF42007D9AB5 /* Forday */;
+			baseConfigurationReferenceRelativePath = Source/Data/Config/Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

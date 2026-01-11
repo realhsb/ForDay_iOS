@@ -10,9 +10,9 @@ import Foundation
 
 final class AuthRepository: AuthRepositoryInterface {
     
-    private let apiService: AuthAPIService
+    private let apiService: AuthService
     
-    init(apiService: AuthAPIService = AuthAPIService()) {
+    init(apiService: AuthService = AuthService()) {
         self.apiService = apiService
     }
     
@@ -21,7 +21,7 @@ final class AuthRepository: AuthRepositoryInterface {
     func loginWithKakao(kakaoAccessToken: String) async throws -> AuthToken {
         let request = DTO.KakaoLoginRequest(kakaoAccessToken: kakaoAccessToken)
         let response = try await apiService.loginWithKakao(request: request)
-        return response.toDomain()
+        return response.data.toDomain()
     }
     
     // MARK: - Apple Login
