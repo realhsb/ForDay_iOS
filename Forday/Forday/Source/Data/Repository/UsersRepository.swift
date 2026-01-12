@@ -24,8 +24,10 @@ final class UsersRepository: UsersRepositoryInterface {
     
     // MARK: - Set Nickname
     
-    func setNickname(nickname: String) async throws {
-        // TODO: 나중에 구현
-        fatalError("setNickname not implemented yet")
+    // UsersRepository.swift
+    func setNickname(nickname: String) async throws -> SetNicknameResult {
+        let request = DTO.SetNicknameRequest(nickname: nickname)
+        let response = try await usersService.setNickname(request: request)
+        return response.toDomain()
     }
 }

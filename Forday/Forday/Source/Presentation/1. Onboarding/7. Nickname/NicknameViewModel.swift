@@ -20,13 +20,18 @@ class NicknameViewModel {
     
     private var cancellables = Set<AnyCancellable>()
     
-    // UseCase
+    // UseCases
     private let checkNicknameDuplicateUseCase: CheckNicknameDuplicateUseCase
+    private let setNicknameUseCase: SetNicknameUseCase
     
     // Initialization
     
-    init(checkNicknameDuplicateUseCase: CheckNicknameDuplicateUseCase = CheckNicknameDuplicateUseCase()) {
+    init(
+        checkNicknameDuplicateUseCase: CheckNicknameDuplicateUseCase = CheckNicknameDuplicateUseCase(),
+        setNicknameUseCase: SetNicknameUseCase = SetNicknameUseCase()
+    ) {
         self.checkNicknameDuplicateUseCase = checkNicknameDuplicateUseCase
+        self.setNicknameUseCase = setNicknameUseCase
         bind()
     }
     
@@ -44,7 +49,6 @@ class NicknameViewModel {
         $isDuplicateChecked
             .combineLatest($validationResult)
             .sink { [weak self] isChecked, result in
-                // 중복 확인 완료 + 에러 없음
                 self?.isNextButtonEnabled = isChecked && result == .valid
             }
             .store(in: &cancellables)
@@ -52,16 +56,13 @@ class NicknameViewModel {
     
     /// 닉네임 유효성 검사 (클라이언트 검증)
     private func validateNickname(_ text: String) {
-        // 닉네임 변경 시 중복 확인 리셋
         isDuplicateChecked = false
         
-        // 빈 값
         if text.isEmpty {
             validationResult = .empty
             return
         }
         
-        // 한글/영어/숫자만 허용
         let pattern = "^[가-힣a-zA-Z0-9]+$"
         let regex = try? NSRegularExpression(pattern: pattern)
         let range = NSRange(location: 0, length: text.utf16.count)
@@ -71,13 +72,11 @@ class NicknameViewModel {
             return
         }
         
-        // 클라이언트 검증 통과
         validationResult = .valid
     }
     
     /// 중복 확인 (서버 통신)
     func checkDuplicate() async {
-        // 클라이언트 검증부터 확인
         guard validationResult == .valid else {
             return
         }
@@ -89,12 +88,10 @@ class NicknameViewModel {
             
             await MainActor.run {
                 if isAvailable {
-                    // 사용 가능
                     validationResult = .valid
                     isDuplicateChecked = true
                     print("✅ 사용 가능한 닉네임")
                 } else {
-                    // 중복
                     validationResult = .duplicate
                     isDuplicateChecked = false
                     print("❌ 중복된 닉네임")
@@ -103,8 +100,15 @@ class NicknameViewModel {
         } catch {
             await MainActor.run {
                 print("❌ 중복 확인 실패: \(error)")
-                // TODO: 에러 처리
             }
         }
+    }
+    
+    /// 닉네임 설정 (서버 저장)
+    func setNickname() async throws -> SetNicknameResult {
+        print("💾 닉네임 설정 시작: \(nickname)")
+        let result = try await setNicknameUseCase.execute(nickname: nickname)
+        print("✅ 닉네임 설정 완료: \(result.message)")
+        return result
     }
 }

@@ -10,5 +10,5 @@ import Foundation
 
 protocol UsersRepositoryInterface {
     func checkNicknameAvailability(nickname: String) async throws -> NicknameCheckResult
-    func setNickname(nickname: String) async throws  // 나중에 구현
+    func setNickname(nickname: String) async throws -> SetNicknameResult
 }

@@ -11,7 +11,7 @@ import Alamofire
 
 enum UsersTarget {
     case nicknameAvailability(nickname: String)
-//    case settingNickname(request: DTO.SettingNicknameRequest)  // 나중에 구현
+    case setNickname(request: DTO.SetNicknameRequest)
 }
 
 extension UsersTarget: BaseTargetType {
@@ -20,17 +20,17 @@ extension UsersTarget: BaseTargetType {
         switch self {
         case .nicknameAvailability:
             return UsersAPI.nicknameAvailability.endpoint
-//        case .settingNickname:
-//            return "/users/nickname"
+        case .setNickname:
+            return UsersAPI.settingNickname.endpoint
         }
     }
     
     var method: Moya.Method {
         switch self {
         case .nicknameAvailability:
-            return Moya.Method.get
-//        case .settingNickname:
-//            return .post
+            return .get
+        case .setNickname:
+            return .patch
         }
     }
     
@@ -40,8 +40,9 @@ extension UsersTarget: BaseTargetType {
 
             let parameters = ["nickname": nickname]
             return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
-//        case .settingNickname(let request):
-//            return .requestJSONEncodable(request)
+            
+        case .setNickname(let request):
+            return .requestJSONEncodable(request)
         }
     }
     

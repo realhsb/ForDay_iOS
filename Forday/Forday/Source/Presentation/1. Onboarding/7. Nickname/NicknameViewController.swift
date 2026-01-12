@@ -37,10 +37,42 @@ class NicknameViewController: BaseOnboardingViewController {
     }
     
     // Actions
-    
+
     override func nextButtonTapped() {
         print("닉네임 설정 완료: \(viewModel.nickname)")
-        coordinator?.completeNicknameSetup()
+        
+        // 다음 버튼 비활성화 (중복 클릭 방지)
+        setNextButtonEnabled(false)
+        
+        Task {
+            do {
+                // 닉네임 설정 API 호출
+                try await viewModel.setNickname()
+                
+                // 성공 시 홈으로
+                await MainActor.run {
+                    if let onboardingCoordinator = coordinator {
+                        onboardingCoordinator.completeNicknameSetup()
+                    }
+                }
+            } catch {
+                // 실패 시 에러 처리
+                await MainActor.run {
+                    setNextButtonEnabled(true)
+                    showError(error)
+                }
+            }
+        }
+    }
+
+    private func showError(_ error: Error) {
+        let alert = UIAlertController(
+            title: "닉네임 설정 실패",
+            message: error.localizedDescription,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
 
