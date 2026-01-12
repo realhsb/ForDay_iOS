@@ -20,6 +20,9 @@ class NicknameViewModel {
     
     private var cancellables = Set<AnyCancellable>()
     
+    // TODO: Repository 추가
+    // private let nicknameRepository: NicknameRepositoryInterface
+    
     // Initialization
     
     init() {
@@ -40,12 +43,12 @@ class NicknameViewModel {
         $isDuplicateChecked
             .combineLatest($validationResult)
             .sink { [weak self] isChecked, result in
-                self?.isNextButtonEnabled = isChecked && result == .valid
+                self?.isNextButtonEnabled = isChecked && result == .available
             }
             .store(in: &cancellables)
     }
     
-    /// 닉네임 유효성 검사
+    /// 닉네임 유효성 검사 (클라이언트 검증)
     private func validateNickname(_ text: String) {
         // 닉네임 변경 시 중복 확인 리셋
         isDuplicateChecked = false
@@ -53,12 +56,6 @@ class NicknameViewModel {
         // 빈 값
         if text.isEmpty {
             validationResult = .empty
-            return
-        }
-        
-        // 길이 체크 (한글 기준 10자)
-        if text.count > 10 {
-            validationResult = .tooLong
             return
         }
         
@@ -72,19 +69,38 @@ class NicknameViewModel {
             return
         }
         
-        // 유효함
+        // 클라이언트 검증 통과
         validationResult = .valid
     }
     
     /// 중복 확인 (서버 통신)
-    func checkDuplicate() {
-        // TODO: 서버 통신
-        print("중복 확인 시작: \(nickname)")
+    func checkDuplicate() async {
+        // 클라이언트 검증부터 확인
+        guard validationResult == .valid else {
+            return
+        }
         
-        // 임시: 2초 후 중복 아님으로 처리
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.isDuplicateChecked = true
-            print("중복 확인 완료: 사용 가능")
+        print("🔍 중복 확인 시작: \(nickname)")
+        
+        // TODO: 실제 API 호출
+        // let result = try await nicknameRepository.checkDuplicate(nickname: nickname)
+        
+        // 임시: 2초 후 사용 가능으로 처리
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        
+        await MainActor.run {
+            // 임시 결과 (랜덤)
+            let isAvailable = Bool.random()
+            
+            if isAvailable {
+                validationResult = .available
+                isDuplicateChecked = true
+                print("✅ 사용 가능한 닉네임")
+            } else {
+                validationResult = .duplicate
+                isDuplicateChecked = false
+                print("❌ 중복된 닉네임")
+            }
         }
     }
 }
