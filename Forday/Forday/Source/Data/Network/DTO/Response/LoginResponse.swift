@@ -5,9 +5,6 @@
 //  Created by Subeen on 1/9/26.
 //
 
-
-import Foundation
-
 extension DTO {
 
     struct LoginResponse: BaseResponse {
@@ -16,7 +13,7 @@ extension DTO {
         let data: LoginData
     }
 
-    struct LoginData: Decodable {
+    struct LoginData: Codable {
         let accessToken: String
         let refreshToken: String
         let newUser: Bool
