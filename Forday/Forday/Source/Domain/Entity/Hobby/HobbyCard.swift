@@ -5,14 +5,6 @@
 //  Created by Subeen on 1/12/26.
 //
 
-
-//
-//  HobbyCard.swift
-//  Forday
-//
-//  Created by Subeen on 1/12/26.
-//
-
 import UIKit
 
 struct HobbyCard {
