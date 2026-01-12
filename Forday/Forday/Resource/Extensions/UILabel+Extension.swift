@@ -15,7 +15,7 @@ extension UILabel {
         let attributedString = NSMutableAttributedString(string: text)
         attributedString.addAttributes(
             style.attributes,
-            range: NSRange(location: 0, length: text.count)
+            range: NSRange(location: 0, length: text.utf16.count)
         )
         self.attributedText = attributedString
     }
@@ -28,7 +28,7 @@ extension UILabel {
         let attributedString = NSMutableAttributedString(string: text)
         attributedString.addAttributes(
             style.attributes,
-            range: NSRange(location: 0, length: text.count)
+            range: NSRange(location: 0, length: text.utf16.count)
         )
         self.attributedText = attributedString
     }
