@@ -20,12 +20,13 @@ class NicknameViewModel {
     
     private var cancellables = Set<AnyCancellable>()
     
-    // TODO: Repository 추가
-    // private let nicknameRepository: NicknameRepositoryInterface
+    // UseCase
+    private let checkNicknameDuplicateUseCase: CheckNicknameDuplicateUseCase
     
     // Initialization
     
-    init() {
+    init(checkNicknameDuplicateUseCase: CheckNicknameDuplicateUseCase = CheckNicknameDuplicateUseCase()) {
+        self.checkNicknameDuplicateUseCase = checkNicknameDuplicateUseCase
         bind()
     }
     
@@ -43,7 +44,8 @@ class NicknameViewModel {
         $isDuplicateChecked
             .combineLatest($validationResult)
             .sink { [weak self] isChecked, result in
-                self?.isNextButtonEnabled = isChecked && result == .available
+                // 중복 확인 완료 + 에러 없음
+                self?.isNextButtonEnabled = isChecked && result == .valid
             }
             .store(in: &cancellables)
     }
@@ -82,24 +84,26 @@ class NicknameViewModel {
         
         print("🔍 중복 확인 시작: \(nickname)")
         
-        // TODO: 실제 API 호출
-        // let result = try await nicknameRepository.checkDuplicate(nickname: nickname)
-        
-        // 임시: 2초 후 사용 가능으로 처리
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        
-        await MainActor.run {
-            // 임시 결과 (랜덤)
-            let isAvailable = Bool.random()
+        do {
+            let isAvailable = try await checkNicknameDuplicateUseCase.execute(nickname: nickname)
             
-            if isAvailable {
-                validationResult = .available
-                isDuplicateChecked = true
-                print("✅ 사용 가능한 닉네임")
-            } else {
-                validationResult = .duplicate
-                isDuplicateChecked = false
-                print("❌ 중복된 닉네임")
+            await MainActor.run {
+                if isAvailable {
+                    // 사용 가능
+                    validationResult = .valid
+                    isDuplicateChecked = true
+                    print("✅ 사용 가능한 닉네임")
+                } else {
+                    // 중복
+                    validationResult = .duplicate
+                    isDuplicateChecked = false
+                    print("❌ 중복된 닉네임")
+                }
+            }
+        } catch {
+            await MainActor.run {
+                print("❌ 중복 확인 실패: \(error)")
+                // TODO: 에러 처리
             }
         }
     }
