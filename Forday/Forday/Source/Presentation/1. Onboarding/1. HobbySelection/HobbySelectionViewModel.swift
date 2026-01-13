@@ -13,8 +13,8 @@ class HobbySelectionViewModel {
     
     // MARK: - Published Properties
     
-    @Published var hobbies: [HobbyModel] = []
-    @Published var selectedHobby: HobbyModel?
+    @Published var hobbies: [HobbyCard] = []
+    @Published var selectedHobby: HobbyCard?
     @Published var isNextButtonEnabled: Bool = false
     
     // Coordinator에게 데이터 전달
@@ -31,16 +31,16 @@ class HobbySelectionViewModel {
     /// Mock 데이터 로드
     private func loadMockData() {
         hobbies = [
-            HobbyModel(id: "1", title: "그림 그리기", subtitle: "다양한 도구로 그림 연습하기", imageName: "paintbrush.fill"),
-            HobbyModel(id: "2", title: "헬스", subtitle: "건강한 몸 만들기", imageName: "figure.walk"),
-            HobbyModel(id: "3", title: "독서", subtitle: "책을 읽으며 생각 넓히기", imageName: "book.fill"),
-            HobbyModel(id: "4", title: "음악 듣기", subtitle: "좋아하는 스타일의 음악 듣기", imageName: "music.note"),
-            HobbyModel(id: "5", title: "러닝", subtitle: "목표거리를 정해 달리기", imageName: "figure.run"),
-            HobbyModel(id: "6", title: "요리", subtitle: "맛있는 음식 직접 만들기", imageName: "frying.pan.fill"),
-            HobbyModel(id: "7", title: "카페 탐방", subtitle: "다양한 카페를 직접 방문", imageName: "cup.and.saucer.fill"),
-            HobbyModel(id: "8", title: "영화 보기", subtitle: "좋아하는 영화 보며 힐링", imageName: "tv.fill"),
-            HobbyModel(id: "9", title: "사진 촬영", subtitle: "일상의 순간을 예술로", imageName: "camera.fill"),
-            HobbyModel(id: "10", title: "글쓰기", subtitle: "나를 돌아보는 글쓰기", imageName: "pencil.line")
+            HobbyCard(id: 1, name: "그림 그리기", description: "다양한 도구로 그림 연습하기", imageAsset: .drawing),
+            HobbyCard(id: 2, name: "헬스", description: "건강한 몸 만들기", imageAsset: .gym),
+            HobbyCard(id: 3, name: "독서", description: "책을 읽으며 생각 넓히기", imageAsset: .reading),
+            HobbyCard(id: 4, name: "음악 듣기", description: "좋아하는 스타일의 음악 듣기", imageAsset: .music),
+            HobbyCard(id: 5, name: "러닝", description: "목표 거리를 정해 달리기", imageAsset: .running),
+            HobbyCard(id: 6, name: "요리", description: "맛있는 음식 직접 만들기", imageAsset: .cooking),
+            HobbyCard(id: 7, name: "카페 탐방", description: "다양한 카페를 직접 방문", imageAsset: .cafe),
+            HobbyCard(id: 8, name: "영화 보기", description: "좋아하는 영화 보며 힐링", imageAsset: .movie),
+            HobbyCard(id: 9, name: "사진 촬영", description: "일상의 순간을 예술로", imageAsset: .photo),
+            HobbyCard(id: 10, name: "글쓰기", description: "나를 들여다보는 글쓰기", imageAsset: .writing)
         ]
     }
     
@@ -58,19 +58,27 @@ class HobbySelectionViewModel {
             selectedHobby = hobby
             isNextButtonEnabled = true
         }
+        
+        // 클로저 호출
+        if let selectedHobby = selectedHobby {
+            onHobbySelected?(selectedHobby)
+        }
     }
     
     /// 커스텀 취미 추가
     func addCustomHobby(_ title: String) {
-        let customHobby = HobbyModel(
-            id: UUID().uuidString,
-            title: title,
-            subtitle: "나만의 취미",
-            imageName: "star.fill"
+        let customHobby = HobbyCard(
+            id: nil,
+            name: title,
+            description: "나만의 취미",
+            imageAsset: .drawing  // 기본 이미지
         )
         hobbies.append(customHobby)
         selectedHobby = customHobby
         isNextButtonEnabled = true
+        
+        // 클로저 호출
+        onHobbySelected?(customHobby)
     }
     
     /// 선택된 취미인지 확인
