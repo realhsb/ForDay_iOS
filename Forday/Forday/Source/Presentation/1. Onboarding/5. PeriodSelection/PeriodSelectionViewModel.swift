@@ -17,6 +17,9 @@ class PeriodSelectionViewModel {
     @Published var selectedPeriod: PeriodModel?
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onPeriodSelected: ((Bool) -> Void)?
+    
     // Initialization
     
     init() {
@@ -49,6 +52,16 @@ class PeriodSelectionViewModel {
         
         selectedPeriod = periods[index]
         isNextButtonEnabled = true
+        
+        // PeriodType → Bool 변환 후 클로저 호출
+        let isDurationSet: Bool
+        switch periods[index].type {
+        case .flexible:
+            isDurationSet = false
+        case .fixed:
+            isDurationSet = true
+        }
+        onPeriodSelected?(isDurationSet)
     }
     
     /// 해당 인덱스가 선택되었는지 확인

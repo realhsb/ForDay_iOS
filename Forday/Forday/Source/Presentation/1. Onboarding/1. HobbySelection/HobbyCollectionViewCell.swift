@@ -37,10 +37,10 @@ class HobbyCollectionViewCell: UICollectionViewCell {
     
     // MARK: - Configuration
     
-    func configure(with hobby: HobbyModel, isSelected: Bool) {
-        iconImageView.image = UIImage(systemName: hobby.imageName)
-        titleLabel.text = hobby.title
-        subtitleLabel.text = hobby.subtitle
+    func configure(with hobby: HobbyCard, isSelected: Bool) {
+        iconImageView.image = hobby.imageAsset.image
+        titleLabel.text = hobby.name
+        subtitleLabel.text = hobby.description
         checkmarkImageView.isHidden = !isSelected
         
         // 선택 상태에 따른 스타일 변경
