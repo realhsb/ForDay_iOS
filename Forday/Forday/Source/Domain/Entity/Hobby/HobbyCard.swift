@@ -7,14 +7,14 @@
 
 import UIKit
 
-struct HobbyCard {
+struct HobbyCard: Codable {
     let id: Int
     let name: String
     let description: String
     let imageAsset: HobbyImageAsset
 }
 
-enum HobbyImageAsset: String {
+enum HobbyImageAsset: String, Codable {
     case drawing = "drawing.png"
     case gym = "gym.png"
     case reading = "reading.png"
