@@ -92,9 +92,6 @@ extension HomeView {
         
         // Banner
         bannerView.do {
-            $0.backgroundColor = .white
-            $0.layer.cornerRadius = 12
-            $0.layer.shadowColor = UIColor.black.cgColor
             $0.layer.shadowOpacity = 0.05
             $0.layer.shadowOffset = CGSize(width: 0, height: 2)
             $0.layer.shadowRadius = 4
@@ -108,16 +105,15 @@ extension HomeView {
         }
         
         bannerIconImageView.do {
-            $0.image = UIImage(systemName: "face.smiling")
+            $0.image = .Icon.my
             $0.tintColor = .label
             $0.contentMode = .scaleAspectFit
         }
         
         // My Activity Section
         myActivityTitleLabel.do {
-            $0.text = "나의 취미활동"
-            $0.font = .systemFont(ofSize: 16, weight: .bold)
-            $0.textColor = .label
+            $0.setTextWithTypography("나의 취미활동", style: .header16)
+            $0.textColor = .neutral900
         }
         
         myActivityChevronButton.do {
@@ -127,8 +123,10 @@ extension HomeView {
         
         // Activity Card - Empty State
         activityCardView.do {
-            $0.backgroundColor = .white
-            $0.layer.cornerRadius = 12
+            $0.backgroundColor = .bg001
+            $0.layer.cornerRadius = 16
+            
+            // TODO: shadow custom
             $0.layer.shadowColor = UIColor.black.cgColor
             $0.layer.shadowOpacity = 0.05
             $0.layer.shadowOffset = CGSize(width: 0, height: 2)
@@ -136,21 +134,20 @@ extension HomeView {
         }
         
         emptyActivityLabel.do {
-            $0.text = "등록된 취미활동이 없어요."
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .systemGray
+            $0.setTextWithTypography("등록된 취미활동이 없어요.", style: .body14)
+            $0.textColor = .neutral600
             $0.textAlignment = .center
         }
         
         addActivityButton.do {
             var config = UIButton.Configuration.filled()
-            config.title = "취미활동 추가하기"
-            config.baseBackgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.6, alpha: 1.0)
-            config.baseForegroundColor = .label
-            config.cornerStyle = .medium
+            config.baseBackgroundColor = .primary003
+            config.baseForegroundColor = .action001
+            config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0)
             
             $0.configuration = config
+            $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
         }
         
         // Sticker Section
@@ -171,8 +168,8 @@ extension HomeView {
     }
     
     private func layout() {
-        addSubview(scrollView)
-        scrollView.addSubview(contentView)
+        addSubview(contentView)
+//        scrollView.addSubview(contentView)
         
         contentView.addSubview(headerView)
         contentView.addSubview(bannerView)
@@ -200,15 +197,9 @@ extension HomeView {
         stickerSectionView.addSubview(stickerTitleLabel)
         stickerSectionView.addSubview(stickerGridView)
         
-        // ScrollView
-        scrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-        
         // ContentView
         contentView.snp.makeConstraints {
-            $0.edges.equalTo(scrollView)
-            $0.width.equalTo(scrollView)
+            $0.edges.equalToSuperview()
         }
         
         // Header
@@ -230,26 +221,30 @@ extension HomeView {
         
         // Banner
         bannerView.snp.makeConstraints {
-            $0.top.equalTo(headerView.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(headerView.snp.bottom)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
         }
         
         bannerLabel.snp.makeConstraints {
-            $0.top.leading.equalToSuperview().offset(16)
-            $0.trailing.equalTo(bannerIconImageView.snp.leading).offset(-12)
-            $0.bottom.equalToSuperview().offset(-16)
+            $0.top.equalToSuperview().offset(25)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalTo(bannerIconImageView.snp.leading).offset(-10)
+            $0.bottom.equalToSuperview().offset(-33)
         }
         
         bannerIconImageView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(50)
+            $0.width.height.equalTo(120)
+            $0.bottom.equalToSuperview()
         }
         
         // My Activity Section
         myActivitySectionView.snp.makeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(bannerView.snp.bottom).offset(25)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.height.equalTo(24)
         }
         
@@ -275,7 +270,8 @@ extension HomeView {
         
         addActivityButton.snp.makeConstraints {
             $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalToSuperview().offset(-24)
         }
         
