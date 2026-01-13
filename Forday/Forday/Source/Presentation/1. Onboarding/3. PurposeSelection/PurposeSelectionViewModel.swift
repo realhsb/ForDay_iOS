@@ -17,6 +17,9 @@ class PurposeSelectionViewModel {
     @Published var selectedPurposes: [PurposeModel] = []
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onPurposesSelected: (([String]) -> Void)?
+    
     // Initialization
     
     init() {

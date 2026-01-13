@@ -17,6 +17,9 @@ class FrequencySelectionViewModel {
     @Published var selectedFrequency: FrequencyModel?
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onFrequencySelected: ((Int) -> Void)?
+    
     // Initialization
     
     init() {

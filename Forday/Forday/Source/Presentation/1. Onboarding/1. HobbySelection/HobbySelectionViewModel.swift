@@ -17,6 +17,9 @@ class HobbySelectionViewModel {
     @Published var selectedHobby: HobbyModel?
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onHobbySelected: ((HobbyCard) -> Void)?
+    
     // MARK: - Initialization
     
     init() {

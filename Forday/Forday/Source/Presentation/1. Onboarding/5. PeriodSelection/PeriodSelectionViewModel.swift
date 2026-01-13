@@ -17,6 +17,9 @@ class PeriodSelectionViewModel {
     @Published var selectedPeriod: PeriodModel?
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onPeriodSelected: ((Bool) -> Void)?
+    
     // Initialization
     
     init() {

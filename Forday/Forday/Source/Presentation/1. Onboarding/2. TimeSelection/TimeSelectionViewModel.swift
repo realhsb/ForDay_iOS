@@ -16,6 +16,9 @@ class TimeSelectionViewModel {
     @Published var selectedTime: String?
     @Published var isNextButtonEnabled: Bool = false
     
+    // Coordinator에게 데이터 전달
+    var onTimeSelected: ((Int) -> Void)?
+    
     // Methods
     
     func selectTime(_ time: String) {
