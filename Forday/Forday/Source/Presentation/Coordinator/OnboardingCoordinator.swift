@@ -105,6 +105,7 @@ class OnboardingCoordinator: Coordinator {
     // 닉네임 설정 화면으로
     func showNicknameSetup() {
         let vc = NicknameViewController()
+        vc.coordinator = self
         
         // Complete 화면 제거하고 Nickname만 남기기
         var viewControllers = navigationController.viewControllers
@@ -117,11 +118,16 @@ class OnboardingCoordinator: Coordinator {
     
     // 닉네임 설정 완료 후 홈으로
     func completeNicknameSetup() {
+        print("🔵 completeNicknameSetup 호출됨")
+        
         // 온보딩 데이터 저장
         saveOnboardingData()
         
-        // 온보딩 dismiss 후 홈으로
+        print("🔵 navigationController dismiss 시작")
+        
+        // ✅ dismiss만 하고 바로 AuthCoordinator에 알림
         navigationController.dismiss(animated: true) {
+            print("🔵 dismiss 완료, completeOnboarding 호출")
             self.parentCoordinator?.completeOnboarding()
         }
     }

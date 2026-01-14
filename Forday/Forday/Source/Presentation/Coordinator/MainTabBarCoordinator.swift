@@ -10,10 +10,15 @@ import UIKit
 
 class MainTabBarCoordinator: Coordinator {
     
-    let navigationController: UINavigationController = UINavigationController()
+    
+    let navigationController: UINavigationController
     let tabBarController: UITabBarController = UITabBarController()
     
     weak var parentCoordinator: AppCoordinator?
+    
+    init(navigationController: UINavigationController) {
+        self.navigationController = navigationController
+    }
     
     func start() {
         setupTabBar()
@@ -21,9 +26,8 @@ class MainTabBarCoordinator: Coordinator {
     
     private func setupTabBar() {
         // 홈 탭
-        let homeVC = UIViewController()
-        homeVC.view.backgroundColor = .systemBackground
-        homeVC.title = "홈"
+        let homeVC = HomeViewController()
+        homeVC.coordinator = self
         homeVC.tabBarItem = UITabBarItem(
             title: "홈",
             image: UIImage(systemName: "house"),

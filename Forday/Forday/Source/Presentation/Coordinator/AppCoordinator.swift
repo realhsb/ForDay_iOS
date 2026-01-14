@@ -55,12 +55,17 @@ class AppCoordinator: Coordinator {
     
     // 메인 화면 (홈)
     func showMainTabBar() {
-        let mainTabBarCoordinator = MainTabBarCoordinator()
+        print("🟡 showMainTabBar 호출됨")
+        
+        let mainTabBarCoordinator = MainTabBarCoordinator(navigationController: navigationController)  // ✅ 주입!
         mainTabBarCoordinator.parentCoordinator = self
         mainTabBarCoordinator.start()
         
+        print("🟡 navigationController.setViewControllers 실행")
         navigationController.setViewControllers([mainTabBarCoordinator.tabBarController], animated: true)
         self.mainTabBarCoordinator = mainTabBarCoordinator
+        
+        print("🟡 showMainTabBar 완료")
     }
     
     // 로그아웃
