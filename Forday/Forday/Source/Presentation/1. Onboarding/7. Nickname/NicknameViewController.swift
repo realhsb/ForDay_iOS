@@ -49,10 +49,18 @@ class NicknameViewController: BaseOnboardingViewController {
                 // 닉네임 설정 API 호출
                 try await viewModel.setNickname()
                 
+                // ✅ 여기에 로그 추가
+                print("🔵 API 성공, coordinator 호출 시작")
+                print("🔵 coordinator: \(String(describing: coordinator))")
+                
                 // 성공 시 홈으로
                 await MainActor.run {
-                    if let onboardingCoordinator = coordinator {
+                    if let onboardingCoordinator = coordinator as? OnboardingCoordinator {
+                        print("🔵 OnboardingCoordinator 캐스팅 성공")
                         onboardingCoordinator.completeNicknameSetup()
+                    } else {
+                        print("❌ OnboardingCoordinator 캐스팅 실패")
+                        print("❌ coordinator 타입: \(type(of: coordinator))")
                     }
                 }
             } catch {
