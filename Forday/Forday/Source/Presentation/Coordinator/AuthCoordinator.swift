@@ -59,6 +59,9 @@ class AuthCoordinator: Coordinator {
     func completeOnboarding() {
         print("🟢 completeOnboarding 호출됨")
         
+        // 온보딩 코디네이터 참조 정리
+        onboardingCoordinator = nil
+        
         // ✅ dismiss 없이 바로 홈으로!
         parentCoordinator?.showMainTabBar()
     }
