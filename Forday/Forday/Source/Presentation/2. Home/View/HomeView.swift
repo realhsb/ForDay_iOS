@@ -9,6 +9,7 @@
 import UIKit
 import SnapKit
 import Then
+//import Lott
 
 class HomeView: UIView {
     
@@ -199,13 +200,13 @@ extension HomeView {
         
         // ContentView
         contentView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.edges.equalTo(safeAreaLayoutGuide)
         }
         
         // Header
         headerView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
-            $0.height.equalTo(80)
+            $0.height.equalTo(54)
         }
         
         hobbyDropdownButton.snp.makeConstraints {

@@ -9,7 +9,7 @@
 import UIKit
 import SnapKit
 import Then
-//import Lottie
+import Lottie
 
 class AIRecommendationLoadingViewController: UIViewController {
     
