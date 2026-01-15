@@ -41,6 +41,7 @@ class AIActivitySelectionView: UIView {
         super.init(frame: .zero)
         style()
         layout()
+        configure()
         setupActivities()
         setupActions()
         updateRefreshButton()
@@ -54,6 +55,10 @@ class AIActivitySelectionView: UIView {
 // Setup
 
 extension AIActivitySelectionView {
+    private func configure() {
+        titleLabel.text = "\(result.message)"
+    }
+    
     private func style() {
         backgroundColor = .systemBackground
         
@@ -68,9 +73,8 @@ extension AIActivitySelectionView {
         }
         
         titleLabel.do {
-            $0.text = "오늘 야침 독서를 하는 당신에게,\n더 맞는 활동을 추천할게요. ⓘ"
-            $0.font = .systemFont(ofSize: 18, weight: .bold)
-            $0.textColor = .label
+            $0.applyTypography(.header18)
+            $0.textColor = .neutral900
             $0.numberOfLines = 0
             $0.textAlignment = .center
         }
@@ -259,4 +263,8 @@ extension AIActivitySelectionView {
         config?.baseBackgroundColor = isEnabled ? .systemOrange : .systemGray4
         nextButton.configuration = config
     }
+}
+
+#Preview {
+    AIActivitySelectionView(result: .stub01)
 }

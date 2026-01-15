@@ -152,6 +152,7 @@ extension AIRecommendationContainerViewController {
                 sheet.detents = [
                     .custom(identifier: .init("intro")) { _ in 236 }
                 ]
+                sheet.preferredCornerRadius = 2
                 sheet.prefersGrabberVisible = true
             }
             
@@ -161,14 +162,21 @@ extension AIRecommendationContainerViewController {
                 sheet.detents = [
                     .custom(identifier: .init("loading")) { _ in 236 }
                 ]
+                sheet.preferredCornerRadius = 20
                 sheet.prefersGrabberVisible = false
             }
             
         case .selection:
             isModalInPresentation = false
             if let sheet = sheetPresentationController {
-                sheet.detents = [.large()]
+                sheet.detents = [
+                    .custom(identifier: .init("selection")) { context in
+                        
+                        return context.maximumDetentValue * 0.8 }
+                ]
+                sheet.preferredCornerRadius = 20
                 sheet.prefersGrabberVisible = true
+                sheet.largestUndimmedDetentIdentifier = .large
             }
         }
     }
