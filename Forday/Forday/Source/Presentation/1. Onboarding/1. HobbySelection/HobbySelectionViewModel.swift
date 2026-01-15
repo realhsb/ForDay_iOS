@@ -37,7 +37,10 @@ class HobbySelectionViewModel {
     
     /// 취미 목록 가져오기
     func fetchHobbies() async {
-        isLoading = true
+        
+        await MainActor.run {
+            isLoading = true
+        }
         
         do {
             let metadata = try await fetchAppMetadataUseCase.execute()
