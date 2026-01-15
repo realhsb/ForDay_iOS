@@ -18,6 +18,8 @@ class AIRecommendationContainerViewController: UIViewController {
     private let viewModel: HomeViewModel
     private var cancellables = Set<AnyCancellable>()
     
+    var onDismissToast: (() -> Void)?
+    
     private var currentStep: AIRecommendationStep = .intro {
         didSet {
             updateModalSettings()
@@ -50,6 +52,13 @@ class AIRecommendationContainerViewController: UIViewController {
         bind()
         showIntro()
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // 시트가 사라질 때 토스트도 제거
+        onDismissToast?()
+    }
 }
 
 // Setup
@@ -79,12 +88,16 @@ extension AIRecommendationContainerViewController {
 // Navigation
 
 extension AIRecommendationContainerViewController {
+    
     private func showIntro() {
         currentStep = .intro
         transitionToView(introView)
     }
     
     private func startAIRecommendation() {
+        // 토스트 제거
+        onDismissToast?()
+        
         currentStep = .loading
         transitionToView(loadingView)
         
@@ -95,7 +108,7 @@ extension AIRecommendationContainerViewController {
             } catch {
                 await MainActor.run {
                     self.showError(error)
-                    self.showIntro() // 에러 시 다시 Intro로
+                    self.showIntro()
                 }
             }
         }
@@ -136,7 +149,9 @@ extension AIRecommendationContainerViewController {
         case .intro:
             isModalInPresentation = false
             if let sheet = sheetPresentationController {
-                sheet.detents = [.medium()]
+                sheet.detents = [
+                    .custom(identifier: .init("intro")) { _ in 236 }
+                ]
                 sheet.prefersGrabberVisible = true
             }
             
