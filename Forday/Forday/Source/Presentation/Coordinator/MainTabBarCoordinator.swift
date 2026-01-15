@@ -30,35 +30,46 @@ class MainTabBarCoordinator: Coordinator {
         homeVC.coordinator = self
         homeVC.tabBarItem = UITabBarItem(
             title: "홈",
-            image: UIImage(systemName: "house"),
-            selectedImage: UIImage(systemName: "house.fill")
+            image: .Gnb.home,
+            selectedImage: .Gnb.homeFill
         )
         
-        // 기록 탭
-        let recordVC = UIViewController()
-        recordVC.view.backgroundColor = .systemBackground
-        recordVC.title = "기록"
-        recordVC.tabBarItem = UITabBarItem(
-            title: "기록",
-            image: UIImage(systemName: "book"),
-            selectedImage: UIImage(systemName: "book.fill")
+        // 발견 탭
+        let recommendVC = UIViewController()
+        recommendVC.view.backgroundColor = .systemBackground
+        recommendVC.title = "발견"
+        recommendVC.tabBarItem = UITabBarItem(
+            title: "발견",
+            image: .Gnb.recommendation,
+            selectedImage: .Gnb.recommendationFill
+        )
+        
+        // 소식 탭
+        let storyVC = UIViewController()
+        storyVC.view.backgroundColor = .systemBackground
+        storyVC.title = "소식"
+        storyVC.tabBarItem = UITabBarItem(
+            title: "소식",
+            image: .Gnb.story,
+            selectedImage: .Gnb.storyFill
         )
         
         // 프로필 탭
         let profileVC = UIViewController()
         profileVC.view.backgroundColor = .systemBackground
-        profileVC.title = "프로필"
+        profileVC.title = "마이"
         profileVC.tabBarItem = UITabBarItem(
-            title: "프로필",
-            image: UIImage(systemName: "person"),
-            selectedImage: UIImage(systemName: "person.fill")
+            title: "마이",
+            image: .Gnb.myPage,
+            selectedImage: .Gnb.myPageFill
         )
         
         // TabBar 설정
         tabBarController.viewControllers = [
             UINavigationController(rootViewController: homeVC),
-            UINavigationController(rootViewController: recordVC),
-            UINavigationController(rootViewController: profileVC)
+            UINavigationController(rootViewController: recommendVC),
+            UINavigationController(rootViewController: storyVC),
+            UINavigationController(rootViewController: profileVC),
         ]
         
         tabBarController.tabBar.tintColor = .systemOrange
