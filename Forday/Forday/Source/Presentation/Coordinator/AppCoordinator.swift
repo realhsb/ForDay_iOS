@@ -74,10 +74,10 @@ class AppCoordinator: Coordinator {
             try TokenStorage.shared.deleteAllTokens()
             print("🔧 [DEBUG] 토큰 삭제됨 - 로그인 화면으로 이동")
             
-            // TODO: 로그인 화면으로 전환
-            // AppCoordinator를 완전히 새로 만들기
-            let newAppCoordinator = AppCoordinator(window: window)
-            newAppCoordinator.start()
+            // 기존 coordinator 정리 후 인증 화면으로 전환
+            mainTabBarCoordinator = nil
+            authCoordinator = nil
+            showAuth()
             
         } catch {
             print("로그아웃 실패: \(error)")
