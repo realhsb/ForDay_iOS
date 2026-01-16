@@ -32,6 +32,12 @@ final class ActivityService {
         return try await provider.request(.fetchHomeInfo(hobbyId: hobbyId))
     }
 
+    // MARK: - 다른 포비들의 활동 조회
+
+    func fetchOthersActivities(hobbyId: Int) async throws -> DTO.OthersActivitiesResponse {
+        return try await provider.request(.fetchOthersActivities(hobbyId: hobbyId))
+    }
+
     // MARK: - AI 추천
 
     func fetchAIRecommendations(hobbyId: Int) async throws -> DTO.AIRecommendationResponse {

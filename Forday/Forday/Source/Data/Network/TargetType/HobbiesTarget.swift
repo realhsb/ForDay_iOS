@@ -12,6 +12,7 @@ import Alamofire
 enum HobbiesTarget {
     case createHobby(request: DTO.CreateHobbyRequest)
     case fetchHomeInfo(hobbyId: Int?)
+    case fetchOthersActivities(hobbyId: Int)
     case fetchAIRecommendations(hobbyId: Int)
     case fetchActivityList(hobbyId: Int)
     case createActivities(hobbyId: Int, request: DTO.CreateActivitiesRequest)
@@ -28,6 +29,9 @@ extension HobbiesTarget: BaseTargetType {
 
         case .fetchHomeInfo:
             return HobbiesAPI.fetchHomeInfo.endpoint
+
+        case .fetchOthersActivities:
+            return HobbiesAPI.fetchOthersActivities.endpoint
 
         case .fetchAIRecommendations:
             return HobbiesAPI.fetchAIRecommendations.endpoint
@@ -51,6 +55,8 @@ extension HobbiesTarget: BaseTargetType {
         case .createHobby:
             return .post
         case .fetchHomeInfo:
+            return .get
+        case .fetchOthersActivities:
             return .get
         case .fetchAIRecommendations:
             return .get
@@ -77,6 +83,9 @@ extension HobbiesTarget: BaseTargetType {
             } else {
                 return .requestPlain
             }
+            
+        case .fetchOthersActivities(let hobbyId):
+            return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
 
         case .fetchAIRecommendations, .fetchActivityList, .deleteActivity:
             return .requestPlain
