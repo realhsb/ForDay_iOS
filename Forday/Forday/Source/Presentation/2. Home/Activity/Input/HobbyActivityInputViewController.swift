@@ -51,7 +51,7 @@ class HobbyActivityInputViewController: UIViewController {
 
 extension HobbyActivityInputViewController {
     private func setupNavigationBar() {
-        title = "활동 추가하기"
+        title = "취미활동 입력"
         
         // X 버튼
         let closeButton = UIBarButtonItem(

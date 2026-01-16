@@ -17,6 +17,8 @@ class HobbyActivityInputView: UIView {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
+    private let imageView = UIImageView()
+    private let titleView = UILabel()
     private let stackView = UIStackView()
     private let addButton = UIButton()
     private let saveButton = UIButton()
@@ -55,6 +57,16 @@ extension HobbyActivityInputView {
             $0.showsVerticalScrollIndicator = false
         }
         
+        imageView.do {
+            $0.image = .My.profileMy
+            $0.contentMode = .scaleAspectFill
+        }
+        
+        titleView.do {
+            $0.setTextWithTypography("하고 싶은 취미활동을 직접 적어주세요.", style: .header20)
+            $0.textColor = .neutral900
+        }
+        
         stackView.do {
             $0.axis = .vertical
             $0.spacing = 16
@@ -63,9 +75,7 @@ extension HobbyActivityInputView {
         
         addButton.do {
             var config = UIButton.Configuration.plain()
-            config.title = "+ 활동 추가"
-            config.baseForegroundColor = .systemOrange
-            
+            config.image = .Icon.activityAddButton
             $0.configuration = config
         }
         
@@ -87,6 +97,8 @@ extension HobbyActivityInputView {
         addSubview(saveButton)
         
         scrollView.addSubview(contentView)
+        contentView.addSubview(imageView)
+        contentView.addSubview(titleView)
         contentView.addSubview(stackView)
         contentView.addSubview(addButton)
         
@@ -102,22 +114,33 @@ extension HobbyActivityInputView {
             $0.width.equalTo(scrollView)
         }
         
+        imageView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(22)
+            $0.centerX.equalToSuperview()
+        }
+        
+        titleView.snp.makeConstraints {
+            $0.top.equalTo(imageView.snp.bottom).offset(20)
+            $0.centerX.equalToSuperview()
+        }
+        
         // StackView
         stackView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(20)
+            $0.top.equalTo(titleView.snp.bottom).offset(28)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         // Add Button
         addButton.snp.makeConstraints {
-            $0.top.equalTo(stackView.snp.bottom).offset(16)
-            $0.leading.equalToSuperview().offset(20)
+            $0.top.equalTo(stackView.snp.bottom).offset(24)
+            $0.centerX.equalToSuperview()
             $0.bottom.equalToSuperview().offset(-20)
         }
         
         // Save Button
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().offset(-16)
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-16)
         }
     }

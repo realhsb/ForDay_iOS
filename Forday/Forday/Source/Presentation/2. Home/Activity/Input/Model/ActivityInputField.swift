@@ -17,12 +17,13 @@ class ActivityInputField: UIView {
     private(set) var type: ActivityInputType = .userInput
     
     private let containerView = UIView()
+    let aiLabelView = UIView()
     let aiLabel = UILabel()
     let textField = UITextField()
     let deleteButton = UIButton()
     private let characterCountLabel = UILabel()
     
-    private let maxCharacterCount = 50
+    private let maxCharacterCount = 20
     
     // Callbacks
     var onDelete: (() -> Void)?
@@ -46,16 +47,21 @@ class ActivityInputField: UIView {
 // Setup
 
 extension ActivityInputField {
+    
     private func style() {
         containerView.do {
-            $0.backgroundColor = .systemGray6
+            $0.backgroundColor = .neutral100
             $0.layer.cornerRadius = 12
         }
         
+//        aiLabelView.do {
+//            $0.layer.cornerRadius = 20
+//            $0.backgroundColor = .action001
+//        }
+        
         aiLabel.do {
-            $0.text = "AI 추천 루틴"
-            $0.font = .systemFont(ofSize: 14, weight: .bold)
-            $0.textColor = .label
+            $0.setTextWithTypography("AI 추천 루틴", style: .label10)
+            $0.textColor = .primary001
             $0.isHidden = type == .userInput
         }
         
@@ -84,7 +90,8 @@ extension ActivityInputField {
     private func layout() {
         addSubview(containerView)
         
-        containerView.addSubview(aiLabel)
+        aiLabelView.addSubview(aiLabel)
+        containerView.addSubview(aiLabelView)
         containerView.addSubview(textField)
         containerView.addSubview(deleteButton)
         containerView.addSubview(characterCountLabel)
@@ -95,10 +102,15 @@ extension ActivityInputField {
         }
         
         // AI Label
-        aiLabel.snp.makeConstraints {
+        aiLabelView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(12)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
+        }
+        
+        aiLabel.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().offset(4)
+            $0.leading.trailing.equalToSuperview().offset(6)
         }
         
         // TextField
