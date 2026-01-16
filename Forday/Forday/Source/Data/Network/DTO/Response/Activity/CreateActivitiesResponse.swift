@@ -1,5 +1,5 @@
 //
-//  CreateActivitiesRequest.swift
+//  CreateActivitiesResponse.swift
 //  Forday
 //
 //  Created by Subeen on 1/16/26.
