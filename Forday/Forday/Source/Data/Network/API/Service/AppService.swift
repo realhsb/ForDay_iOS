@@ -9,10 +9,10 @@ import Foundation
 import Moya
 
 final class AppService {
-    
+
     private let provider: MoyaProvider<AppTarget>
-    
-    init(provider: MoyaProvider<AppTarget> = MoyaProvider<AppTarget>(plugins: [MoyaLoggingPlugin()])) {
+
+    init(provider: MoyaProvider<AppTarget> = NetworkProvider.createProvider()) {
         self.provider = provider
     }
     

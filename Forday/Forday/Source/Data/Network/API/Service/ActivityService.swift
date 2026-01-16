@@ -13,10 +13,10 @@ import Foundation
 import Moya
 
 final class ActivityService {
-    
+
     private let provider: MoyaProvider<HobbiesTarget>
-    
-    init(provider: MoyaProvider<HobbiesTarget> = MoyaProvider<HobbiesTarget>(plugins: [MoyaLoggingPlugin()])) {
+
+    init(provider: MoyaProvider<HobbiesTarget> = NetworkProvider.createProvider()) {
         self.provider = provider
     }
     
@@ -41,7 +41,7 @@ final class ActivityService {
     }
     
     // MARK: - 활동 목록 조회
-    
+
     func fetchActivityList(hobbyId: Int) async throws -> DTO.ActivityListResponse {
         return try await withCheckedThrowingContinuation { continuation in
             provider.request(.fetchActivityList(hobbyId: hobbyId)) { result in

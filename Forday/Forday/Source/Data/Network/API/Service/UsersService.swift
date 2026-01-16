@@ -10,10 +10,10 @@ import Foundation
 import Moya
 
 final class UsersService {
-    
+
     private let provider: MoyaProvider<UsersTarget>
-    
-    init(provider: MoyaProvider<UsersTarget> = MoyaProvider<UsersTarget>(plugins: [MoyaLoggingPlugin()])) {
+
+    init(provider: MoyaProvider<UsersTarget> = NetworkProvider.createProvider()) {
         self.provider = provider
     }
     
