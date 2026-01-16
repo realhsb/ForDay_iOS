@@ -268,7 +268,7 @@ extension ActivityWriteView {
         submitButton.isEnabled = isEnabled
         
         var config = submitButton.configuration
-        config?.baseBackgroundColor = isEnabled ? .systemOrange : .systemGray4
+        config?.baseBackgroundColor = isEnabled ? .action001 : .systemGray4
         submitButton.configuration = config
     }
 }
