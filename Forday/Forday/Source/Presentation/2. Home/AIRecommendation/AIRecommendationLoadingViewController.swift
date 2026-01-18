@@ -14,7 +14,8 @@ import Lottie
 class AIRecommendationLoadingViewController: UIViewController {
     
     // Properties
-    
+
+    private let hobbyId: Int
     private let containerView = UIView()
     private let iconImageView = UIImageView()
     private let dotIndicator1 = UIView()
@@ -22,7 +23,19 @@ class AIRecommendationLoadingViewController: UIViewController {
     private let dotIndicator3 = UIView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    
+
+
+    // Initialization
+
+    init(hobbyId: Int) {
+        self.hobbyId = hobbyId
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // Lifecycle
     
     override func viewDidLoad() {
@@ -154,5 +167,5 @@ extension AIRecommendationLoadingViewController {
 }
 
 #Preview {
-    AIRecommendationLoadingViewController()
+    AIRecommendationLoadingViewController(hobbyId: 1)
 }
