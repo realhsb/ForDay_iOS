@@ -35,7 +35,7 @@ extension AuthTarget: BaseTargetType {
         case .refreshToken:
             return AuthAPI.refreshToken.endpoint
         case .validateToken:
-            return "/auth/validate"
+            return AuthAPI.authValidate.endpoint
 //        case .logout:
 //            return AuthAPI.logout.endpoint
         }

@@ -6,6 +6,7 @@
 //
 
 enum AuthAPI {
+    case authValidate       /// 토큰 유효성 검사
     case refreshToken       /// 토큰 재발급
     case logout             /// 로그아웃
     case kakaoLogin         /// 카카오 로그인
@@ -14,6 +15,7 @@ enum AuthAPI {
     
     var endpoint: String {
         switch self {
+        case .authValidate: return "/auth/validate"
         case .refreshToken: return "/auth/refresh"
         case .logout: return "/auth/logout"
         case .kakaoLogin: return "/auth/kakao"
