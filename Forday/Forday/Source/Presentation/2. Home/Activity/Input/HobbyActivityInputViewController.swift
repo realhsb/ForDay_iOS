@@ -192,17 +192,11 @@ extension HobbyActivityInputViewController {
     }
 
     private func showAIRecommendationFlow() {
-        // Show AIRecommendationLoadingView (Lottie) for 3 seconds
+        // Show loading view
         let loadingVC = AIRecommendationLoadingViewController(hobbyId: hobbyId)
-        loadingVC.onLoadingComplete = { [weak self] in
-            self?.showAIActivitySelection()
-        }
-
         loadingVC.modalPresentationStyle = .fullScreen
         present(loadingVC, animated: true)
-    }
 
-    private func showAIActivitySelection() {
         // Fetch AI recommendations
         Task {
             do {
@@ -210,7 +204,10 @@ extension HobbyActivityInputViewController {
                 let aiRecommendations = try await repository.fetchAIRecommendations(hobbyId: hobbyId)
 
                 await MainActor.run {
-                    self.showAISelectionView(with: aiRecommendations)
+                    // Dismiss loading and show selection
+                    self.dismiss(animated: true) {
+                        self.showAISelectionView(with: aiRecommendations)
+                    }
                 }
             } catch {
                 await MainActor.run {
@@ -225,7 +222,7 @@ extension HobbyActivityInputViewController {
     private func showAISelectionView(with result: AIRecommendationResult) {
         let selectionView = AIActivitySelectionView(result: result)
         selectionView.onActivitySelected = { [weak self] activity in
-            self?.saveAIRecommendedActivityAndNavigate(activity)
+            self?.fillLastFieldWithAIActivity(activity)
         }
 
         selectionView.onRefreshTapped = { [weak self] in
@@ -244,29 +241,15 @@ extension HobbyActivityInputViewController {
             sheet.prefersGrabberVisible = true
         }
 
-        // Dismiss loading and present selection
-        dismiss(animated: true) {
-            self.present(containerVC, animated: true)
-        }
+        present(containerVC, animated: true)
     }
 
-    private func saveAIRecommendedActivityAndNavigate(_ activity: AIRecommendation) {
-        Task {
-            do {
-                try await viewModel.createActivities(hobbyId: hobbyId, activities: [(content: activity.content, aiRecommended: true)])
-
-                await MainActor.run {
-                    // Dismiss AI selection view
-                    self.dismiss(animated: true) {
-                        // Dismiss HobbyActivityInputViewController and navigate to ActivityListViewController
-                        self.onActivityCreated?()
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.showError(error.localizedDescription)
-                }
-            }
+    private func fillLastFieldWithAIActivity(_ activity: AIRecommendation) {
+        // Dismiss AI selection view
+        dismiss(animated: true) {
+            // Fill last field with selected activity content
+            self.activityInputView.fillLastFieldWithText(activity.content)
+            self.validateActivities()
         }
     }
 }
