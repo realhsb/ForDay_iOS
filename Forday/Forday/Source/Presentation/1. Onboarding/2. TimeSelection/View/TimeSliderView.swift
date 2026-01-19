@@ -40,14 +40,16 @@ class TimeSliderView: UIView {
     private let rightLabel = UILabel()
     
     private let trackView = UIView()
+    private let progressView = UIView()
     private let timeOptionsStackView = UIStackView()
     private var timeLabels: [UILabel] = []
-    
+
     private let thumbView = UIView()
     private let thumbLabel = UILabel()
-    
+
     // Constraint 저장용
     private var thumbCenterXConstraint: Constraint?
+    private var progressWidthConstraint: Constraint?
     
     // Initialization
     
@@ -88,6 +90,12 @@ extension TimeSliderView {
         
         // Track
         trackView.do {
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 20
+        }
+
+        // Progress View
+        progressView.do {
             $0.backgroundColor = .primary003
             $0.layer.cornerRadius = 20
         }
@@ -109,7 +117,13 @@ extension TimeSliderView {
                 $0.textAlignment = .center
                 $0.setContentHuggingPriority(.required, for: .horizontal)
                 $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+                $0.isUserInteractionEnabled = true
             }
+
+            // Add tap gesture to each label
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleLabelTap))
+            label.addGestureRecognizer(tapGesture)
+
             timeLabels.append(label)
             timeOptionsStackView.addArrangedSubview(label)
         }
@@ -131,6 +145,7 @@ extension TimeSliderView {
     private func layout() {
         addSubview(descriptionStackView)
         addSubview(trackView)
+        trackView.addSubview(progressView)
         trackView.addSubview(timeOptionsStackView)
         addSubview(thumbView)
         thumbView.addSubview(thumbLabel)
@@ -151,7 +166,13 @@ extension TimeSliderView {
             $0.height.equalTo(40)
             $0.bottom.equalToSuperview()
         }
-        
+
+        // Progress View
+        progressView.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            progressWidthConstraint = $0.width.equalTo(0).constraint
+        }
+
         // Time Options
         timeOptionsStackView.snp.makeConstraints {
             $0.centerY.equalTo(trackView.snp.centerY)
@@ -185,6 +206,26 @@ extension TimeSliderView {
 // Gesture Handling
 
 extension TimeSliderView {
+    @objc private func handleLabelTap(_ gesture: UITapGestureRecognizer) {
+        guard let tappedLabel = gesture.view as? UILabel,
+              let index = timeLabels.firstIndex(of: tappedLabel) else { return }
+
+        selectedIndex = index
+
+        // Snap animation
+        let trackWidth = trackView.bounds.width
+        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
+        let targetX = optionSpacing * CGFloat(selectedIndex)
+
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+            self.thumbCenterXConstraint?.update(offset: targetX)
+            self.layoutIfNeeded()
+        }
+
+        // Callback
+        onValueChanged?(formattedTime(minutes: timeOptions[selectedIndex]))
+    }
+
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         let location = gesture.location(in: trackView)
         
@@ -247,9 +288,16 @@ extension TimeSliderView {
         for (index, label) in timeLabels.enumerated() {
             label.textColor = index == selectedIndex ? .systemOrange : .secondaryLabel
         }
-        
+
         // Thumb 라벨 업데이트
         thumbLabel.text = formattedTime(minutes: timeOptions[selectedIndex])
+
+        // Progress view 너비 업데이트
+        layoutIfNeeded() // Ensure trackView has correct bounds
+        let trackWidth = trackView.bounds.width
+        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
+        let progressWidth = optionSpacing * CGFloat(selectedIndex)
+        progressWidthConstraint?.update(offset: progressWidth)
     }
 }
 

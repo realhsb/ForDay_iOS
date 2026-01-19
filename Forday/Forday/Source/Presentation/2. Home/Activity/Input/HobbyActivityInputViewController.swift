@@ -50,6 +50,13 @@ class HobbyActivityInputViewController: UIViewController {
             await viewModel.fetchOthersActivities(hobbyId: hobbyId)
         }
     }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // Show AI recommendation toast
+        activityInputView.showAIRecommendationToast()
+    }
 }
 
 // Setup
@@ -84,6 +91,10 @@ extension HobbyActivityInputViewController {
 
         activityInputView.onRecommendationButtonTapped = { [weak self] text in
             self?.fillLastFieldWithRecommendation(text)
+        }
+
+        activityInputView.onAIToastTapped = { [weak self] in
+            self?.handleAIToastTapped()
         }
     }
     
@@ -144,14 +155,15 @@ extension HobbyActivityInputViewController {
 
     private func saveActivities() {
         let activities = activityInputView.getActivities()
-        
+
         Task {
             do {
                 try await viewModel.createActivities(hobbyId: hobbyId, activities: activities)
-                
+
                 await MainActor.run {
+                    // Call callback without dismissing
+                    // Parent view controller will handle dismiss and navigation
                     onActivityCreated?()
-                    dismiss(animated: true)
                 }
             } catch {
                 await MainActor.run {
@@ -169,6 +181,76 @@ extension HobbyActivityInputViewController {
         )
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+
+    private func handleAIToastTapped() {
+        // Hide toast
+        activityInputView.hideAIRecommendationToast()
+
+        // Show AI recommendation loading
+        showAIRecommendationFlow()
+    }
+
+    private func showAIRecommendationFlow() {
+        // Show loading view
+        let loadingVC = AIRecommendationLoadingViewController(hobbyId: hobbyId)
+        loadingVC.modalPresentationStyle = .fullScreen
+        present(loadingVC, animated: true)
+
+        // Fetch AI recommendations
+        Task {
+            do {
+                let repository = ActivityRepository()
+                let aiRecommendations = try await repository.fetchAIRecommendations(hobbyId: hobbyId)
+
+                await MainActor.run {
+                    // Dismiss loading and show selection
+                    self.dismiss(animated: true) {
+                        self.showAISelectionView(with: aiRecommendations)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.dismiss(animated: true) {
+                        self.showError(error.localizedDescription)
+                    }
+                }
+            }
+        }
+    }
+
+    private func showAISelectionView(with result: AIRecommendationResult) {
+        let selectionView = AIActivitySelectionView(result: result)
+        selectionView.onActivitySelected = { [weak self] activity in
+            self?.fillLastFieldWithAIActivity(activity)
+        }
+
+        selectionView.onRefreshTapped = { [weak self] in
+            self?.dismiss(animated: true) {
+                self?.showAIRecommendationFlow()
+            }
+        }
+
+        // Show as modal
+        let containerVC = UIViewController()
+        containerVC.view = selectionView
+        containerVC.modalPresentationStyle = .pageSheet
+
+        if let sheet = containerVC.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+        }
+
+        present(containerVC, animated: true)
+    }
+
+    private func fillLastFieldWithAIActivity(_ activity: AIRecommendation) {
+        // Dismiss AI selection view
+        dismiss(animated: true) {
+            // Fill last field with selected activity content
+            self.activityInputView.fillLastFieldWithText(activity.content)
+            self.validateActivities()
+        }
     }
 }
 

@@ -23,17 +23,23 @@ class ActivityListViewModel {
     private let fetchActivityListUseCase: FetchActivityListUseCase
     private let updateActivityUseCase: UpdateActivityUseCase
     private let deleteActivityUseCase: DeleteActivityUseCase
-    
+    private let fetchAIRecommendationsUseCase: FetchAIRecommendationsUseCase
+    private let createActivitiesUseCase: CreateActivitiesUseCase
+
     // Initialization
-    
+
     init(
         fetchActivityListUseCase: FetchActivityListUseCase = FetchActivityListUseCase(),
         updateActivityUseCase: UpdateActivityUseCase = UpdateActivityUseCase(),
-        deleteActivityUseCase: DeleteActivityUseCase = DeleteActivityUseCase()
+        deleteActivityUseCase: DeleteActivityUseCase = DeleteActivityUseCase(),
+        fetchAIRecommendationsUseCase: FetchAIRecommendationsUseCase = FetchAIRecommendationsUseCase(),
+        createActivitiesUseCase: CreateActivitiesUseCase = CreateActivitiesUseCase()
     ) {
         self.fetchActivityListUseCase = fetchActivityListUseCase
         self.updateActivityUseCase = updateActivityUseCase
         self.deleteActivityUseCase = deleteActivityUseCase
+        self.fetchAIRecommendationsUseCase = fetchAIRecommendationsUseCase
+        self.createActivitiesUseCase = createActivitiesUseCase
     }
     
     // Methods
@@ -67,10 +73,19 @@ class ActivityListViewModel {
     func deleteActivity(activityId: Int) async throws {
         let message = try await deleteActivityUseCase.execute(activityId: activityId)
         print("✅ 활동 삭제 완료: \(message)")
-        
+
         // 목록에서 제거
         await MainActor.run {
             activities.removeAll { $0.activityId == activityId }
         }
+    }
+
+    func fetchAIRecommendations(hobbyId: Int) async throws -> AIRecommendationResult {
+        return try await fetchAIRecommendationsUseCase.execute(hobbyId: hobbyId)
+    }
+
+    func createActivities(hobbyId: Int, activities: [ActivityInput]) async throws {
+        let message = try await createActivitiesUseCase.execute(hobbyId: hobbyId, activities: activities)
+        print("✅ 활동 생성 완료: \(message)")
     }
 }

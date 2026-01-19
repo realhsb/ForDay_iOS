@@ -156,23 +156,53 @@ extension HomeViewController {
     
     @objc private func addActivityButtonTapped() {
         print("취미활동 추가하기 탭")
-        showAIRecommendationModal()
+        showActivityInput()
+    }
+
+    private func showActivityInput() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.onActivityCreated = { [weak self] in
+            // Dismiss modal first, then push ActivityListViewController
+            self?.dismiss(animated: true) {
+                self?.showActivityListAfterSave()
+            }
+        }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+
+    private func showActivityListAfterSave() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let activityListVC = ActivityListViewController(hobbyId: hobbyId)
+        activityListVC.shouldShowAIRecommendationToast = true
+        navigationController?.pushViewController(activityListVC, animated: true)
     }
 
     private func showAIRecommendationModal() {
         let containerVC = AIRecommendationContainerViewController(viewModel: viewModel)
         containerVC.modalPresentationStyle = .pageSheet
-        
+
         if let sheet = containerVC.sheetPresentationController {
             sheet.detents = [.medium()]
             sheet.prefersGrabberVisible = true
         }
-        
+
         present(containerVC, animated: true) {
             // 시트 표시 후 토스트를 window에 추가
             self.showToastAboveSheet()
         }
-        
+
         // 토스트 제거 클로저 전달
         containerVC.onDismissToast = { [weak self] in
             self?.hideToast()

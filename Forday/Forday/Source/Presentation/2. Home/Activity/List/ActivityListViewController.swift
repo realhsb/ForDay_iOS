@@ -8,18 +8,23 @@
 
 import UIKit
 import Combine
+import SnapKit
 
 class ActivityListViewController: UIViewController {
     
     // Properties
-    
+
     private let listView = ActivityListView()
     private let viewModel: ActivityListViewModel
     private let hobbyId: Int
     private var cancellables = Set<AnyCancellable>()
-    
+
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
+
+    // AI Recommendation Toast
+    var shouldShowAIRecommendationToast = false
+    private var aiToastView: ToastView?
     
     // Initialization
     
@@ -45,6 +50,16 @@ class ActivityListViewController: UIViewController {
         setupTableView()
         bind()
         loadActivities()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // Show AI recommendation toast if needed
+        if shouldShowAIRecommendationToast {
+            shouldShowAIRecommendationToast = false
+            showAIRecommendationToast()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -206,6 +221,111 @@ extension ActivityListViewController {
         )
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+
+    private func showAIRecommendationToast() {
+        let toast = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+        toast.isUserInteractionEnabled = true
+
+        // Add tap gesture
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(aiToastTapped))
+        toast.addGestureRecognizer(tapGesture)
+
+        // Add to view
+        view.addSubview(toast)
+        toast.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
+        }
+
+        // Fade in animation
+        toast.alpha = 0
+        UIView.animate(withDuration: 0.3) {
+            toast.alpha = 1
+        }
+
+        aiToastView = toast
+    }
+
+    @objc private func aiToastTapped() {
+        // Hide toast
+        aiToastView?.hide()
+
+        // Show AI recommendation loading
+        showAIRecommendationFlow()
+    }
+
+    private func showAIRecommendationFlow() {
+        // Show loading view
+        let loadingVC = AIRecommendationLoadingViewController(hobbyId: hobbyId)
+        loadingVC.modalPresentationStyle = .fullScreen
+        present(loadingVC, animated: true)
+
+        // Fetch AI recommendations
+        Task {
+            do {
+                let aiRecommendations = try await viewModel.fetchAIRecommendations(hobbyId: hobbyId)
+
+                await MainActor.run {
+                    // Dismiss loading and show selection
+                    self.dismiss(animated: true) {
+                        self.showAISelectionView(with: aiRecommendations)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.dismiss(animated: true) {
+                        self.showError(error.localizedDescription)
+                    }
+                }
+            }
+        }
+    }
+
+    private func showAISelectionView(with result: AIRecommendationResult) {
+        let selectionView = AIActivitySelectionView(result: result)
+        selectionView.onActivitySelected = { [weak self] activity in
+            self?.saveAIRecommendedActivity(activity)
+        }
+
+        selectionView.onRefreshTapped = { [weak self] in
+            self?.dismiss(animated: true) {
+                self?.showAIRecommendationFlow()
+            }
+        }
+
+        // Show as modal
+        let containerVC = UIViewController()
+        containerVC.view = selectionView
+        containerVC.modalPresentationStyle = .pageSheet
+
+        if let sheet = containerVC.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+        }
+
+        present(containerVC, animated: true)
+    }
+
+    private func saveAIRecommendedActivity(_ activity: AIRecommendation) {
+        Task {
+            do {
+                let activityInputs = [ActivityInput(aiRecommended: true, content: activity.content)]
+                try await viewModel.createActivities(hobbyId: hobbyId, activities: activityInputs)
+
+                await MainActor.run {
+                    // Dismiss AI selection view
+                    self.dismiss(animated: true)
+
+                    // Refresh activity list
+                    self.loadActivities()
+                }
+            } catch {
+                await MainActor.run {
+                    self.showError(error.localizedDescription)
+                }
+            }
+        }
     }
 }
 

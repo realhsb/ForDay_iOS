@@ -87,7 +87,11 @@ extension HobbiesTarget: BaseTargetType {
         case .fetchOthersActivities(let hobbyId):
             return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
 
-        case .fetchAIRecommendations, .fetchActivityList, .deleteActivity:
+        case .fetchAIRecommendations(let hobbtId):
+            return .requestParameters(parameters: ["hobbyId": hobbtId], encoding: URLEncoding.queryString)
+            
+            
+        case .fetchActivityList, .deleteActivity:
             return .requestPlain
             
         case .createActivities(_, let request):
