@@ -59,21 +59,28 @@ extension HomeViewController {
             action: #selector(hobbyDropdownTapped),
             for: .touchUpInside
         )
-        
+
         // 알림 버튼
         homeView.notificationButton.addTarget(
             self,
             action: #selector(notificationTapped),
             for: .touchUpInside
         )
-        
+
         // 나의 취미활동 쉐브론
         homeView.myActivityChevronButton.addTarget(
             self,
             action: #selector(myActivityChevronTapped),
             for: .touchUpInside
         )
-        
+
+        // 활동 드롭다운 버튼
+        homeView.activityDropdownButton.addTarget(
+            self,
+            action: #selector(activityDropdownTapped),
+            for: .touchUpInside
+        )
+
         // 취미활동 추가하기 버튼
         homeView.addActivityButton.addTarget(
             self,
@@ -113,15 +120,25 @@ extension HomeViewController {
     }
 
     private func updateUI(with homeInfo: HomeInfo?) {
-        guard let homeInfo = homeInfo,
-              let firstHobby = homeInfo.inProgressHobbies.first else {
+        guard let homeInfo = homeInfo else {
             return
         }
 
+        // currentHobby가 true인 취미 찾기
+        let currentHobby = homeInfo.inProgressHobbies.first { $0.currentHobby }
+
         // 취미 이름 업데이트
-        var config = homeView.hobbyDropdownButton.configuration
-        config?.title = firstHobby.hobbyName
-        homeView.hobbyDropdownButton.configuration = config
+        if let currentHobby = currentHobby {
+            var config = homeView.hobbyDropdownButton.configuration
+            config?.title = currentHobby.hobbyName
+            homeView.hobbyDropdownButton.configuration = config
+        }
+
+        // 활동 미리보기 업데이트
+        homeView.updateActivityPreview(homeInfo.activityPreview)
+
+        // 스티커 개수 업데이트
+        homeView.updateStickerCount(homeInfo.totalStickerNum)
     }
 }
 
@@ -143,6 +160,11 @@ extension HomeViewController {
         showActivityList()
     }
 
+    @objc private func activityDropdownTapped() {
+        print("활동 드롭다운 탭")
+        // TODO: 활동 목록 바텀시트 표시
+    }
+
     private func showActivityList() {
         // 현재 취미 ID 가져오기
         guard let hobbyId = viewModel.currentHobbyId else {
@@ -155,8 +177,16 @@ extension HomeViewController {
     }
     
     @objc private func addActivityButtonTapped() {
-        print("취미활동 추가하기 탭")
-        showActivityInput()
+        // activityPreview 유무에 따라 다른 동작
+        if viewModel.homeInfo?.activityPreview != nil {
+            // 스티커 붙이기
+            print("오늘의 스티커 붙이기 탭")
+            // TODO: 스티커 붙이기 API 연동
+        } else {
+            // 취미활동 추가하기
+            print("취미활동 추가하기 탭")
+            showActivityInput()
+        }
     }
 
     private func showActivityInput() {

@@ -36,6 +36,7 @@ class HomeView: UIView {
     // Activity Card
     let activityCardView = UIView()
     let emptyActivityLabel = UILabel()
+    let activityDropdownButton = UIButton()
     let addActivityButton = UIButton()
     
     // Sticker Collection Section
@@ -138,15 +139,33 @@ extension HomeView {
             $0.setTextWithTypography("등록된 취미활동이 없어요.", style: .body14)
             $0.textColor = .neutral600
             $0.textAlignment = .center
+            $0.isHidden = true // 기본적으로 숨김
         }
-        
+
+        activityDropdownButton.do {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(systemName: "chevron.down")
+            config.imagePlacement = .trailing
+            config.imagePadding = 8
+            config.baseForegroundColor = .label
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+                var outgoing = incoming
+                outgoing.font = .systemFont(ofSize: 16, weight: .medium)
+                return outgoing
+            }
+            $0.configuration = config
+            $0.contentHorizontalAlignment = .leading
+            $0.isHidden = true // 기본적으로 숨김
+        }
+
         addActivityButton.do {
             var config = UIButton.Configuration.filled()
             config.baseBackgroundColor = .primary003
             config.baseForegroundColor = .action001
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0)
-            
+
             $0.configuration = config
             $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
         }
@@ -192,6 +211,7 @@ extension HomeView {
         
         // Activity Card
         activityCardView.addSubview(emptyActivityLabel)
+        activityCardView.addSubview(activityDropdownButton)
         activityCardView.addSubview(addActivityButton)
         
         // Sticker Section
@@ -268,7 +288,12 @@ extension HomeView {
             $0.top.equalToSuperview().offset(24)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
+        activityDropdownButton.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(20)
+            $0.leading.trailing.equalToSuperview().inset(20)
+        }
+
         addActivityButton.snp.makeConstraints {
             $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(20)
@@ -292,6 +317,53 @@ extension HomeView {
             $0.leading.trailing.bottom.equalToSuperview()
             $0.height.equalTo(200) // 임시
         }
+    }
+}
+
+// Public Methods
+
+extension HomeView {
+    func updateActivityPreview(_ activityPreview: ActivityPreview?) {
+        if let preview = activityPreview {
+            // 활동이 있는 경우
+            emptyActivityLabel.isHidden = true
+            activityDropdownButton.isHidden = false
+
+            // 드롭다운 버튼 텍스트 설정
+            var config = activityDropdownButton.configuration
+            config?.title = preview.content
+            activityDropdownButton.configuration = config
+
+            // 버튼 텍스트 변경
+            addActivityButton.setTitleWithTypography("오늘의 스티커 붙이기", style: .header14)
+
+            // addActivityButton 제약 조건 업데이트 (activityDropdownButton 기준)
+            addActivityButton.snp.remakeConstraints {
+                $0.top.equalTo(activityDropdownButton.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
+        } else {
+            // 활동이 없는 경우
+            emptyActivityLabel.isHidden = false
+            activityDropdownButton.isHidden = true
+
+            // 버튼 텍스트 복원
+            addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+
+            // addActivityButton 제약 조건 복원 (emptyActivityLabel 기준)
+            addActivityButton.snp.remakeConstraints {
+                $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
+        }
+    }
+
+    func updateStickerCount(_ count: Int) {
+        stickerTitleLabel.text = "현재까지 \(count)"
     }
 }
 
