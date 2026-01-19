@@ -162,7 +162,87 @@ extension HomeViewController {
 
     @objc private func activityDropdownTapped() {
         print("활동 드롭다운 탭")
-        // TODO: 활동 목록 바텀시트 표시
+        showActivityDropdown()
+    }
+
+    private func showActivityDropdown() {
+        Task {
+            do {
+                let activities = try await viewModel.fetchActivityList()
+
+                await MainActor.run {
+                    self.showDropdownView(activities: activities)
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ 활동 목록 로드 실패: \(error)")
+                }
+            }
+        }
+    }
+
+    private func showDropdownView(activities: [Activity]) {
+        // Create transparent background for dismissal
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .clear
+        backgroundView.tag = 9998
+        view.addSubview(backgroundView)
+
+        backgroundView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissDropdownFromBackground))
+        backgroundView.addGestureRecognizer(tapGesture)
+
+        // Create and show dropdown
+        let dropdownView = ActivityDropdownView(activities: activities)
+        dropdownView.tag = 9999
+        dropdownView.onActivitySelected = { [weak self] activity in
+            self?.selectActivity(activity)
+        }
+
+        // Show dropdown below activityDropdownButton
+        dropdownView.show(in: view, below: homeView.activityDropdownButton)
+    }
+
+    @objc private func dismissDropdownFromBackground() {
+        // Remove background
+        view.subviews.filter { $0.tag == 9998 }.forEach { $0.removeFromSuperview() }
+
+        // Dismiss dropdown
+        view.subviews.filter { $0.tag == 9999 }.forEach {
+            ($0 as? ActivityDropdownView)?.dismiss()
+        }
+    }
+
+    private func selectActivity(_ activity: Activity) {
+        // Dismiss dropdown and background
+        dismissDropdownFromBackground()
+
+        // ActivityPreview 객체 생성
+        let activityPreview = ActivityPreview(
+            activityId: activity.activityId,
+            content: activity.content,
+            aiRecommended: activity.aiRecommended
+        )
+
+        // HomeInfo 업데이트
+        if var homeInfo = viewModel.homeInfo {
+            let updatedHomeInfo = HomeInfo(
+                inProgressHobbies: homeInfo.inProgressHobbies,
+                activityPreview: activityPreview,
+                totalStickerNum: homeInfo.totalStickerNum,
+                activityRecordedToday: homeInfo.activityRecordedToday,
+                aiCallRemaining: homeInfo.aiCallRemaining,
+                collectedStickers: homeInfo.collectedStickers
+            )
+
+            viewModel.homeInfo = updatedHomeInfo
+            homeView.updateActivityPreview(activityPreview)
+
+            print("✅ 활동 선택 완료: \(activity.content)")
+        }
     }
 
     private func showActivityList() {
