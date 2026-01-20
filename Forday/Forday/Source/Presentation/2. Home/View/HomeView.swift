@@ -353,7 +353,7 @@ extension HomeView {
     }
 
     func updateStickerCount(_ count: Int) {
-        stickerTitleLabel.text = "현재까지 \(count)"
+        stickerTitleLabel.text = "현재까지 \(count)개의 스티커 수집"
     }
 }
 
