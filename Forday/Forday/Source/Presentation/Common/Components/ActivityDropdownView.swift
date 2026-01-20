@@ -17,6 +17,7 @@ class ActivityDropdownView: UIView {
     private let tableView = UITableView()
     
     private var activities: [Activity] = []
+    private var selectedIndexPath: IndexPath?
     var onActivitySelected: ((Activity) -> Void)?
     
     // Initialization
@@ -41,11 +42,9 @@ extension ActivityDropdownView {
         backgroundColor = .systemBackground
         layer.cornerRadius = 12
         layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.15
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.shadowRadius = 8
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.systemGray5.cgColor
+        layer.shadowOpacity = 0.12
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 12
         
         tableView.do {
             $0.backgroundColor = .clear
@@ -54,7 +53,6 @@ extension ActivityDropdownView {
             $0.isScrollEnabled = true
             $0.bounces = false
             $0.showsVerticalScrollIndicator = false
-            $0.layer.cornerRadius = 12
             $0.clipsToBounds = true
         }
     }
@@ -125,7 +123,8 @@ extension ActivityDropdownView: UITableViewDataSource {
         }
         
         let activity = activities[indexPath.row]
-        cell.configure(with: activity)
+        let isSelected = indexPath == selectedIndexPath
+        cell.configure(with: activity, isSelected: isSelected)
         
         return cell
     }
@@ -139,7 +138,13 @@ extension ActivityDropdownView: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+        // 이전 선택 셀 해제
+        if let previousIndexPath = selectedIndexPath {
+            tableView.cellForRow(at: previousIndexPath)?.isSelected = false
+        }
+        
+        // 새로운 선택 셀 업데이트
+        selectedIndexPath = indexPath
         
         let selectedActivity = activities[indexPath.row]
         onActivitySelected?(selectedActivity)
@@ -155,6 +160,7 @@ class ActivityDropdownCell: UITableViewCell {
     private let stackView = UIStackView()
     private let activityLabel = UILabel()
     private let aiRecommendImage = UIImageView()
+    private let selectedBackgroundContainerView = UIView()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -167,6 +173,14 @@ class ActivityDropdownCell: UITableViewCell {
     
     private func setupUI() {
         backgroundColor = .clear
+        selectionStyle = .none
+        
+        // 선택 배경 뷰 설정
+        selectedBackgroundContainerView.do {
+            $0.backgroundColor = .neutral100
+            $0.layer.cornerRadius = 8
+            $0.isHidden = true
+        }
         
         stackView.do {
             $0.axis = .horizontal
@@ -183,10 +197,16 @@ class ActivityDropdownCell: UITableViewCell {
             $0.contentMode = .scaleAspectFit
         }
         
+        contentView.addSubview(selectedBackgroundContainerView)
         contentView.addSubview(stackView)
         
         stackView.addArrangedSubview(aiRecommendImage)
         stackView.addArrangedSubview(activityLabel)
+        
+        selectedBackgroundContainerView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(8)
+            $0.top.bottom.equalToSuperview().inset(4)
+        }
         
         stackView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
@@ -194,12 +214,29 @@ class ActivityDropdownCell: UITableViewCell {
         }
         
         aiRecommendImage.snp.makeConstraints {
-            $0.width.height.equalTo(20)  // 20x20
+            $0.width.height.equalTo(20)
         }
-        
     }
     
-    func configure(with activity: Activity) {
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+        
+        updateSelectionUI(selected: selected)
+    }
+    
+    private func updateSelectionUI(selected: Bool) {
+        if selected {
+            selectedBackgroundContainerView.isHidden = false
+            activityLabel.applyTypography(.header14)
+            activityLabel.textColor = .neutral800
+        } else {
+            selectedBackgroundContainerView.isHidden = true
+            activityLabel.applyTypography(.body14)
+            activityLabel.textColor = .neutral500
+        }
+    }
+    
+    func configure(with activity: Activity, isSelected: Bool) {
         activityLabel.text = activity.content
 
         if activity.aiRecommended {
@@ -208,7 +245,11 @@ class ActivityDropdownCell: UITableViewCell {
         } else {
             aiRecommendImage.isHidden = true
         }
-    }}
+        
+        // 선택 상태 적용
+        updateSelectionUI(selected: isSelected)
+    }
+}
 
 #Preview {
     let activities = [
