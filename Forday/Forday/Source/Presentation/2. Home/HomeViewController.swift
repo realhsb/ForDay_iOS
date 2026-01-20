@@ -20,6 +20,10 @@ class HomeViewController: UIViewController {
     
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
+
+    // Dropdown
+    private var dropdownBackgroundView: UIView?
+    private var activityDropdownView: ActivityDropdownView?
     
     // Lifecycle
     
@@ -166,12 +170,15 @@ extension HomeViewController {
     }
 
     private func showActivityDropdown() {
+        // 기존 드롭다운이 있으면 먼저 제거
+        dismissActivityDropdown()
+
         Task {
             do {
                 let activities = try await viewModel.fetchActivityList()
 
                 await MainActor.run {
-                    self.showDropdownView(activities: activities)
+                    self.presentActivityDropdown(activities: activities)
                 }
             } catch {
                 await MainActor.run {
@@ -181,44 +188,51 @@ extension HomeViewController {
         }
     }
 
-    private func showDropdownView(activities: [Activity]) {
-        // Create transparent background for dismissal
+    private func presentActivityDropdown(activities: [Activity]) {
+        // 투명 배경 생성
         let backgroundView = UIView()
         backgroundView.backgroundColor = .clear
-        backgroundView.tag = 9998
         view.addSubview(backgroundView)
 
         backgroundView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissDropdownFromBackground))
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissActivityDropdown)
+        )
         backgroundView.addGestureRecognizer(tapGesture)
 
-        // Create and show dropdown
+        // 드롭다운 생성
         let dropdownView = ActivityDropdownView(activities: activities)
-        dropdownView.tag = 9999
         dropdownView.onActivitySelected = { [weak self] activity in
             self?.selectActivity(activity)
         }
 
-        // Show dropdown below activityDropdownButton
+        // 드롭다운 표시
         dropdownView.show(in: view, below: homeView.activityDropdownButton)
+
+        // 프로퍼티에 참조 저장
+        self.dropdownBackgroundView = backgroundView
+        self.activityDropdownView = dropdownView
     }
 
-    @objc private func dismissDropdownFromBackground() {
-        // Remove background
-        view.subviews.filter { $0.tag == 9998 }.forEach { $0.removeFromSuperview() }
+    @objc private func dismissActivityDropdown() {
+        // 드롭다운 애니메이션으로 닫기
+        activityDropdownView?.dismiss()
 
-        // Dismiss dropdown
-        view.subviews.filter { $0.tag == 9999 }.forEach {
-            ($0 as? ActivityDropdownView)?.dismiss()
-        }
+        // 배경 제거
+        dropdownBackgroundView?.removeFromSuperview()
+
+        // 참조 해제
+        activityDropdownView = nil
+        dropdownBackgroundView = nil
     }
 
     private func selectActivity(_ activity: Activity) {
-        // Dismiss dropdown and background
-        dismissDropdownFromBackground()
+        // 드롭다운 닫기
+        dismissActivityDropdown()
 
         // ActivityPreview 객체 생성
         let activityPreview = ActivityPreview(
