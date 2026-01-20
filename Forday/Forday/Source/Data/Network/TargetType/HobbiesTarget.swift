@@ -15,6 +15,7 @@ enum HobbiesTarget {
     case fetchOthersActivities(hobbyId: Int)
     case fetchAIRecommendations(hobbyId: Int)
     case fetchActivityList(hobbyId: Int)
+    case fetchActivityDropdownList(hobbyId: Int, size: Int?)
     case createActivities(hobbyId: Int, request: DTO.CreateActivitiesRequest)
     case updateActivity(activityId: Int, request: DTO.UpdateActivityRequest)
     case deleteActivity(activityId: Int)
@@ -26,18 +27,21 @@ extension HobbiesTarget: BaseTargetType {
         switch self {
         case .createHobby(_):
             return HobbiesAPI.createHobby.endpoint
-
+            
         case .fetchHomeInfo:
             return HobbiesAPI.fetchHomeInfo.endpoint
-
+            
         case .fetchOthersActivities:
             return HobbiesAPI.fetchOthersActivities.endpoint
-
+            
         case .fetchAIRecommendations:
             return HobbiesAPI.fetchAIRecommendations.endpoint
             
         case .fetchActivityList(let hobbyId):
             return HobbiesAPI.fetchActivityList(hobbyId).endpoint
+            
+        case .fetchActivityDropdownList(let hobbyId, _):
+            return HobbiesAPI.fetchAcitvityDropdownList(hobbyId).endpoint
             
         case .createActivities(let hobbyId, _):
             return HobbiesAPI.createActivities(hobbyId).endpoint
@@ -62,6 +66,8 @@ extension HobbiesTarget: BaseTargetType {
             return .get
         case .fetchActivityList:
             return .get
+        case .fetchActivityDropdownList:
+            return .get
         case .createActivities:
             return .post
         case .updateActivity:
@@ -73,10 +79,10 @@ extension HobbiesTarget: BaseTargetType {
     
     var task: Moya.Task {
         switch self {
-
+            
         case .createHobby(let request):
             return .requestJSONEncodable(request)
-
+            
         case .fetchHomeInfo(let hobbyId):
             if let hobbyId = hobbyId {
                 return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
@@ -86,12 +92,21 @@ extension HobbiesTarget: BaseTargetType {
             
         case .fetchOthersActivities(let hobbyId):
             return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
-
-        case .fetchAIRecommendations(let hobbtId):
-            return .requestParameters(parameters: ["hobbyId": hobbtId], encoding: URLEncoding.queryString)
             
+        case .fetchAIRecommendations(let hobbyId):
+            return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
             
-        case .fetchActivityList, .deleteActivity:
+        case .fetchActivityList:
+            return .requestPlain
+        
+        case .fetchActivityDropdownList(_, let size):
+            if let size = size {
+                return .requestParameters(parameters: ["size": size], encoding: URLEncoding.queryString)
+            } else {
+                return .requestPlain
+            }
+            
+        case .deleteActivity:
             return .requestPlain
             
         case .createActivities(_, let request):
