@@ -11,11 +11,7 @@ extension DTO {
     struct PresignedUrlResponse: BaseResponse {
         let status: Int
         let success: Bool
-        let data: PresignedUrlData
-    }
-
-    struct PresignedUrlData: Codable {
-        let images: [PresignedUrlInfo]
+        let data: [PresignedUrlInfo]
     }
 
     struct PresignedUrlInfo: Codable {
@@ -27,7 +23,7 @@ extension DTO {
 
 extension DTO.PresignedUrlResponse {
     func toDomain() -> [ImageUploadInfo] {
-        return data.images.map { info in
+        return data.map { info in
             ImageUploadInfo(
                 uploadUrl: info.uploadUrl,
                 fileUrl: info.fileUrl,
