@@ -11,6 +11,7 @@ import Foundation
 protocol AppRepositoryInterface {
     func fetchAppMetadata() async throws -> AppMetadata
     func fetchPresignedUrl(images: [ImageInput]) async throws -> [ImageUploadInfo]
+    func deleteImage(imageUrl: String) async throws -> String
 }
 
 final class AppRepository: AppRepositoryInterface {
@@ -47,6 +48,12 @@ final class AppRepository: AppRepositoryInterface {
         }
         let request = DTO.PresignedUrlRequest(images: dtoImages)
         let response = try await appService.fetchPresignedUrl(request: request)
+        return response.toDomain()
+    }
+
+    func deleteImage(imageUrl: String) async throws -> String {
+        let request = DTO.DeleteImageRequest(imageUrl: imageUrl)
+        let response = try await appService.deleteImage(request: request)
         return response.toDomain()
     }
     

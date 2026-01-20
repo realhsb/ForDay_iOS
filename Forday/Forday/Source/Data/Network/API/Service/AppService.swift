@@ -28,4 +28,9 @@ final class AppService {
         return try await provider.request(.fetchPresignedUrl(request: request))
     }
 
+    // MARK: - S3 임시 이미지 삭제
+
+    func deleteImage(request: DTO.DeleteImageRequest) async throws -> DTO.DeleteImageResponse {
+        return try await provider.request(.deleteImage(request: request))
+    }
 }
