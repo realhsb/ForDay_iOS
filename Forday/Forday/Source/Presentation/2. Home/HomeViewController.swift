@@ -20,6 +20,10 @@ class HomeViewController: UIViewController {
     
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
+
+    // Dropdown
+    private var dropdownBackgroundView: UIView?
+    private var activityDropdownView: ActivityDropdownView?
     
     // Lifecycle
     
@@ -59,21 +63,28 @@ extension HomeViewController {
             action: #selector(hobbyDropdownTapped),
             for: .touchUpInside
         )
-        
+
         // 알림 버튼
         homeView.notificationButton.addTarget(
             self,
             action: #selector(notificationTapped),
             for: .touchUpInside
         )
-        
+
         // 나의 취미활동 쉐브론
         homeView.myActivityChevronButton.addTarget(
             self,
             action: #selector(myActivityChevronTapped),
             for: .touchUpInside
         )
-        
+
+        // 활동 드롭다운 버튼
+        homeView.activityDropdownButton.addTarget(
+            self,
+            action: #selector(activityDropdownTapped),
+            for: .touchUpInside
+        )
+
         // 취미활동 추가하기 버튼
         homeView.addActivityButton.addTarget(
             self,
@@ -113,15 +124,25 @@ extension HomeViewController {
     }
 
     private func updateUI(with homeInfo: HomeInfo?) {
-        guard let homeInfo = homeInfo,
-              let firstHobby = homeInfo.inProgressHobbies.first else {
+        guard let homeInfo = homeInfo else {
             return
         }
 
+        // currentHobby가 true인 취미 찾기
+        let currentHobby = homeInfo.inProgressHobbies.first { $0.currentHobby }
+
         // 취미 이름 업데이트
-        var config = homeView.hobbyDropdownButton.configuration
-        config?.title = firstHobby.hobbyName
-        homeView.hobbyDropdownButton.configuration = config
+        if let currentHobby = currentHobby {
+            var config = homeView.hobbyDropdownButton.configuration
+            config?.title = currentHobby.hobbyName
+            homeView.hobbyDropdownButton.configuration = config
+        }
+
+        // 활동 미리보기 업데이트
+        homeView.updateActivityPreview(homeInfo.activityPreview)
+
+        // 스티커 개수 업데이트
+        homeView.updateStickerCount(homeInfo.totalStickerNum)
     }
 }
 
@@ -143,6 +164,101 @@ extension HomeViewController {
         showActivityList()
     }
 
+    @objc private func activityDropdownTapped() {
+        print("활동 드롭다운 탭")
+        showActivityDropdown()
+    }
+
+    private func showActivityDropdown() {
+        // 기존 드롭다운이 있으면 먼저 제거
+        dismissActivityDropdown()
+
+        Task {
+            do {
+                let activities = try await viewModel.fetchActivityList()
+
+                await MainActor.run {
+                    self.presentActivityDropdown(activities: activities)
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ 활동 목록 로드 실패: \(error)")
+                }
+            }
+        }
+    }
+
+    private func presentActivityDropdown(activities: [Activity]) {
+        // 투명 배경 생성
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .clear
+        view.addSubview(backgroundView)
+
+        backgroundView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissActivityDropdown)
+        )
+        backgroundView.addGestureRecognizer(tapGesture)
+
+        // 드롭다운 생성
+        let dropdownView = ActivityDropdownView(activities: activities)
+        dropdownView.onActivitySelected = { [weak self] activity in
+            self?.selectActivity(activity)
+        }
+
+        // 드롭다운 표시
+        dropdownView.show(in: view, below: homeView.activityDropdownButton)
+
+        // 프로퍼티에 참조 저장
+        self.dropdownBackgroundView = backgroundView
+        self.activityDropdownView = dropdownView
+    }
+
+    @objc private func dismissActivityDropdown() {
+        // 드롭다운 애니메이션으로 닫기
+        activityDropdownView?.dismiss()
+
+        // 배경 제거
+        dropdownBackgroundView?.removeFromSuperview()
+
+        // 참조 해제
+        activityDropdownView = nil
+        dropdownBackgroundView = nil
+    }
+
+    private func selectActivity(_ activity: Activity) {
+        // 드롭다운 닫기
+        dismissActivityDropdown()
+
+        // ActivityPreview 객체 생성
+        let activityPreview = ActivityPreview(
+            activityId: activity.activityId,
+            content: activity.content,
+            aiRecommended: activity.aiRecommended
+        )
+
+        // HomeInfo 업데이트
+        if var homeInfo = viewModel.homeInfo {
+            let updatedHomeInfo = HomeInfo(
+                inProgressHobbies: homeInfo.inProgressHobbies,
+                activityPreview: activityPreview,
+                totalStickerNum: homeInfo.totalStickerNum,
+                activityRecordedToday: homeInfo.activityRecordedToday,
+                aiCallRemaining: homeInfo.aiCallRemaining,
+                collectedStickers: homeInfo.collectedStickers
+            )
+
+            viewModel.homeInfo = updatedHomeInfo
+            homeView.updateActivityPreview(activityPreview)
+
+            print("✅ 활동 선택 완료: \(activity.content)")
+        }
+    }
+
     private func showActivityList() {
         // 현재 취미 ID 가져오기
         guard let hobbyId = viewModel.currentHobbyId else {
@@ -155,8 +271,16 @@ extension HomeViewController {
     }
     
     @objc private func addActivityButtonTapped() {
-        print("취미활동 추가하기 탭")
-        showActivityInput()
+        // activityPreview 유무에 따라 다른 동작
+        if viewModel.homeInfo?.activityPreview != nil {
+            // 스티커 붙이기
+            print("오늘의 스티커 붙이기 탭")
+            // TODO: 스티커 붙이기 API 연동
+        } else {
+            // 취미활동 추가하기
+            print("취미활동 추가하기 탭")
+            showActivityInput()
+        }
     }
 
     private func showActivityInput() {

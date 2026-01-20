@@ -59,6 +59,20 @@ final class ActivityRepository: ActivityRepositoryInterface {
             #endif
         }
     }
+
+    func fetchActivityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> [Activity] {
+        do {
+            let response = try await activityService.fetchActivityDropdownList(hobbyId: hobbyId, size: size)
+            return response.toDomain()
+        } catch {
+            #if DEBUG
+            print("⚠️ 활동 드롭다운 목록 API 실패 - 목 데이터 사용")
+            return makeMockActivityList()
+            #else
+            throw error
+            #endif
+        }
+    }
     
     func createActivities(hobbyId: Int, activities: [ActivityInput]) async throws -> String {
         let dtoActivities = activities.map {

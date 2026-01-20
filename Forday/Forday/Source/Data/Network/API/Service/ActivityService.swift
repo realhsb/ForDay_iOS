@@ -9,9 +9,6 @@
 import Foundation
 import Moya
 
-import Foundation
-import Moya
-
 final class ActivityService {
 
     private let provider: MoyaProvider<HobbiesTarget>
@@ -48,6 +45,12 @@ final class ActivityService {
 
     func fetchActivityList(hobbyId: Int) async throws -> DTO.ActivityListResponse {
         return try await provider.request(.fetchActivityList(hobbyId: hobbyId))
+    }
+    
+    // MARK: - (드롭다운용) 특정 취미의 활동 목록 조회
+
+    func fetchActivityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> DTO.ActivityDropdownListResponse {
+        return try await provider.request(.fetchActivityDropdownList(hobbyId: hobbyId, size: size))
     }
     
     // MARK: - 활동 생성

@@ -15,6 +15,8 @@ class HomeView: UIView {
     
     // Properties
     
+    private let backgroundImageView = UIImageView()
+    
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
@@ -25,8 +27,6 @@ class HomeView: UIView {
     
     // Banner
     private let bannerView = UIView()
-    private let bannerLabel = UILabel()
-    private let bannerIconImageView = UIImageView()
     
     // My Activity Section
     private let myActivitySectionView = UIView()
@@ -36,6 +36,7 @@ class HomeView: UIView {
     // Activity Card
     let activityCardView = UIView()
     let emptyActivityLabel = UILabel()
+    let activityDropdownButton = UIButton()
     let addActivityButton = UIButton()
     
     // Sticker Collection Section
@@ -62,13 +63,18 @@ extension HomeView {
     private func style() {
         backgroundColor = .systemBackground
         
+        backgroundImageView.do {
+            $0.image = .App.background
+            $0.contentMode = .scaleAspectFill
+        }
+        
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
         }
         
         // Header
         headerView.do {
-            $0.backgroundColor = UIColor(red: 1.0, green: 0.95, blue: 0.9, alpha: 1.0) // 연한 주황
+            $0.backgroundColor = .clear
         }
         
         hobbyDropdownButton.do {
@@ -98,19 +104,6 @@ extension HomeView {
             $0.layer.shadowRadius = 4
         }
         
-        bannerLabel.do {
-            $0.text = "14일은 취미가 되기 시작하는\n횟수래요🍊 앞으로도 화이팅!"
-            $0.font = .systemFont(ofSize: 14, weight: .medium)
-            $0.textColor = .label
-            $0.numberOfLines = 0
-        }
-        
-        bannerIconImageView.do {
-            $0.image = .Icon.my
-            $0.tintColor = .label
-            $0.contentMode = .scaleAspectFit
-        }
-        
         // My Activity Section
         myActivityTitleLabel.do {
             $0.setTextWithTypography("나의 취미활동", style: .header16)
@@ -138,37 +131,62 @@ extension HomeView {
             $0.setTextWithTypography("등록된 취미활동이 없어요.", style: .body14)
             $0.textColor = .neutral600
             $0.textAlignment = .center
+            $0.isHidden = true // 기본적으로 숨김
         }
-        
+
+        activityDropdownButton.do {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(systemName: "chevron.down")
+            config.imagePlacement = .trailing
+            config.imagePadding = 8
+            config.baseForegroundColor = .label
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+                var outgoing = incoming
+                outgoing.font = .systemFont(ofSize: 16, weight: .medium)
+                return outgoing
+            }
+            $0.configuration = config
+            $0.contentHorizontalAlignment = .leading
+            $0.isHidden = true // 기본적으로 숨김
+        }
+
         addActivityButton.do {
             var config = UIButton.Configuration.filled()
             config.baseBackgroundColor = .primary003
             config.baseForegroundColor = .action001
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0)
-            
+
             $0.configuration = config
             $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
         }
         
         // Sticker Section
+        stickerSectionView.do {
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 20
+            $0.layer.shadowColor = UIColor.neutralBlack.cgColor
+            
+        }
+        
         stickerTitleLabel.do {
-            $0.text = "현재까지 1"
-            $0.font = .systemFont(ofSize: 16, weight: .bold)
-            $0.textColor = .label
+            $0.text = "현재까지 000개의 스티커 수집"
+            $0.applyTypography(.header14)
+            $0.textColor = .neutral900
         }
         
         stickerGridView.do {
-            $0.backgroundColor = .white
-            $0.layer.cornerRadius = 12
-            $0.layer.shadowColor = UIColor.black.cgColor
-            $0.layer.shadowOpacity = 0.05
-            $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-            $0.layer.shadowRadius = 4
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 16
+            $0.layer.borderColor = UIColor.stroke001.cgColor
+            $0.layer.borderWidth = 1
         }
     }
     
     private func layout() {
+        contentView.insertSubview(backgroundImageView, at: 0)
+        
         addSubview(contentView)
 //        scrollView.addSubview(contentView)
         
@@ -182,21 +200,26 @@ extension HomeView {
         headerView.addSubview(hobbyDropdownButton)
         headerView.addSubview(notificationButton)
         
-        // Banner
-        bannerView.addSubview(bannerLabel)
-        bannerView.addSubview(bannerIconImageView)
-        
         // My Activity Section
         myActivitySectionView.addSubview(myActivityTitleLabel)
         myActivitySectionView.addSubview(myActivityChevronButton)
         
         // Activity Card
         activityCardView.addSubview(emptyActivityLabel)
+        activityCardView.addSubview(activityDropdownButton)
         activityCardView.addSubview(addActivityButton)
         
         // Sticker Section
         stickerSectionView.addSubview(stickerTitleLabel)
         stickerSectionView.addSubview(stickerGridView)
+        
+        backgroundImageView.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            // safe area 포함 세로 길이 - 66*2
+            $0.width.height.equalTo(UIScreen.main.bounds.height)
+        }
+        
+        contentView.clipsToBounds = true
         
         // ContentView
         contentView.snp.makeConstraints {
@@ -227,20 +250,6 @@ extension HomeView {
             $0.trailing.equalToSuperview().offset(-20)
         }
         
-        bannerLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(25)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalTo(bannerIconImageView.snp.leading).offset(-10)
-            $0.bottom.equalToSuperview().offset(-33)
-        }
-        
-        bannerIconImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(120)
-            $0.bottom.equalToSuperview()
-        }
-        
         // My Activity Section
         myActivitySectionView.snp.makeConstraints {
             $0.top.equalTo(bannerView.snp.bottom).offset(25)
@@ -268,7 +277,12 @@ extension HomeView {
             $0.top.equalToSuperview().offset(24)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
+        activityDropdownButton.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(20)
+            $0.leading.trailing.equalToSuperview().inset(20)
+        }
+
         addActivityButton.snp.makeConstraints {
             $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(20)
@@ -278,20 +292,68 @@ extension HomeView {
         
         // Sticker Section
         stickerSectionView.snp.makeConstraints {
-            $0.top.equalTo(activityCardView.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(activityCardView.snp.bottom).offset(20)
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
         }
         
         stickerTitleLabel.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
+            $0.top.equalToSuperview().offset(40)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         stickerGridView.snp.makeConstraints {
             $0.top.equalTo(stickerTitleLabel.snp.bottom).offset(12)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.leading.trailing.bottom.equalToSuperview().inset(20)
             $0.height.equalTo(200) // 임시
         }
+    }
+}
+
+// Public Methods
+
+extension HomeView {
+    func updateActivityPreview(_ activityPreview: ActivityPreview?) {
+        if let preview = activityPreview {
+            // 활동이 있는 경우
+            emptyActivityLabel.isHidden = true
+            activityDropdownButton.isHidden = false
+
+            // 드롭다운 버튼 텍스트 설정
+            var config = activityDropdownButton.configuration
+            config?.title = preview.content
+            activityDropdownButton.configuration = config
+
+            // 버튼 텍스트 변경
+            addActivityButton.setTitleWithTypography("오늘의 스티커 붙이기", style: .header14)
+
+            // addActivityButton 제약 조건 업데이트 (activityDropdownButton 기준)
+            addActivityButton.snp.remakeConstraints {
+                $0.top.equalTo(activityDropdownButton.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
+        } else {
+            // 활동이 없는 경우
+            emptyActivityLabel.isHidden = false
+            activityDropdownButton.isHidden = true
+
+            // 버튼 텍스트 복원
+            addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+
+            // addActivityButton 제약 조건 복원 (emptyActivityLabel 기준)
+            addActivityButton.snp.remakeConstraints {
+                $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
+        }
+    }
+
+    func updateStickerCount(_ count: Int) {
+        stickerTitleLabel.text = "현재까지 \(count)개의 스티커 수집"
     }
 }
 
