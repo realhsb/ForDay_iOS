@@ -19,7 +19,7 @@ class ActivityWriteViewModel {
     @Published var memo: String = ""
     @Published var privacy: Privacy = .public
     @Published var isSubmitEnabled: Bool = false
-    
+    @Published var activities: [Activity] = []
     // Mock Data
     let stickers: [Sticker] = [
         Sticker(id: 1, image: .My.red),
@@ -30,6 +30,7 @@ class ActivityWriteViewModel {
     
     private var cancellables = Set<AnyCancellable>()
     
+    private let fetchActivityListUseCase: FetchActivityDropdownListUseCase
     // Initialization
     
     init() {
@@ -48,6 +49,17 @@ class ActivityWriteViewModel {
     
     func selectSticker(_ sticker: Sticker) {
         selectedSticker = sticker
+    }
+
+    func fetchActivityList() async throws {
+        let fetchedActivities = try await fetchActivityListUseCase.execute(hobbyId: hobbyId)
+        await MainActor.run {
+            self.activities = fetchedActivities
+        }
+    }
+
+    func selectActivity(_ activity: Activity) {
+        selectedActivity = activity
     }
 }
 

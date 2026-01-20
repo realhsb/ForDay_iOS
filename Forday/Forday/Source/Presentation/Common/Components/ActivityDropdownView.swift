@@ -78,11 +78,12 @@ extension ActivityDropdownView {
 extension ActivityDropdownView {
     func show(in parentView: UIView, below sourceView: UIView) {
         parentView.addSubview(self)
-        
-        // Calculate actual height based on content
+
+        // Calculate actual height based on content (최대 5개까지만 보이고, 6개 이상이면 스크롤)
         let rowHeight: CGFloat = 48
-        let totalHeight = min(CGFloat(activities.count) * rowHeight, 300)
-        
+        let maxVisibleRows: CGFloat = 5
+        let totalHeight = min(CGFloat(activities.count) * rowHeight, maxVisibleRows * rowHeight)
+
         self.snp.makeConstraints {
             $0.top.equalTo(sourceView.snp.bottom).offset(8)
             $0.centerX.equalTo(sourceView)

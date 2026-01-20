@@ -16,10 +16,21 @@ class ActivityWriteViewController: UIViewController {
     private let writeView = ActivityWriteView()
     private let viewModel = ActivityWriteViewModel()
     private var cancellables = Set<AnyCancellable>()
-    
+    private var activityDropdownView: ActivityDropdownView?
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
-    
+
+    // Initialization
+
+    init(hobbyId: Int) {
+        self.viewModel = ActivityWriteViewModel(hobbyId: hobbyId)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // Lifecycle
     
     override func loadView() {
@@ -31,6 +42,7 @@ class ActivityWriteViewController: UIViewController {
         setupNavigationBar()
         setupActions()
         bind()
+        fetchActivities()
     }
 }
 
@@ -55,22 +67,34 @@ extension ActivityWriteViewController {
         // 스티커 선택
         writeView.stickerCollectionView.delegate = self
         writeView.stickerCollectionView.dataSource = self
-        
+
+        // 활동 드롭다운 버튼
+        writeView.activityDropdownButton.addTarget(
+            self,
+            action: #selector(activityDropdownButtonTapped),
+            for: .touchUpInside
+        )
+
         // 사진 추가
         writeView.photoAddButton.addTarget(
             self,
             action: #selector(photoAddButtonTapped),
             for: .touchUpInside
         )
-        
+
         // 작성완료 버튼
         writeView.submitButton.addTarget(
             self,
             action: #selector(submitButtonTapped),
             for: .touchUpInside
         )
+
+        // 배경 탭하여 드롭다운 닫기
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
-    
+
     private func bind() {
         // 활동 선택
         viewModel.$selectedActivity
@@ -95,6 +119,15 @@ extension ActivityWriteViewController {
             }
             .store(in: &cancellables)
     }
+
+    private func fetchActivities() {
+        Task {
+            do {
+                try await viewModel.fetchActivityList()
+            } catch {
+                print("❌ 활동 목록 로드 실패: \(error)")
+            }
+        }
     }
 }
 
@@ -104,7 +137,19 @@ extension ActivityWriteViewController {
     @objc private func closeButtonTapped() {
         dismiss(animated: true)
     }
-    
+
+    @objc private func activityDropdownButtonTapped() {
+        if activityDropdownView != nil {
+            dismissActivityDropdown()
+        } else {
+            showActivityDropdown()
+        }
+    }
+
+    @objc private func backgroundTapped() {
+        dismissActivityDropdown()
+    }
+
     @objc private func photoAddButtonTapped() {
         // 이미지가 이미 선택된 경우 삭제 버튼이 눌린 것
         if viewModel.selectedImage != nil {
@@ -113,12 +158,31 @@ extension ActivityWriteViewController {
             presentPhotoPicker()
         }
     }
-    
+
     @objc private func submitButtonTapped() {
         // TODO: 활동 저장
         print("작성완료 탭")
         dismiss(animated: true)
     }
+
+    private func showActivityDropdown() {
+        guard activityDropdownView == nil else { return }
+
+        let dropdown = ActivityDropdownView(activities: viewModel.activities)
+        dropdown.onActivitySelected = { [weak self] activity in
+            self?.viewModel.selectActivity(activity)
+            self?.dismissActivityDropdown()
+        }
+
+        dropdown.show(in: view, below: writeView.activityDropdownButton)
+        activityDropdownView = dropdown
+    }
+
+    private func dismissActivityDropdown() {
+        activityDropdownView?.dismiss()
+        activityDropdownView = nil
+    }
+
     private func presentPhotoPicker() {
         var configuration = PHPickerConfiguration()
         configuration.selectionLimit = 1
