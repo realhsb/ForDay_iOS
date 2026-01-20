@@ -23,6 +23,8 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return AppAPI.fetchAppMetadata.endpoint
+        case .fetchPresignedUrl:
+            return AppAPI.fetchPresignedUrl.endpoint
         }
     }
     
@@ -30,6 +32,8 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return .get
+        case .fetchPresignedUrl:
+            return .post
         }
     }
     
@@ -37,6 +41,8 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return .requestPlain
+        case .fetchPresignedUrl(let request):
+            return .requestJSONEncodable(request)
         }
     }
 }

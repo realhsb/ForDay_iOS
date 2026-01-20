@@ -18,8 +18,8 @@ enum AppAPI {
             return "/app/metadata"
             
         case .fetchPresignedUrl:
-            return ""
-            
+            return "/app/presign"
+
         case .fetchAlarm:
             return ""
         }

@@ -21,4 +21,11 @@ final class AppService {
     func fetchAppMetadata() async throws -> DTO.MetadataResponse {
         return try await provider.request(.fetchAppMetadata)
     }
+
+    // MARK: - Presigned URL 발급
+
+    func fetchPresignedUrl(request: DTO.PresignedUrlRequest) async throws -> DTO.PresignedUrlResponse {
+        return try await provider.request(.fetchPresignedUrl(request: request))
+    }
+
 }
