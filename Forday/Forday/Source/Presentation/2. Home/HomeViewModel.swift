@@ -25,18 +25,18 @@ class HomeViewModel {
     // UseCase
     private let fetchHomeInfoUseCase: FetchHomeInfoUseCase
     private let fetchAIRecommendationsUseCase: FetchAIRecommendationsUseCase
-    private let fetchActivityListUseCase: FetchActivityListUseCase
+    private let fetchActivityDropdownListUseCase: FetchActivityDropdownListUseCase
 
     // Initialization
 
     init(
         fetchHomeInfoUseCase: FetchHomeInfoUseCase = FetchHomeInfoUseCase(),
         fetchAIRecommendationsUseCase: FetchAIRecommendationsUseCase = FetchAIRecommendationsUseCase(),
-        fetchActivityListUseCase: FetchActivityListUseCase = FetchActivityListUseCase()
+        fetchActivityDropdownListUseCase: FetchActivityDropdownListUseCase = FetchActivityDropdownListUseCase()
     ) {
         self.fetchHomeInfoUseCase = fetchHomeInfoUseCase
         self.fetchAIRecommendationsUseCase = fetchAIRecommendationsUseCase
-        self.fetchActivityListUseCase = fetchActivityListUseCase
+        self.fetchActivityDropdownListUseCase = fetchActivityDropdownListUseCase
     }
     
     // Methods
@@ -81,26 +81,18 @@ class HomeViewModel {
         }
     }
 
-    func fetchActivityList() async throws -> [Activity] {
+    func fetchActivityList(size: Int? = 5) async throws -> [Activity] {
         guard let hobbyId = currentHobbyId else {
             throw NSError(domain: "HomeViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "취미 정보 없음"])
         }
 
-        let activities = try await fetchActivityListUseCase.execute(hobbyId: hobbyId)
+        let activities = try await fetchActivityDropdownListUseCase.execute(hobbyId: hobbyId, size: size)
 
         await MainActor.run {
             self.activities = activities
-            print("✅ 활동 목록 로드 완료: \(activities.count)개")
+            print("✅ 활동 드롭다운 목록 로드 완료: \(activities.count)개")
         }
 
         return activities
     }
 }
-
-// MARK: - Models
-
-//struct Activity {
-//    let id: Int
-//    let name: String
-//    let isCompleted: Bool
-//}
