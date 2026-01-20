@@ -87,6 +87,14 @@ extension ActivityWriteViewController {
                 self?.writeView.setSubmitButtonEnabled(isEnabled)
             }
             .store(in: &cancellables)
+        // 선택된 이미지
+        viewModel.$selectedImage
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] image in
+                self?.updatePhotoButton(with: image)
+            }
+            .store(in: &cancellables)
+    }
     }
 }
 
@@ -98,14 +106,45 @@ extension ActivityWriteViewController {
     }
     
     @objc private func photoAddButtonTapped() {
-        // TODO: 사진 선택
-        print("사진 추가 탭")
+        // 이미지가 이미 선택된 경우 삭제 버튼이 눌린 것
+        if viewModel.selectedImage != nil {
+            deletePhoto()
+        } else {
+            presentPhotoPicker()
+        }
     }
     
     @objc private func submitButtonTapped() {
         // TODO: 활동 저장
         print("작성완료 탭")
         dismiss(animated: true)
+    }
+    private func presentPhotoPicker() {
+        var configuration = PHPickerConfiguration()
+        configuration.selectionLimit = 1
+        configuration.filter = .images
+
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func updatePhotoButton(with image: UIImage?) {
+        guard let image = image else {
+            // 이미지 없음 - 원래 상태로 복원
+            writeView.photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
+            writeView.photoAddButton.tintColor = .systemGray
+            writeView.photoAddButton.backgroundColor = .white
+            return
+        }
+
+        // 선택된 이미지 표시
+        writeView.photoAddButton.setImage(image, for: .normal)
+        writeView.photoAddButton.imageView?.contentMode = .scaleAspectFill
+        writeView.photoAddButton.tintColor = nil
+
+        // X 아이콘 추가
+        addDeleteIconToPhotoButton()
     }
 }
 
@@ -139,9 +178,37 @@ extension ActivityWriteViewController: UICollectionViewDelegate, UICollectionVie
     }
 }
 
-#Preview {
-    let nav = UINavigationController()
-    let vc = ActivityWriteViewController()
-    nav.setViewControllers([vc], animated: false)
-    return nav
+// PHPickerViewControllerDelegate
+
+extension ActivityWriteViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+
+        guard let result = results.first else { return }
+
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+            guard let self = self else { return }
+
+            if let error = error {
+                print("❌ 이미지 로드 실패: \(error)")
+                return
+            }
+
+            guard let image = object as? UIImage else {
+                print("❌ 이미지 변환 실패")
+                return
+            }
+
+            // 이미지 업로드
+            Task {
+                do {
+                    try await self.viewModel.uploadImage(image)
+                    print("✅ 이미지 업로드 성공")
+                } catch {
+                    print("❌ 이미지 업로드 실패: \(error)")
+                }
+            }
+        }
+    }
 }
+
