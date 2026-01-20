@@ -163,19 +163,24 @@ extension HomeView {
         }
         
         // Sticker Section
+        stickerSectionView.do {
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 20
+            $0.layer.shadowColor = UIColor.neutralBlack.cgColor
+            
+        }
+        
         stickerTitleLabel.do {
-            $0.text = "현재까지 1"
-            $0.font = .systemFont(ofSize: 16, weight: .bold)
-            $0.textColor = .label
+            $0.text = "현재까지 000개의 스티커 수집"
+            $0.applyTypography(.header14)
+            $0.textColor = .neutral900
         }
         
         stickerGridView.do {
-            $0.backgroundColor = .white
-            $0.layer.cornerRadius = 12
-            $0.layer.shadowColor = UIColor.black.cgColor
-            $0.layer.shadowOpacity = 0.05
-            $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-            $0.layer.shadowRadius = 4
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 16
+            $0.layer.borderColor = UIColor.stroke001.cgColor
+            $0.layer.borderWidth = 1
         }
     }
     
@@ -211,7 +216,7 @@ extension HomeView {
         backgroundImageView.snp.makeConstraints {
             $0.center.equalToSuperview()
             // safe area 포함 세로 길이 - 66*2
-            $0.width.height.equalTo(UIScreen.main.bounds.height)  
+            $0.width.height.equalTo(UIScreen.main.bounds.height)
         }
         
         contentView.clipsToBounds = true
@@ -287,18 +292,19 @@ extension HomeView {
         
         // Sticker Section
         stickerSectionView.snp.makeConstraints {
-            $0.top.equalTo(activityCardView.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(activityCardView.snp.bottom).offset(20)
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
         }
         
         stickerTitleLabel.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
+            $0.top.equalToSuperview().offset(40)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         stickerGridView.snp.makeConstraints {
             $0.top.equalTo(stickerTitleLabel.snp.bottom).offset(12)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.leading.trailing.bottom.equalToSuperview().inset(20)
             $0.height.equalTo(200) // 임시
         }
     }
