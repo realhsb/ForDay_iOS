@@ -115,6 +115,8 @@ extension ActivityWriteView {
             $0.tintColor = .systemGray
             $0.backgroundColor = .white
             $0.layer.cornerRadius = 8
+            $0.clipsToBounds = true
+            $0.imageView?.contentMode = .scaleAspectFill
         }
         
         memoTextField.do {

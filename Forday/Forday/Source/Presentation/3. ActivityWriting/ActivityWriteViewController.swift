@@ -8,15 +8,18 @@
 
 import UIKit
 import Combine
+import PhotosUI
+import SnapKit
 
 class ActivityWriteViewController: UIViewController {
-    
+
     // Properties
-    
+
     private let writeView = ActivityWriteView()
-    private let viewModel = ActivityWriteViewModel()
+    private let viewModel: ActivityWriteViewModel
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
+
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
 
@@ -32,11 +35,11 @@ class ActivityWriteViewController: UIViewController {
     }
 
     // Lifecycle
-    
+
     override func loadView() {
         view = writeView
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
@@ -103,7 +106,7 @@ extension ActivityWriteViewController {
                 self?.writeView.updateActivityTitle(activity?.content)
             }
             .store(in: &cancellables)
-        
+
         // 작성 완료 버튼 활성화
         viewModel.$isSubmitEnabled
             .receive(on: DispatchQueue.main)
@@ -111,6 +114,7 @@ extension ActivityWriteViewController {
                 self?.writeView.setSubmitButtonEnabled(isEnabled)
             }
             .store(in: &cancellables)
+
         // 선택된 이미지
         viewModel.$selectedImage
             .receive(on: DispatchQueue.main)
@@ -193,6 +197,16 @@ extension ActivityWriteViewController {
         present(picker, animated: true)
     }
 
+    private func deletePhoto() {
+        Task {
+            do {
+                try await viewModel.deleteImage()
+            } catch {
+                print("❌ 이미지 삭제 실패: \(error)")
+            }
+        }
+    }
+
     private func updatePhotoButton(with image: UIImage?) {
         guard let image = image else {
             // 이미지 없음 - 원래 상태로 복원
@@ -210,33 +224,58 @@ extension ActivityWriteViewController {
         // X 아이콘 추가
         addDeleteIconToPhotoButton()
     }
+
+    private func addDeleteIconToPhotoButton() {
+        // 기존 X 아이콘 제거
+        writeView.photoAddButton.subviews.forEach { view in
+            if view.tag == 999 {
+                view.removeFromSuperview()
+            }
+        }
+
+        let deleteButton = UIButton()
+        deleteButton.tag = 999
+        deleteButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        deleteButton.tintColor = .white
+        deleteButton.backgroundColor = .black.withAlphaComponent(0.6)
+        deleteButton.layer.cornerRadius = 10
+        deleteButton.clipsToBounds = true
+
+        writeView.photoAddButton.addSubview(deleteButton)
+
+        deleteButton.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(2)
+            $0.trailing.equalToSuperview().offset(-2)
+            $0.width.height.equalTo(20)
+        }
+    }
 }
 
 // UICollectionView
 
 extension ActivityWriteViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.stickers.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "StickerCell", for: indexPath) as? StickerCell else {
             return UICollectionViewCell()
         }
-        
+
         let sticker = viewModel.stickers[indexPath.item]
         cell.configure(with: sticker, isSelected: viewModel.selectedSticker == sticker)
-        
+
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let sticker = viewModel.stickers[indexPath.item]
         viewModel.selectSticker(sticker)
         collectionView.reloadData()
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: 64, height: 64)
     }
@@ -276,3 +315,9 @@ extension ActivityWriteViewController: PHPickerViewControllerDelegate {
     }
 }
 
+//#Preview {
+//    let nav = UINavigationController()
+//    let vc = ActivityWriteViewController()
+//    nav.setViewControllers([vc], animated: false)
+//    return nav
+//}

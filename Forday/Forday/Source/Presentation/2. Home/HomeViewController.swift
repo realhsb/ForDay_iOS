@@ -364,10 +364,16 @@ extension HomeViewController {
 
     func hideToast() {
         guard let window = view.window else { return }
-        
+
         window.subviews.filter { $0.tag == 9999 }.forEach {
             ($0 as? ToastView)?.hide()
         }
+    }
+
+    // Public Methods
+
+    func getCurrentHobbyId() -> Int? {
+        return viewModel.currentHobbyId
     }
 }
 
