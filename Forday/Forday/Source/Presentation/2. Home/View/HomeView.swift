@@ -15,6 +15,8 @@ class HomeView: UIView {
     
     // Properties
     
+    private let backgroundImageView = UIImageView()
+    
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
@@ -25,8 +27,6 @@ class HomeView: UIView {
     
     // Banner
     private let bannerView = UIView()
-    private let bannerLabel = UILabel()
-    private let bannerIconImageView = UIImageView()
     
     // My Activity Section
     private let myActivitySectionView = UIView()
@@ -63,13 +63,18 @@ extension HomeView {
     private func style() {
         backgroundColor = .systemBackground
         
+        backgroundImageView.do {
+            $0.image = .App.background
+            $0.contentMode = .scaleAspectFill
+        }
+        
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
         }
         
         // Header
         headerView.do {
-            $0.backgroundColor = UIColor(red: 1.0, green: 0.95, blue: 0.9, alpha: 1.0) // 연한 주황
+            $0.backgroundColor = .clear
         }
         
         hobbyDropdownButton.do {
@@ -97,19 +102,6 @@ extension HomeView {
             $0.layer.shadowOpacity = 0.05
             $0.layer.shadowOffset = CGSize(width: 0, height: 2)
             $0.layer.shadowRadius = 4
-        }
-        
-        bannerLabel.do {
-            $0.text = "14일은 취미가 되기 시작하는\n횟수래요🍊 앞으로도 화이팅!"
-            $0.font = .systemFont(ofSize: 14, weight: .medium)
-            $0.textColor = .label
-            $0.numberOfLines = 0
-        }
-        
-        bannerIconImageView.do {
-            $0.image = .Icon.my
-            $0.tintColor = .label
-            $0.contentMode = .scaleAspectFit
         }
         
         // My Activity Section
@@ -188,6 +180,8 @@ extension HomeView {
     }
     
     private func layout() {
+        contentView.insertSubview(backgroundImageView, at: 0)
+        
         addSubview(contentView)
 //        scrollView.addSubview(contentView)
         
@@ -201,10 +195,6 @@ extension HomeView {
         headerView.addSubview(hobbyDropdownButton)
         headerView.addSubview(notificationButton)
         
-        // Banner
-        bannerView.addSubview(bannerLabel)
-        bannerView.addSubview(bannerIconImageView)
-        
         // My Activity Section
         myActivitySectionView.addSubview(myActivityTitleLabel)
         myActivitySectionView.addSubview(myActivityChevronButton)
@@ -217,6 +207,14 @@ extension HomeView {
         // Sticker Section
         stickerSectionView.addSubview(stickerTitleLabel)
         stickerSectionView.addSubview(stickerGridView)
+        
+        backgroundImageView.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            // safe area 포함 세로 길이 - 66*2
+            $0.width.height.equalTo(UIScreen.main.bounds.height)  
+        }
+        
+        contentView.clipsToBounds = true
         
         // ContentView
         contentView.snp.makeConstraints {
@@ -245,20 +243,6 @@ extension HomeView {
             $0.top.equalTo(headerView.snp.bottom)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
-        }
-        
-        bannerLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(25)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalTo(bannerIconImageView.snp.leading).offset(-10)
-            $0.bottom.equalToSuperview().offset(-33)
-        }
-        
-        bannerIconImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(120)
-            $0.bottom.equalToSuperview()
         }
         
         // My Activity Section
