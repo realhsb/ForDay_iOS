@@ -41,7 +41,7 @@ extension HobbiesTarget: BaseTargetType {
             return HobbiesAPI.fetchActivityList(hobbyId).endpoint
             
         case .fetchActivityDropdownList(let hobbyId, _):
-            return HobbiesAPI.fetchAcitvityDropdownList(hobbyId).endpoint
+            return HobbiesAPI.fetchActivityDropdownList(hobbyId).endpoint
             
         case .createActivities(let hobbyId, _):
             return HobbiesAPI.createActivities(hobbyId).endpoint

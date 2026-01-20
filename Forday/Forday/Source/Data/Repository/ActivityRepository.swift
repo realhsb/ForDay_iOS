@@ -62,7 +62,7 @@ final class ActivityRepository: ActivityRepositoryInterface {
 
     func fetchActivityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> [Activity] {
         do {
-            let response = try await activityService.fetchAcitvityDropdownList(hobbyId: hobbyId, size: size)
+            let response = try await activityService.fetchActivityDropdownList(hobbyId: hobbyId, size: size)
             return response.toDomain()
         } catch {
             #if DEBUG

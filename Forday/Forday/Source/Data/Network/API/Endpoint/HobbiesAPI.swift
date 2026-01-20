@@ -14,7 +14,7 @@ enum HobbiesAPI {
     case fetchAIRecommendations         /// AI 취미 활동 추천
 
     case fetchActivityList(Int)         /// 활동 리스트 조회
-    case fetchAcitvityDropdownList(Int) /// (드롭다운용) 특정 취미의 활동 목록 조회 상위 5개
+    case fetchActivityDropdownList(Int) /// (드롭다운용) 특정 취미의 활동 목록 조회 상위 5개
     case createActivities(Int)          /// 취미 활동 추가하기
     case updateActivity(Int)            /// 활동 수정하기
     case deleteActivity(Int)            /// 활동 삭제하기
@@ -36,7 +36,7 @@ enum HobbiesAPI {
         case .fetchActivityList(let hobbyId):
             return "/hobbies/\(hobbyId)/activities/list"
             
-        case .fetchAcitvityDropdownList(let hobbyId):
+        case .fetchActivityDropdownList(let hobbyId):
             return "/hobbies/\(hobbyId)/activities"
             
         case .createActivities(let hobbyId):

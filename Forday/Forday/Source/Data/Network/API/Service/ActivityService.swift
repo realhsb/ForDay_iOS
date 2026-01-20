@@ -49,7 +49,7 @@ final class ActivityService {
     
     // MARK: - (드롭다운용) 특정 취미의 활동 목록 조회
 
-    func fetchAcitvityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> DTO.ActivityDropdownListResponse {
+    func fetchActivityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> DTO.ActivityDropdownListResponse {
         return try await provider.request(.fetchActivityDropdownList(hobbyId: hobbyId, size: size))
     }
     
