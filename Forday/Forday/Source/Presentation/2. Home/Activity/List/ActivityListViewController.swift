@@ -107,7 +107,7 @@ extension ActivityListViewController {
                 self?.updateEmptyState()
             }
             .store(in: &cancellables)
-        
+
         // 로딩 상태
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
@@ -116,7 +116,7 @@ extension ActivityListViewController {
                 print(isLoading ? "로딩 중..." : "로딩 완료")
             }
             .store(in: &cancellables)
-        
+
         // 에러 메시지
         viewModel.$errorMessage
             .receive(on: DispatchQueue.main)
@@ -340,18 +340,20 @@ extension ActivityListViewController: UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ActivityCardCell.identifier, for: indexPath) as? ActivityCardCell else {
             return UITableViewCell()
         }
-        
+
         let activity = viewModel.activities[indexPath.row]
-        cell.configure(with: activity)
-        
+        let isExpanded = viewModel.isExpanded(at: indexPath.row)
+
+        cell.configure(with: activity, isExpanded: isExpanded)
+
         cell.onEditTapped = { [weak self] in
             self?.showEditAlert(for: activity)
         }
-        
+
         cell.onDeleteTapped = { [weak self] in
             self?.showDeleteAlert(for: activity)
         }
-        
+
         return cell
     }
 }
@@ -359,8 +361,19 @@ extension ActivityListViewController: UITableViewDataSource {
 // UITableViewDelegate
 
 extension ActivityListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let isExpanded = viewModel.isExpanded(at: indexPath.row)
+        return isExpanded ? ActivityCardCell.expandedHeight : ActivityCardCell.collapsedHeight
+    }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+
+        viewModel.toggleExpansion(at: indexPath.row)
+
+        // 애니메이션과 함께 셀 높이 업데이트
+        tableView.beginUpdates()
+        tableView.endUpdates()
     }
 }
 

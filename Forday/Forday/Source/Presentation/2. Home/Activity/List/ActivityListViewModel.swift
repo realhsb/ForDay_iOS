@@ -10,15 +10,16 @@ import Foundation
 import Combine
 
 class ActivityListViewModel {
-    
+
     // Published Properties
-    
+
     @Published var activities: [Activity] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    
+    @Published var expandedActivityIds: Set<Int> = []
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     // UseCase
     private let fetchActivityListUseCase: FetchActivityListUseCase
     private let updateActivityUseCase: UpdateActivityUseCase
@@ -87,5 +88,25 @@ class ActivityListViewModel {
     func createActivities(hobbyId: Int, activities: [ActivityInput]) async throws {
         let message = try await createActivitiesUseCase.execute(hobbyId: hobbyId, activities: activities)
         print("✅ 활동 생성 완료: \(message)")
+    }
+
+    // Expansion State Management
+
+    func toggleExpansion(at index: Int) {
+        guard index < activities.count else { return }
+
+        let activity = activities[index]
+
+        // 토글: 이미 확장되어 있으면 닫고, 아니면 열기
+        if expandedActivityIds.contains(activity.activityId) {
+            expandedActivityIds.remove(activity.activityId)
+        } else {
+            expandedActivityIds.insert(activity.activityId)
+        }
+    }
+
+    func isExpanded(at index: Int) -> Bool {
+        guard index < activities.count else { return false }
+        return expandedActivityIds.contains(activities[index].activityId)
     }
 }

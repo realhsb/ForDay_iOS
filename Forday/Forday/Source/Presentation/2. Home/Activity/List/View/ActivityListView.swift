@@ -40,8 +40,7 @@ extension ActivityListView {
             $0.backgroundColor = .systemBackground
             $0.separatorStyle = .none
             $0.register(ActivityCardCell.self, forCellReuseIdentifier: ActivityCardCell.identifier)
-            $0.rowHeight = UITableView.automaticDimension
-            $0.estimatedRowHeight = 100
+            $0.estimatedRowHeight = 48
         }
         
         emptyLabel.do {
