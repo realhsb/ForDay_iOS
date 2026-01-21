@@ -1,5 +1,5 @@
 //
-//  ActivityWriteViewController.swift
+//  ActivityRecordViewController.swift
 //  Forday
 //
 //  Created by Subeen on 1/15/26.
@@ -15,7 +15,7 @@ class ActivityRecordViewController: UIViewController {
 
     // Properties
 
-    private let writeView = ActivityRecordView()
+    private let recordView = ActivityRecordView()
     private let viewModel: ActivityRecordViewModel
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
@@ -38,7 +38,7 @@ class ActivityRecordViewController: UIViewController {
     // Lifecycle
 
     override func loadView() {
-        view = writeView
+        view = recordView
     }
 
     override func viewDidLoad() {
@@ -69,32 +69,32 @@ extension ActivityRecordViewController {
     
     private func setupActions() {
         // 스티커 선택
-        writeView.stickerCollectionView.delegate = self
-        writeView.stickerCollectionView.dataSource = self
+        recordView.stickerCollectionView.delegate = self
+        recordView.stickerCollectionView.dataSource = self
 
         // 활동 드롭다운 버튼
-        writeView.activityDropdownButton.addTarget(
+        recordView.activityDropdownButton.addTarget(
             self,
             action: #selector(activityDropdownButtonTapped),
             for: .touchUpInside
         )
 
         // 사진 추가
-        writeView.photoAddButton.addTarget(
+        recordView.photoAddButton.addTarget(
             self,
             action: #selector(photoAddButtonTapped),
             for: .touchUpInside
         )
 
         // 공개범위 드롭다운 버튼
-        writeView.privacyButton.addTarget(
+        recordView.privacyButton.addTarget(
             self,
             action: #selector(privacyButtonTapped),
             for: .touchUpInside
         )
 
         // 작성완료 버튼
-        writeView.submitButton.addTarget(
+        recordView.submitButton.addTarget(
             self,
             action: #selector(submitButtonTapped),
             for: .touchUpInside
@@ -106,7 +106,7 @@ extension ActivityRecordViewController {
         view.addGestureRecognizer(tapGesture)
 
         // 메모 텍스트필드
-        writeView.memoTextField.addTarget(
+        recordView.memoTextField.addTarget(
             self,
             action: #selector(memoTextFieldChanged),
             for: .editingChanged
@@ -118,7 +118,7 @@ extension ActivityRecordViewController {
         viewModel.$selectedActivity
             .receive(on: DispatchQueue.main)
             .sink { [weak self] activity in
-                self?.writeView.updateActivityTitle(activity?.content)
+                self?.recordView.updateActivityTitle(activity?.content)
             }
             .store(in: &cancellables)
 
@@ -126,7 +126,7 @@ extension ActivityRecordViewController {
         viewModel.$isSubmitEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isEnabled in
-                self?.writeView.setSubmitButtonEnabled(isEnabled)
+                self?.recordView.setSubmitButtonEnabled(isEnabled)
             }
             .store(in: &cancellables)
 
@@ -188,7 +188,7 @@ extension ActivityRecordViewController {
     }
 
     @objc private func memoTextFieldChanged() {
-        viewModel.updateMemo(writeView.memoTextField.text ?? "")
+        viewModel.updateMemo(recordView.memoTextField.text ?? "")
     }
 
     @objc private func submitButtonTapped() {
@@ -217,7 +217,7 @@ extension ActivityRecordViewController {
             self?.dismissActivityDropdown()
         }
 
-        dropdown.show(in: view, below: writeView.activityDropdownButton)
+        dropdown.show(in: view, below: recordView.activityDropdownButton)
         activityDropdownView = dropdown
     }
 
@@ -236,7 +236,7 @@ extension ActivityRecordViewController {
             self?.dismissPrivacyDropdown()
         }
 
-        dropdown.show(in: view, below: writeView.privacyButton)
+        dropdown.show(in: view, below: recordView.privacyButton)
         privacyDropdownView = dropdown
     }
 
@@ -246,9 +246,9 @@ extension ActivityRecordViewController {
     }
 
     private func updatePrivacyButton(_ privacy: Privacy) {
-        var config = writeView.privacyButton.configuration
+        var config = recordView.privacyButton.configuration
         config?.title = privacy.title
-        writeView.privacyButton.configuration = config
+        recordView.privacyButton.configuration = config
     }
 
     private func presentPhotoPicker() {
@@ -274,16 +274,16 @@ extension ActivityRecordViewController {
     private func updatePhotoButton(with image: UIImage?) {
         guard let image = image else {
             // 이미지 없음 - 원래 상태로 복원
-            writeView.photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
-            writeView.photoAddButton.tintColor = .systemGray
-            writeView.photoAddButton.backgroundColor = .white
+            recordView.photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
+            recordView.photoAddButton.tintColor = .systemGray
+            recordView.photoAddButton.backgroundColor = .white
             return
         }
 
         // 선택된 이미지 표시
-        writeView.photoAddButton.setImage(image, for: .normal)
-        writeView.photoAddButton.imageView?.contentMode = .scaleAspectFill
-        writeView.photoAddButton.tintColor = nil
+        recordView.photoAddButton.setImage(image, for: .normal)
+        recordView.photoAddButton.imageView?.contentMode = .scaleAspectFill
+        recordView.photoAddButton.tintColor = nil
 
         // X 아이콘 추가
         addDeleteIconToPhotoButton()
@@ -291,7 +291,7 @@ extension ActivityRecordViewController {
 
     private func addDeleteIconToPhotoButton() {
         // 기존 X 아이콘 제거
-        writeView.photoAddButton.subviews.forEach { view in
+        recordView.photoAddButton.subviews.forEach { view in
             if view.tag == 999 {
                 view.removeFromSuperview()
             }
@@ -305,7 +305,7 @@ extension ActivityRecordViewController {
         deleteButton.layer.cornerRadius = 10
         deleteButton.clipsToBounds = true
 
-        writeView.photoAddButton.addSubview(deleteButton)
+        recordView.photoAddButton.addSubview(deleteButton)
 
         deleteButton.snp.makeConstraints {
             $0.top.equalToSuperview().offset(2)
@@ -381,7 +381,7 @@ extension ActivityRecordViewController: PHPickerViewControllerDelegate {
 
 //#Preview {
 //    let nav = UINavigationController()
-//    let vc = ActivityWriteViewController()
+//    let vc = ActivityRecordViewController()
 //    nav.setViewControllers([vc], animated: false)
 //    return nav
 //}

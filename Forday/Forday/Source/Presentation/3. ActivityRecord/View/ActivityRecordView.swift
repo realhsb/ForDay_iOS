@@ -1,5 +1,5 @@
 //
-//  ActivityWriteView.swift
+//  ActivityRecordView.swift
 //  Forday
 //
 //  Created by Subeen on 1/15/26.
