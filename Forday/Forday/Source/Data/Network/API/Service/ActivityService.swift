@@ -70,4 +70,10 @@ final class ActivityService {
     func deleteActivity(activityId: Int) async throws -> DTO.DeleteActivityResponse {
         return try await provider.request(.deleteActivity(activityId: activityId))
     }
+
+    // MARK: - 활동 기록 작성
+
+    func createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest) async throws -> DTO.CreateActivityRecordResponse {
+        return try await provider.request(.createActivityRecord(activityId: activityId, request: request))
+    }
 }

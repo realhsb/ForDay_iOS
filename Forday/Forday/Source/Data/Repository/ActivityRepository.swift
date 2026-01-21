@@ -93,6 +93,17 @@ final class ActivityRepository: ActivityRepositoryInterface {
         let response = try await activityService.deleteActivity(activityId: activityId)
         return response.toDomain()
     }
+
+    func createActivityRecord(activityId: Int, sticker: String, memo: String?, imageUrl: String?, visibility: Privacy) async throws -> ActivityRecord {
+        let request = DTO.CreateActivityRecordRequest(
+            sticker: sticker,
+            memo: memo,
+            imageUrl: imageUrl,
+            visibility: visibility.rawValue
+        )
+        let response = try await activityService.createActivityRecord(activityId: activityId, request: request)
+        return response.toDomain()
+    }
 }
 
 
