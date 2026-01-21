@@ -135,7 +135,7 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
             return
         }
 
-        let writeVC = ActivityWriteViewController(hobbyId: hobbyId)
+        let writeVC = ActivityRecordViewController(hobbyId: hobbyId)
         let nav = UINavigationController(rootViewController: writeVC)
         nav.modalPresentationStyle = .fullScreen
 

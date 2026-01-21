@@ -11,12 +11,12 @@ import Combine
 import PhotosUI
 import SnapKit
 
-class ActivityWriteViewController: UIViewController {
+class ActivityRecordViewController: UIViewController {
 
     // Properties
 
-    private let writeView = ActivityWriteView()
-    private let viewModel: ActivityWriteViewModel
+    private let writeView = ActivityRecordView()
+    private let viewModel: ActivityRecordViewModel
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
     private var privacyDropdownView: PrivacyDropdownView?
@@ -27,7 +27,7 @@ class ActivityWriteViewController: UIViewController {
     // Initialization
 
     init(hobbyId: Int) {
-        self.viewModel = ActivityWriteViewModel(hobbyId: hobbyId)
+        self.viewModel = ActivityRecordViewModel(hobbyId: hobbyId)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -52,7 +52,7 @@ class ActivityWriteViewController: UIViewController {
 
 // Setup
 
-extension ActivityWriteViewController {
+extension ActivityRecordViewController {
     private func setupNavigationBar() {
         title = "내 활동 남기기"
         
@@ -152,7 +152,7 @@ extension ActivityWriteViewController {
 
 // Actions
 
-extension ActivityWriteViewController {
+extension ActivityRecordViewController {
     @objc private func closeButtonTapped() {
         dismiss(animated: true)
     }
@@ -317,7 +317,7 @@ extension ActivityWriteViewController {
 
 // UICollectionView
 
-extension ActivityWriteViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension ActivityRecordViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.stickers.count
@@ -347,7 +347,7 @@ extension ActivityWriteViewController: UICollectionViewDelegate, UICollectionVie
 
 // PHPickerViewControllerDelegate
 
-extension ActivityWriteViewController: PHPickerViewControllerDelegate {
+extension ActivityRecordViewController: PHPickerViewControllerDelegate {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
 

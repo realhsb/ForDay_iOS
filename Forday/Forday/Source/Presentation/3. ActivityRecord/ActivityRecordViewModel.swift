@@ -10,7 +10,7 @@ import Foundation
 import Combine
 import UIKit
 
-class ActivityWriteViewModel {
+class ActivityRecordViewModel {
 
     // Published Properties
 

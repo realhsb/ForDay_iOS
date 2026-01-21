@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-class ActivityWriteView: UIView {
+class ActivityRecordView: UIView {
     
     // Properties
     
@@ -62,7 +62,7 @@ class ActivityWriteView: UIView {
 
 // Setup
 
-extension ActivityWriteView {
+extension ActivityRecordView {
     private func style() {
         backgroundColor = .systemBackground
 
@@ -259,7 +259,7 @@ extension ActivityWriteView {
 
 // Public Methods
 
-extension ActivityWriteView {
+extension ActivityRecordView {
     func updateActivityTitle(_ title: String?) {
         var config = activityDropdownButton.configuration
         config?.title = title ?? "활동을 선택해주세요"
@@ -276,5 +276,5 @@ extension ActivityWriteView {
 }
 
 #Preview {
-    ActivityWriteView()
+    ActivityRecordView()
 }
