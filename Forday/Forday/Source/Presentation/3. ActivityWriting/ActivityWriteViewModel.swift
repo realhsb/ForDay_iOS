@@ -37,6 +37,7 @@ class ActivityWriteViewModel {
     private let fetchActivityListUseCase: FetchActivityDropdownListUseCase
     private let uploadImageUseCase: UploadImageUseCase
     private let deleteImageUseCase: DeleteImageUseCase
+    private let createActivityRecordUseCase: CreateActivityRecordUseCase
 
     private let hobbyId: Int
 
@@ -46,12 +47,14 @@ class ActivityWriteViewModel {
         hobbyId: Int,
         fetchActivityListUseCase: FetchActivityDropdownListUseCase = FetchActivityDropdownListUseCase(),
         uploadImageUseCase: UploadImageUseCase = UploadImageUseCase(),
-        deleteImageUseCase: DeleteImageUseCase = DeleteImageUseCase()
+        deleteImageUseCase: DeleteImageUseCase = DeleteImageUseCase(),
+        createActivityRecordUseCase: CreateActivityRecordUseCase = CreateActivityRecordUseCase()
     ) {
         self.hobbyId = hobbyId
         self.fetchActivityListUseCase = fetchActivityListUseCase
         self.uploadImageUseCase = uploadImageUseCase
         self.deleteImageUseCase = deleteImageUseCase
+        self.createActivityRecordUseCase = createActivityRecordUseCase
         bind()
     }
 
@@ -80,6 +83,14 @@ class ActivityWriteViewModel {
         selectedActivity = activity
     }
 
+    func selectPrivacy(_ selectedPrivacy: Privacy) {
+        privacy = selectedPrivacy
+    }
+
+    func updateMemo(_ text: String) {
+        memo = text
+    }
+
     func uploadImage(_ image: UIImage) async throws {
         let imageUrls = try await uploadImageUseCase.execute(images: [(image: image, usage: .activityRecord)])
         await MainActor.run {
@@ -98,6 +109,29 @@ class ActivityWriteViewModel {
             self.selectedImage = nil
         }
     }
+
+    func submitActivityRecord() async throws -> ActivityRecord {
+        guard let activityId = selectedActivity?.activityId,
+              let selectedSticker = selectedSticker else {
+            throw ActivityRecordError.missingRequiredFields
+        }
+
+        // sticker.image를 파일명으로 변환 (실제로는 스티커 파일명을 사용)
+        // 현재는 mock data이므로 임시로 "smile.jpg" 사용
+        let stickerFileName = "smile.jpg"
+
+        return try await createActivityRecordUseCase.execute(
+            activityId: activityId,
+            sticker: stickerFileName,
+            memo: memo.isEmpty ? nil : memo,
+            imageUrl: uploadedImageUrl,
+            visibility: privacy
+        )
+    }
+}
+
+enum ActivityRecordError: Error {
+    case missingRequiredFields
 }
 
 // Models
@@ -110,19 +144,5 @@ struct Sticker {
 extension Sticker: Equatable {
     static func == (lhs: Sticker, rhs: Sticker) -> Bool {
         return lhs.id == rhs.id
-    }
-}
-
-enum Privacy {
-    case `public`
-    case friends
-    case `private`
-    
-    var title: String {
-        switch self {
-        case .public: return "전체공개"
-        case .friends: return "친구공개"
-        case .private: return "나만보기"
-        }
     }
 }

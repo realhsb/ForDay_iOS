@@ -19,6 +19,7 @@ class ActivityWriteViewController: UIViewController {
     private let viewModel: ActivityWriteViewModel
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
+    private var privacyDropdownView: PrivacyDropdownView?
 
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
@@ -85,6 +86,13 @@ extension ActivityWriteViewController {
             for: .touchUpInside
         )
 
+        // 공개범위 드롭다운 버튼
+        writeView.privacyButton.addTarget(
+            self,
+            action: #selector(privacyButtonTapped),
+            for: .touchUpInside
+        )
+
         // 작성완료 버튼
         writeView.submitButton.addTarget(
             self,
@@ -96,6 +104,13 @@ extension ActivityWriteViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
+
+        // 메모 텍스트필드
+        writeView.memoTextField.addTarget(
+            self,
+            action: #selector(memoTextFieldChanged),
+            for: .editingChanged
+        )
     }
 
     private func bind() {
@@ -152,6 +167,7 @@ extension ActivityWriteViewController {
 
     @objc private func backgroundTapped() {
         dismissActivityDropdown()
+        dismissPrivacyDropdown()
     }
 
     @objc private func photoAddButtonTapped() {
@@ -163,10 +179,33 @@ extension ActivityWriteViewController {
         }
     }
 
+    @objc private func privacyButtonTapped() {
+        if privacyDropdownView != nil {
+            dismissPrivacyDropdown()
+        } else {
+            showPrivacyDropdown()
+        }
+    }
+
+    @objc private func memoTextFieldChanged() {
+        viewModel.updateMemo(writeView.memoTextField.text ?? "")
+    }
+
     @objc private func submitButtonTapped() {
-        // TODO: 활동 저장
-        print("작성완료 탭")
-        dismiss(animated: true)
+        Task {
+            do {
+                let result = try await viewModel.submitActivityRecord()
+                await MainActor.run {
+                    print("✅ 활동 기록 작성 성공: \(result.message)")
+                    dismiss(animated: true)
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ 활동 기록 작성 실패: \(error)")
+                    // TODO: 에러 처리 UI 표시
+                }
+            }
+        }
     }
 
     private func showActivityDropdown() {
@@ -185,6 +224,31 @@ extension ActivityWriteViewController {
     private func dismissActivityDropdown() {
         activityDropdownView?.dismiss()
         activityDropdownView = nil
+    }
+
+    private func showPrivacyDropdown() {
+        guard privacyDropdownView == nil else { return }
+
+        let dropdown = PrivacyDropdownView(selectedPrivacy: viewModel.privacy)
+        dropdown.onPrivacySelected = { [weak self] privacy in
+            self?.viewModel.selectPrivacy(privacy)
+            self?.updatePrivacyButton(privacy)
+            self?.dismissPrivacyDropdown()
+        }
+
+        dropdown.show(in: view, below: writeView.privacyButton)
+        privacyDropdownView = dropdown
+    }
+
+    private func dismissPrivacyDropdown() {
+        privacyDropdownView?.dismiss()
+        privacyDropdownView = nil
+    }
+
+    private func updatePrivacyButton(_ privacy: Privacy) {
+        var config = writeView.privacyButton.configuration
+        config?.title = privacy.title
+        writeView.privacyButton.configuration = config
     }
 
     private func presentPhotoPicker() {
