@@ -1,5 +1,5 @@
 //
-//  ActivityWriteView.swift
+//  ActivityRecordView.swift
 //  Forday
 //
 //  Created by Subeen on 1/15/26.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-class ActivityWriteView: UIView {
+class ActivityRecordView: UIView {
     
     // Properties
     
@@ -62,7 +62,7 @@ class ActivityWriteView: UIView {
 
 // Setup
 
-extension ActivityWriteView {
+extension ActivityRecordView {
     private func style() {
         backgroundColor = .systemBackground
 
@@ -115,6 +115,8 @@ extension ActivityWriteView {
             $0.tintColor = .systemGray
             $0.backgroundColor = .white
             $0.layer.cornerRadius = 8
+            $0.clipsToBounds = true
+            $0.imageView?.contentMode = .scaleAspectFill
         }
         
         memoTextField.do {
@@ -257,7 +259,7 @@ extension ActivityWriteView {
 
 // Public Methods
 
-extension ActivityWriteView {
+extension ActivityRecordView {
     func updateActivityTitle(_ title: String?) {
         var config = activityDropdownButton.configuration
         config?.title = title ?? "활동을 선택해주세요"
@@ -274,5 +276,5 @@ extension ActivityWriteView {
 }
 
 #Preview {
-    ActivityWriteView()
+    ActivityRecordView()
 }

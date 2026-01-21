@@ -9,22 +9,23 @@
 import UIKit
 
 class MainTabBarCoordinator: NSObject, Coordinator {
-    
-    
+
+
     let navigationController: UINavigationController
     let tabBarController: UITabBarController = UITabBarController()
-    
+
     weak var parentCoordinator: AppCoordinator?
-    
+    private weak var homeViewController: HomeViewController?
+
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
         super.init()
     }
-    
+
     func start() {
         setupTabBar()
     }
-    
+
     private func setupTabBar() {
         // 홈 탭
         let homeVC = HomeViewController()
@@ -34,6 +35,7 @@ class MainTabBarCoordinator: NSObject, Coordinator {
             image: .Gnb.home,
             selectedImage: .Gnb.homeFill
         )
+        self.homeViewController = homeVC
         let homeNav = createNavigationController(rootViewController: homeVC)
 
         // 발견 탭
@@ -47,9 +49,9 @@ class MainTabBarCoordinator: NSObject, Coordinator {
         )
         let recommendNav = createNavigationController(rootViewController: recommendVC)
 
-        // 작성 탭 (더미)
-        let writeVC = ActivityWriteViewController()
-        writeVC.tabBarItem = UITabBarItem(
+        // 작성 탭 (더미 - 실제로는 presentActivityRecord()에서 present됨)
+        let recordVC = UIViewController()
+        recordVC.tabBarItem = UITabBarItem(
             title: "",
             image: .Gnb.write,
             selectedImage: .Gnb.write
@@ -81,7 +83,7 @@ class MainTabBarCoordinator: NSObject, Coordinator {
         tabBarController.viewControllers = [
             homeNav,
             recommendNav,
-            writeVC,
+            recordVC,
             storyNav,
             profileNav,
         ]
@@ -117,8 +119,8 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         if let viewControllers = tabBarController.viewControllers,
            viewControllers.firstIndex(of: viewController) == 2 {
             
-            // ActivityWriteViewController present
-            presentActivityWrite()
+            // ActivityRecordViewController present
+            presentActivityRecord()
             
             return false  // 탭 전환 막음
         }
@@ -126,11 +128,17 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         return true  // 다른 탭은 정상 전환
     }
     
-    private func presentActivityWrite() {
-        let writeVC = ActivityWriteViewController()
-        let nav = UINavigationController(rootViewController: writeVC)
+    private func presentActivityRecord() {
+        // HomeViewController에서 currentHobbyId 가져오기
+        guard let hobbyId = homeViewController?.getCurrentHobbyId() else {
+            print("❌ 취미 ID 없음 - ActivityRecordViewController를 표시할 수 없습니다")
+            return
+        }
+
+        let recordVC = ActivityRecordViewController(hobbyId: hobbyId)
+        let nav = UINavigationController(rootViewController: recordVC)
         nav.modalPresentationStyle = .fullScreen
-        
+
         // 현재 선택된 탭의 ViewController에서 present
         if let selectedVC = tabBarController.selectedViewController {
             selectedVC.present(nav, animated: true)

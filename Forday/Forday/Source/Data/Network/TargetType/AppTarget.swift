@@ -11,6 +11,8 @@ import Alamofire
 
 enum AppTarget {
     case fetchAppMetadata
+    case fetchPresignedUrl(request: DTO.PresignedUrlRequest)
+    case deleteImage(request: DTO.DeleteImageRequest)
 }
 
 extension AppTarget: BaseTargetType {
@@ -23,6 +25,10 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return AppAPI.fetchAppMetadata.endpoint
+        case .fetchPresignedUrl:
+            return AppAPI.fetchPresignedUrl.endpoint
+        case .deleteImage:
+            return AppAPI.deleteImage.endpoint
         }
     }
     
@@ -30,6 +36,10 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return .get
+        case .fetchPresignedUrl:
+            return .post
+        case .deleteImage:
+            return .delete
         }
     }
     
@@ -37,6 +47,10 @@ extension AppTarget: BaseTargetType {
         switch self {
         case .fetchAppMetadata:
             return .requestPlain
+        case .fetchPresignedUrl(let request):
+            return .requestJSONEncodable(request)
+        case .deleteImage(let request):
+            return .requestJSONEncodable(request)
         }
     }
 }
