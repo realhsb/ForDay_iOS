@@ -76,4 +76,11 @@ final class ActivityService {
     func createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest) async throws -> DTO.CreateActivityRecordResponse {
         return try await provider.request(.createActivityRecord(activityId: activityId, request: request))
     }
+
+    // MARK: - 취미 관리
+
+    func fetchHobbySettings(hobbyStatus: String?) async throws -> DTO.HobbySettingsResponse {
+        return try await provider.request(.fetchHobbySettings(hobbyStatus: hobbyStatus))
+    }
+
 }

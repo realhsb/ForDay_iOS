@@ -20,6 +20,7 @@ enum HobbiesAPI {
     case deleteActivity(Int)            /// 활동 삭제하기
     case createActivityRecord(Int)      /// 취미 활동 기록하기
     
+    case fetchHobbySettings             /// 내 취미 관리 페이지 조회
     var endpoint: String {
         switch self {
         case .createHobby:
@@ -51,6 +52,10 @@ enum HobbiesAPI {
 
         case .createActivityRecord(let activityId):
             return "/hobbies/activities/\(activityId)/record"
+
+        case .fetchHobbySettings:
+            return "/hobbies/setting"
+
         }
     }
 }

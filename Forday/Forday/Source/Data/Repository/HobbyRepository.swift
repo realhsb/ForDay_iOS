@@ -40,4 +40,9 @@ final class HobbyRepository: HobbyRepositoryInterface {
         let response = try await activityService.fetchHomeInfo(hobbyId: hobbyId)
         return response.toDomain()
     }
+
+    func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings {
+        let response = try await activityService.fetchHobbySettings(hobbyStatus: hobbyStatus?.rawValue)
+        return response.toDomain()
+    }
 }
