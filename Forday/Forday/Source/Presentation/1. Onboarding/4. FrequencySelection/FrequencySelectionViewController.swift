@@ -10,11 +10,11 @@ import UIKit
 import Combine
 
 class FrequencySelectionViewController: BaseOnboardingViewController {
-    
+
     // Properties
-    
+
     private let frequencyView = FrequencySelectionView()
-    private let viewModel: FrequencySelectionViewModel
+    let viewModel: FrequencySelectionViewModel
     
     // Initialization
     

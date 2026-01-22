@@ -40,4 +40,33 @@ final class HobbyRepository: HobbyRepositoryInterface {
         let response = try await activityService.fetchHomeInfo(hobbyId: hobbyId)
         return response.toDomain()
     }
+
+    func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings {
+        let response = try await activityService.fetchHobbySettings(hobbyStatus: hobbyStatus?.rawValue)
+        return response.toDomain()
+    }
+
+    func updateHobbyTime(hobbyId: Int, minutes: Int) async throws -> String {
+        let request = DTO.UpdateHobbyTimeRequest(minutes: minutes)
+        let response = try await activityService.updateHobbyTime(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateExecutionCount(hobbyId: Int, executionCount: Int) async throws -> String {
+        let request = DTO.UpdateExecutionCountRequest(executionCount: executionCount)
+        let response = try await activityService.updateExecutionCount(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateGoalDays(hobbyId: Int, isDurationSet: Bool) async throws -> String {
+        let request = DTO.UpdateGoalDaysRequest(isDurationSet: isDurationSet)
+        let response = try await activityService.updateGoalDays(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateHobbyStatus(hobbyId: Int, hobbyStatus: HobbyStatus) async throws -> String {
+        let request = DTO.UpdateHobbyStatusRequest(hobbyStatus: hobbyStatus.rawValue)
+        let response = try await activityService.updateHobbyStatus(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
 }

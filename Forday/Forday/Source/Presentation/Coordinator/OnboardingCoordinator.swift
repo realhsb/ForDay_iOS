@@ -9,16 +9,19 @@
 import UIKit
 
 class OnboardingCoordinator: Coordinator {
-    
+
     // Properties
-    
+
     let navigationController: UINavigationController
     weak var parentCoordinator: AuthCoordinator?
-    
+
     // 온보딩 데이터 수집
     private var onboardingData = OnboardingData()
     // 로컬 저장은 더 이상 사용하지 않음 - 서버로 직접 전송
     // private let storage = OnboardingDataStorage.shared
+
+    // Completion handler for hobby creation (used when called from HobbySettings)
+    var onHobbyCreationCompleted: (() -> Void)?
     
     // Initialization
     
@@ -73,7 +76,14 @@ class OnboardingCoordinator: Coordinator {
             }
             viewModel.onHobbyCreated = { [weak self] hobbyId in
                 print("✅ 취미 생성 완료 - hobbyId: \(hobbyId)")
-                self?.next(from: .period)
+
+                // If called from HobbySettings, call completion handler instead of navigating
+                if let completionHandler = self?.onHobbyCreationCompleted {
+                    completionHandler()
+                } else {
+                    // Normal onboarding flow - proceed to complete screen
+                    self?.next(from: .period)
+                }
             }
             vc = PeriodSelectionViewController(viewModel: viewModel)
             

@@ -144,4 +144,34 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
             selectedVC.present(nav, animated: true)
         }
     }
+
+    func showHobbySettings() {
+        // Create UseCases
+        let fetchHobbySettingsUseCase = FetchHobbySettingsUseCase()
+        let updateHobbyTimeUseCase = UpdateHobbyTimeUseCase()
+        let updateExecutionCountUseCase = UpdateExecutionCountUseCase()
+        let updateGoalDaysUseCase = UpdateGoalDaysUseCase()
+        let updateHobbyStatusUseCase = UpdateHobbyStatusUseCase()
+
+        // Create ViewModel
+        let viewModel = HobbySettingsViewModel(
+            fetchHobbySettingsUseCase: fetchHobbySettingsUseCase,
+            updateHobbyTimeUseCase: updateHobbyTimeUseCase,
+            updateExecutionCountUseCase: updateExecutionCountUseCase,
+            updateGoalDaysUseCase: updateGoalDaysUseCase,
+            updateHobbyStatusUseCase: updateHobbyStatusUseCase
+        )
+
+        // Create ViewController
+        let hobbySettingsVC = HobbySettingsViewController(viewModel: viewModel)
+        hobbySettingsVC.coordinator = self
+
+        // Present as fullscreen modal
+        let nav = UINavigationController(rootViewController: hobbySettingsVC)
+        nav.modalPresentationStyle = .fullScreen
+
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.present(nav, animated: true)
+        }
+    }
 }

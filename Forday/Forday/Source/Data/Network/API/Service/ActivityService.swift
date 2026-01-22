@@ -76,4 +76,26 @@ final class ActivityService {
     func createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest) async throws -> DTO.CreateActivityRecordResponse {
         return try await provider.request(.createActivityRecord(activityId: activityId, request: request))
     }
+
+    // MARK: - 취미 관리
+
+    func fetchHobbySettings(hobbyStatus: String?) async throws -> DTO.HobbySettingsResponse {
+        return try await provider.request(.fetchHobbySettings(hobbyStatus: hobbyStatus))
+    }
+
+    func updateHobbyTime(hobbyId: Int, request: DTO.UpdateHobbyTimeRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateHobbyTime(hobbyId: hobbyId, request: request))
+    }
+
+    func updateExecutionCount(hobbyId: Int, request: DTO.UpdateExecutionCountRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateExecutionCount(hobbyId: hobbyId, request: request))
+    }
+
+    func updateGoalDays(hobbyId: Int, request: DTO.UpdateGoalDaysRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateGoalDays(hobbyId: hobbyId, request: request))
+    }
+
+    func updateHobbyStatus(hobbyId: Int, request: DTO.UpdateHobbyStatusRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateHobbyStatus(hobbyId: hobbyId, request: request))
+    }
 }

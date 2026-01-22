@@ -23,6 +23,7 @@ class HomeView: UIView {
     // Header
     private let headerView = UIView()
     let hobbyDropdownButton = UIButton()
+    let settingsButton = UIButton()
     let notificationButton = UIButton()
     
     // Banner
@@ -91,7 +92,12 @@ extension HomeView {
             }
             $0.configuration = config
         }
-        
+
+        settingsButton.do {
+            $0.setImage(UIImage(systemName: "gearshape"), for: .normal)
+            $0.tintColor = .label
+        }
+
         notificationButton.do {
             $0.setImage(UIImage(systemName: "bell"), for: .normal)
             $0.tintColor = .label
@@ -198,6 +204,7 @@ extension HomeView {
         
         // Header
         headerView.addSubview(hobbyDropdownButton)
+        headerView.addSubview(settingsButton)
         headerView.addSubview(notificationButton)
         
         // My Activity Section
@@ -236,9 +243,15 @@ extension HomeView {
             $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalToSuperview().offset(-12)
         }
-        
+
         notificationButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-20)
+            $0.centerY.equalTo(hobbyDropdownButton)
+            $0.width.height.equalTo(24)
+        }
+
+        settingsButton.snp.makeConstraints {
+            $0.trailing.equalTo(notificationButton.snp.leading).offset(-12)
             $0.centerY.equalTo(hobbyDropdownButton)
             $0.width.height.equalTo(24)
         }

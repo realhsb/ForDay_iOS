@@ -18,4 +18,11 @@ protocol HobbyRepositoryInterface {
     ) async throws -> Int
 
     func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo
+
+    // Hobby Management
+    func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings
+    func updateHobbyTime(hobbyId: Int, minutes: Int) async throws -> String
+    func updateExecutionCount(hobbyId: Int, executionCount: Int) async throws -> String
+    func updateGoalDays(hobbyId: Int, isDurationSet: Bool) async throws -> String
+    func updateHobbyStatus(hobbyId: Int, hobbyStatus: HobbyStatus) async throws -> String
 }
