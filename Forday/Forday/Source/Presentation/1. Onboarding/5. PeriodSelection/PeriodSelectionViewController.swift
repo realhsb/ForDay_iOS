@@ -10,11 +10,11 @@ import UIKit
 import Combine
 
 class PeriodSelectionViewController: BaseOnboardingViewController {
-    
+
     // Properties
-    
+
     private let periodView = PeriodSelectionView()
-    private let viewModel: PeriodSelectionViewModel
+    let viewModel: PeriodSelectionViewModel
     
     // Initialization
     

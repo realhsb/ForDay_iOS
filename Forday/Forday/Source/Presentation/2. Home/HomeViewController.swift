@@ -64,6 +64,13 @@ extension HomeViewController {
             for: .touchUpInside
         )
 
+        // 설정 버튼
+        homeView.settingsButton.addTarget(
+            self,
+            action: #selector(settingsButtonTapped),
+            for: .touchUpInside
+        )
+
         // 알림 버튼
         homeView.notificationButton.addTarget(
             self,
@@ -142,7 +149,7 @@ extension HomeViewController {
         homeView.updateActivityPreview(homeInfo.activityPreview)
 
         // 스티커 개수 업데이트
-        homeView.updateStickerCount(homeInfo.totalStickerNum)
+//        homeView.updateStickerCount(homeInfo.totalStickerNum)
     }
 }
 
@@ -153,7 +160,11 @@ extension HomeViewController {
         print("취미 드롭다운 탭")
         // TODO: 취미 목록 바텀시트
     }
-    
+
+    @objc private func settingsButtonTapped() {
+        coordinator?.showHobbySettings()
+    }
+
     @objc private func notificationTapped() {
         print("알림 탭")
         // TODO: 알림 화면
@@ -246,10 +257,7 @@ extension HomeViewController {
             let updatedHomeInfo = HomeInfo(
                 inProgressHobbies: homeInfo.inProgressHobbies,
                 activityPreview: activityPreview,
-                totalStickerNum: homeInfo.totalStickerNum,
-                activityRecordedToday: homeInfo.activityRecordedToday,
-                aiCallRemaining: homeInfo.aiCallRemaining,
-                collectedStickers: homeInfo.collectedStickers
+                aiCallRemaining: homeInfo.aiCallRemaining
             )
 
             viewModel.homeInfo = updatedHomeInfo

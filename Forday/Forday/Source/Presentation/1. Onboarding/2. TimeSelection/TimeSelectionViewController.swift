@@ -10,11 +10,11 @@ import UIKit
 import Combine
 
 class TimeSelectionViewController: BaseOnboardingViewController {
-    
+
     // Properties
-    
+
     private let timeView = TimeSelectionView()
-    private let viewModel: TimeSelectionViewModel
+    let viewModel: TimeSelectionViewModel
     
     // Initialization
     
