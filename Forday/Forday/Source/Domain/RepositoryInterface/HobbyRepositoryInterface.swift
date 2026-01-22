@@ -21,4 +21,5 @@ protocol HobbyRepositoryInterface {
 
     // Hobby Management
     func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings
+    func updateHobbyTime(hobbyId: Int, minutes: Int) async throws -> String
 }

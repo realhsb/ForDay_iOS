@@ -21,6 +21,7 @@ enum HobbiesTarget {
     case deleteActivity(activityId: Int)
     case createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest)
     case fetchHobbySettings(hobbyStatus: String?)
+    case updateHobbyTime(hobbyId: Int, request: DTO.UpdateHobbyTimeRequest)
 }
 
 extension HobbiesTarget: BaseTargetType {
@@ -60,6 +61,9 @@ extension HobbiesTarget: BaseTargetType {
         case .fetchHobbySettings:
             return HobbiesAPI.fetchHobbySettings.endpoint
 
+        case .updateHobbyTime(let hobbyId, _):
+            return HobbiesAPI.updateHobbyTime(hobbyId).endpoint
+
         }
     }
     
@@ -87,6 +91,8 @@ extension HobbiesTarget: BaseTargetType {
             return .post
         case .fetchHobbySettings:
             return .get
+        case .updateHobbyTime:
+            return .patch
         }
     }
     

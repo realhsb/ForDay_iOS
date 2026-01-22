@@ -83,4 +83,8 @@ final class ActivityService {
         return try await provider.request(.fetchHobbySettings(hobbyStatus: hobbyStatus))
     }
 
+    func updateHobbyTime(hobbyId: Int, request: DTO.UpdateHobbyTimeRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateHobbyTime(hobbyId: hobbyId, request: request))
+    }
+
 }

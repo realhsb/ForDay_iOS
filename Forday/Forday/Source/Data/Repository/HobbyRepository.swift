@@ -45,4 +45,11 @@ final class HobbyRepository: HobbyRepositoryInterface {
         let response = try await activityService.fetchHobbySettings(hobbyStatus: hobbyStatus?.rawValue)
         return response.toDomain()
     }
+
+    func updateHobbyTime(hobbyId: Int, minutes: Int) async throws -> String {
+        let request = DTO.UpdateHobbyTimeRequest(minutes: minutes)
+        let response = try await activityService.updateHobbyTime(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
 }
