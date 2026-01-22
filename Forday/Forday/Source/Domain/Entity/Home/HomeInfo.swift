@@ -10,10 +10,7 @@ import Foundation
 struct HomeInfo {
     let inProgressHobbies: [InProgressHobby]
     let activityPreview: ActivityPreview?
-    let totalStickerNum: Int
-    let activityRecordedToday: Bool
     let aiCallRemaining: Bool
-    let collectedStickers: [CollectedSticker]
 }
 
 struct InProgressHobby {
@@ -26,9 +23,4 @@ struct ActivityPreview {
     let activityId: Int
     let content: String
     let aiRecommended: Bool
-}
-
-struct CollectedSticker {
-    let activityRecordId: Int
-    let sticker: String
 }
