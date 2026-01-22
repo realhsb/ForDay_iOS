@@ -41,9 +41,7 @@ class HomeView: UIView {
     let addActivityButton = UIButton()
     
     // Sticker Collection Section
-    private let stickerSectionView = UIView()
-    private let stickerTitleLabel = UILabel()
-    let stickerGridView = UIView()  // 나중에 구현
+    let stickerBoardView = StickerBoardView()
     
     // Initialization
     
@@ -169,24 +167,9 @@ extension HomeView {
         }
         
         // Sticker Section
-        stickerSectionView.do {
+        stickerBoardView.do {
             $0.backgroundColor = .neutralWhite
             $0.layer.cornerRadius = 20
-            $0.layer.shadowColor = UIColor.neutralBlack.cgColor
-            
-        }
-        
-        stickerTitleLabel.do {
-            $0.text = "현재까지 000개의 스티커 수집"
-            $0.applyTypography(.header14)
-            $0.textColor = .neutral900
-        }
-        
-        stickerGridView.do {
-            $0.backgroundColor = .neutralWhite
-            $0.layer.cornerRadius = 16
-            $0.layer.borderColor = UIColor.stroke001.cgColor
-            $0.layer.borderWidth = 1
         }
     }
     
@@ -200,7 +183,7 @@ extension HomeView {
         contentView.addSubview(bannerView)
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
-        contentView.addSubview(stickerSectionView)
+        contentView.addSubview(stickerBoardView)
         
         // Header
         headerView.addSubview(hobbyDropdownButton)
@@ -216,9 +199,7 @@ extension HomeView {
         activityCardView.addSubview(activityDropdownButton)
         activityCardView.addSubview(addActivityButton)
         
-        // Sticker Section
-        stickerSectionView.addSubview(stickerTitleLabel)
-        stickerSectionView.addSubview(stickerGridView)
+        // Sticker Section - StickerBoardView 자체가 완성된 컴포넌트
         
         backgroundImageView.snp.makeConstraints {
             $0.center.equalToSuperview()
@@ -304,21 +285,10 @@ extension HomeView {
         }
         
         // Sticker Section
-        stickerSectionView.snp.makeConstraints {
+        stickerBoardView.snp.makeConstraints {
             $0.top.equalTo(activityCardView.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
-        }
-        
-        stickerTitleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(40)
             $0.leading.trailing.equalToSuperview().inset(20)
-        }
-        
-        stickerGridView.snp.makeConstraints {
-            $0.top.equalTo(stickerTitleLabel.snp.bottom).offset(12)
-            $0.leading.trailing.bottom.equalToSuperview().inset(20)
-            $0.height.equalTo(200) // 임시
+            $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
         }
     }
 }
@@ -365,9 +335,9 @@ extension HomeView {
         }
     }
 
-    func updateStickerCount(_ count: Int) {
-        stickerTitleLabel.text = "현재까지 \(count)개의 스티커 수집"
-    }
+//    func updateStickerCount(_ count: Int) {
+//        stickerTitleLabel.text = "현재까지 \(count)개의 스티커 수집"
+//    }
 }
 
 #Preview {

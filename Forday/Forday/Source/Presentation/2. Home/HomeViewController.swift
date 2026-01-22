@@ -13,9 +13,10 @@ import SnapKit
 class HomeViewController: UIViewController {
     
     // Properties
-    
+
     private let homeView = HomeView()
     private let viewModel = HomeViewModel()
+    private let stickerBoardViewModel = StickerBoardViewModel()
     private var cancellables = Set<AnyCancellable>()
     
     // Coordinator
@@ -40,6 +41,7 @@ class HomeViewController: UIViewController {
         // 홈 정보 로드
         Task {
             await viewModel.fetchHomeInfo()
+            await stickerBoardViewModel.loadInitialStickerBoard()
         }
     }
     
@@ -128,6 +130,67 @@ extension HomeViewController {
                 }
             }
             .store(in: &cancellables)
+
+        // 스티커판 상태 바인딩
+        bindStickerBoard()
+    }
+
+    private func bindStickerBoard() {
+        // 스티커판 View State
+        stickerBoardViewModel.$viewState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.updateStickerBoardUI(state: state)
+            }
+            .store(in: &cancellables)
+
+        // 스티커판 데이터
+        stickerBoardViewModel.$stickerBoard
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] board in
+                guard let self = self, let board = board else { return }
+                self.homeView.stickerBoardView.configure(
+                    with: board,
+                    onPreviousPage: { [weak self] in
+                        Task {
+                            await self?.stickerBoardViewModel.loadPreviousPage()
+                        }
+                    },
+                    onNextPage: { [weak self] in
+                        Task {
+                            await self?.stickerBoardViewModel.loadNextPage()
+                        }
+                    },
+                    onStickerTap: { [weak self] index in
+                        self?.stickerBoardViewModel.didTapSticker(at: index)
+                    }
+                )
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateStickerBoardUI(state: StickerBoardViewModel.ViewState) {
+        switch state {
+        case .loading:
+            homeView.stickerBoardView.showLoading()
+
+        case .loaded:
+            // stickerBoard 바인딩에서 처리됨
+            break
+
+        case .noHobby:
+            homeView.stickerBoardView.showNoHobby()
+
+        case .empty:
+            if let board = stickerBoardViewModel.stickerBoard {
+                homeView.stickerBoardView.showEmpty(board: board)
+            }
+
+        case .error:
+            if let errorMessage = stickerBoardViewModel.errorMessage {
+                homeView.stickerBoardView.showError(message: errorMessage)
+            }
+        }
     }
 
     private func updateUI(with homeInfo: HomeInfo?) {
