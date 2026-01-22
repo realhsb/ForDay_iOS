@@ -22,6 +22,9 @@ enum HobbiesTarget {
     case createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest)
     case fetchHobbySettings(hobbyStatus: String?)
     case updateHobbyTime(hobbyId: Int, request: DTO.UpdateHobbyTimeRequest)
+    case updateExecutionCount(hobbyId: Int, request: DTO.UpdateExecutionCountRequest)
+    case updateGoalDays(hobbyId: Int, request: DTO.UpdateGoalDaysRequest)
+    case updateHobbyStatus(hobbyId: Int, request: DTO.UpdateHobbyStatusRequest)
 }
 
 extension HobbiesTarget: BaseTargetType {
@@ -64,6 +67,14 @@ extension HobbiesTarget: BaseTargetType {
         case .updateHobbyTime(let hobbyId, _):
             return HobbiesAPI.updateHobbyTime(hobbyId).endpoint
 
+        case .updateExecutionCount(let hobbyId, _):
+            return HobbiesAPI.updateExecutionCount(hobbyId).endpoint
+
+        case .updateGoalDays(let hobbyId, _):
+            return HobbiesAPI.updateGoalDays(hobbyId).endpoint
+
+        case .updateHobbyStatus(let hobbyId, _):
+            return HobbiesAPI.updateHobbyStatus(hobbyId).endpoint
         }
     }
     
@@ -92,6 +103,12 @@ extension HobbiesTarget: BaseTargetType {
         case .fetchHobbySettings:
             return .get
         case .updateHobbyTime:
+            return .patch
+        case .updateExecutionCount:
+            return .patch
+        case .updateGoalDays:
+            return .patch
+        case .updateHobbyStatus:
             return .patch
         }
     }
@@ -144,6 +161,17 @@ extension HobbiesTarget: BaseTargetType {
                 return .requestPlain
             }
 
+        case .updateHobbyTime(_, let request):
+            return .requestJSONEncodable(request)
+
+        case .updateExecutionCount(_, let request):
+            return .requestJSONEncodable(request)
+
+        case .updateGoalDays(_, let request):
+            return .requestJSONEncodable(request)
+
+        case .updateHobbyStatus(_, let request):
+            return .requestJSONEncodable(request)
         }
     }
 }

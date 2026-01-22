@@ -52,4 +52,21 @@ final class HobbyRepository: HobbyRepositoryInterface {
         return response.toDomain()
     }
 
+    func updateExecutionCount(hobbyId: Int, executionCount: Int) async throws -> String {
+        let request = DTO.UpdateExecutionCountRequest(executionCount: executionCount)
+        let response = try await activityService.updateExecutionCount(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateGoalDays(hobbyId: Int, isDurationSet: Bool) async throws -> String {
+        let request = DTO.UpdateGoalDaysRequest(isDurationSet: isDurationSet)
+        let response = try await activityService.updateGoalDays(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateHobbyStatus(hobbyId: Int, hobbyStatus: HobbyStatus) async throws -> String {
+        let request = DTO.UpdateHobbyStatusRequest(hobbyStatus: hobbyStatus.rawValue)
+        let response = try await activityService.updateHobbyStatus(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
 }

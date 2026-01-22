@@ -19,9 +19,13 @@ enum HobbiesAPI {
     case updateActivity(Int)            /// 활동 수정하기
     case deleteActivity(Int)            /// 활동 삭제하기
     case createActivityRecord(Int)      /// 취미 활동 기록하기
-    
+
     case fetchHobbySettings             /// 내 취미 관리 페이지 조회
     case updateHobbyTime(Int)           /// 취미 시간 변경
+    case updateExecutionCount(Int)      /// 실행 횟수 변경
+    case updateGoalDays(Int)            /// 목표 기간 변경
+    case updateHobbyStatus(Int)         /// 취미 보관/꺼내기
+    
     var endpoint: String {
         switch self {
         case .createHobby:
@@ -60,6 +64,14 @@ enum HobbiesAPI {
         case .updateHobbyTime(let hobbyId):
             return "/hobbies/\(hobbyId)/time"
 
+        case .updateExecutionCount(let hobbyId):
+            return "/hobbies/\(hobbyId)/execution-count"
+
+        case .updateGoalDays(let hobbyId):
+            return "/hobbies/\(hobbyId)/goal_days"
+
+        case .updateHobbyStatus(let hobbyId):
+            return "/hobbies/\(hobbyId)/status"
         }
     }
 }
