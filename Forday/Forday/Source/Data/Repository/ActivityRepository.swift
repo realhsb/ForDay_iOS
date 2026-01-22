@@ -104,6 +104,54 @@ final class ActivityRepository: ActivityRepositoryInterface {
         let response = try await activityService.createActivityRecord(activityId: activityId, request: request)
         return response.toDomain()
     }
+
+    // MARK: - New Pattern: Repository Interprets nil with Fallback
+
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> StickerBoard? {
+        #if DEBUG
+        let fallbackProvider = DefaultStickerBoardFallbackProvider()
+        #endif
+
+        do {
+            let response = try await activityService.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size)
+
+            // Case 4: data is null - no hobby in progress
+            guard let dto = response.data else {
+                print("ℹ️ No hobby in progress (data: null)")
+                return nil
+            }
+
+            // Transform DTO to Domain with safe handling of optional fields
+            let stickers = dto.stickers?
+                .compactMap { item -> StickerBoardItem? in
+                    guard let id = item.activityRecordId, let sticker = item.sticker else {
+                        return nil
+                    }
+                    return StickerBoardItem(activityRecordId: id, sticker: sticker)
+                } ?? []
+
+            return StickerBoard(
+                hobbyId: dto.hobbyId,
+                durationSet: dto.durationSet,
+                activityRecordedToday: dto.activityRecordedToday,
+                currentPage: dto.currentPage,
+                totalPage: dto.totalPage,
+                pageSize: dto.pageSize,
+                totalStickerNum: dto.totalStickerNum,
+                hasPrevious: dto.hasPrevious,
+                hasNext: dto.hasNext,
+                stickers: stickers
+            )
+        } catch {
+            #if DEBUG
+            print("⚠️ 스티커판 API 실패 - 목 데이터 사용")
+            print("⚠️ 에러 내용: \(error)")
+            return fallbackProvider.fallbackStickerBoard()
+            #else
+            throw error
+            #endif
+        }
+    }
 }
 
 

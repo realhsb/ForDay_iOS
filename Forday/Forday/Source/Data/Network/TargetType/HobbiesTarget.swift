@@ -12,6 +12,7 @@ import Alamofire
 enum HobbiesTarget {
     case createHobby(request: DTO.CreateHobbyRequest)
     case fetchHomeInfo(hobbyId: Int?)
+    case fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?)
     case fetchOthersActivities(hobbyId: Int)
     case fetchAIRecommendations(hobbyId: Int)
     case fetchActivityList(hobbyId: Int)
@@ -33,10 +34,13 @@ extension HobbiesTarget: BaseTargetType {
         switch self {
         case .createHobby(_):
             return HobbiesAPI.createHobby.endpoint
-            
+
         case .fetchHomeInfo:
             return HobbiesAPI.fetchHomeInfo.endpoint
-            
+
+        case .fetchStickerBoard:
+            return HobbiesAPI.fetchHomeStickerInfo.endpoint
+
         case .fetchOthersActivities:
             return HobbiesAPI.fetchOthersActivities.endpoint
             
@@ -84,6 +88,8 @@ extension HobbiesTarget: BaseTargetType {
             return .post
         case .fetchHomeInfo:
             return .get
+        case .fetchStickerBoard:
+            return .get
         case .fetchOthersActivities:
             return .get
         case .fetchAIRecommendations:
@@ -125,7 +131,24 @@ extension HobbiesTarget: BaseTargetType {
             } else {
                 return .requestPlain
             }
-            
+
+        case .fetchStickerBoard(let hobbyId, let page, let size):
+            var parameters: [String: Any] = [:]
+            if let hobbyId = hobbyId {
+                parameters["hobbyId"] = hobbyId
+            }
+            if let page = page {
+                parameters["page"] = page
+            }
+            if let size = size {
+                parameters["size"] = size
+            }
+            if parameters.isEmpty {
+                return .requestPlain
+            } else {
+                return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+            }
+
         case .fetchOthersActivities(let hobbyId):
             return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
             

@@ -28,6 +28,12 @@ final class ActivityService {
     func fetchHomeInfo(hobbyId: Int?) async throws -> DTO.HomeInfoResponse {
         return try await provider.request(.fetchHomeInfo(hobbyId: hobbyId))
     }
+    
+    // MARK: - 홈 스티커판 조회
+
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> APIResponse<DTO.StickerBoardDTO> {
+        return try await provider.request(.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size))
+    }
 
     // MARK: - 다른 포비들의 활동 조회
 

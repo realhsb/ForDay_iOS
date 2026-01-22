@@ -10,6 +10,7 @@ import Foundation
 enum HobbiesAPI {
     case createHobby                    /// 취미 생성
     case fetchHomeInfo                  /// 홈 진입 취미 정보 조회
+    case fetchHomeStickerInfo           /// 홈 스티커판 조회
     case fetchOthersActivities          /// [Version1] 다른 포비들의 활동 조회 (AI 기반)
     case fetchAIRecommendations         /// AI 취미 활동 추천
 
@@ -33,6 +34,9 @@ enum HobbiesAPI {
 
         case .fetchHomeInfo:
             return "/hobbies/home"
+            
+        case .fetchHomeStickerInfo:
+            return "/hobbies/stickers"
 
         case .fetchOthersActivities:
             return "/hobbies/activities/others/v1"
@@ -68,7 +72,7 @@ enum HobbiesAPI {
             return "/hobbies/\(hobbyId)/execution-count"
 
         case .updateGoalDays(let hobbyId):
-            return "/hobbies/\(hobbyId)/goal_days"
+            return "/hobbies/\(hobbyId)/goal-days"
 
         case .updateHobbyStatus(let hobbyId):
             return "/hobbies/\(hobbyId)/status"
