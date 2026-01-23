@@ -104,6 +104,62 @@ final class ActivityRepository: ActivityRepositoryInterface {
         let response = try await activityService.createActivityRecord(activityId: activityId, request: request)
         return response.toDomain()
     }
+
+    // MARK: - Result Enum Pattern: Repository interprets business states
+
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> StickerBoardResult {
+        #if DEBUG
+        let fallbackProvider = DefaultStickerBoardFallbackProvider()
+        #endif
+
+        do {
+            let response = try await activityService.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size)
+
+            // Case 4: data is null - no hobby in progress (정상 상태)
+            guard let dto = response.data else {
+                return .noHobbyInProgress
+            }
+
+            // Transform DTO to Domain with safe handling of optional fields
+            let stickers = dto.stickers?
+                .compactMap { item -> StickerBoardItem? in
+                    guard let id = item.activityRecordId, let sticker = item.sticker else {
+                        return nil
+                    }
+                    return StickerBoardItem(activityRecordId: id, sticker: sticker)
+                } ?? []
+
+            let board = StickerBoard(
+                hobbyId: dto.hobbyId,
+                durationSet: dto.durationSet,
+                activityRecordedToday: dto.activityRecordedToday,
+                currentPage: dto.currentPage,
+                totalPage: dto.totalPage,
+                pageSize: dto.pageSize,
+                totalStickerNum: dto.totalStickerNum,
+                hasPrevious: dto.hasPrevious,
+                hasNext: dto.hasNext,
+                stickers: stickers
+            )
+
+            // Case 5: 취미는 있는데 스티커가 아직 없음
+            if stickers.isEmpty {
+                return .emptyBoard(board)
+            }
+
+            return .loaded(board)
+
+        } catch {
+            // 진짜 에러 (네트워크, 디코딩 실패)만 fallback
+            #if DEBUG
+            print("⚠️ 스티커판 API 네트워크 에러 - fallback 사용")
+            print("⚠️ 에러 내용: \(error)")
+            return .loaded(fallbackProvider.fallbackStickerBoard())
+            #else
+            throw error
+            #endif
+        }
+    }
 }
 
 

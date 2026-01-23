@@ -17,5 +17,6 @@ protocol ActivityRepositoryInterface {
     func updateActivity(activityId: Int, content: String) async throws -> String
     func deleteActivity(activityId: Int) async throws -> String
     func createActivityRecord(activityId: Int, sticker: String, memo: String?, imageUrl: String?, visibility: Privacy) async throws -> ActivityRecord
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> StickerBoardResult
 }
 
