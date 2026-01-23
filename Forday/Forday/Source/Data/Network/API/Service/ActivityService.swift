@@ -1,0 +1,107 @@
+//
+//  ActivityService.swift
+//  Forday
+//
+//  Created by Subeen on 1/14/26.
+//
+
+
+import Foundation
+import Moya
+
+final class ActivityService {
+
+    private let provider: MoyaProvider<HobbiesTarget>
+
+    init(provider: MoyaProvider<HobbiesTarget> = NetworkProvider.createProvider()) {
+        self.provider = provider
+    }
+
+    // MARK: - 취미 생성
+
+    func createHobby(request: DTO.CreateHobbyRequest) async throws -> DTO.CreateHobbyResponse {
+        return try await provider.request(.createHobby(request: request))
+    }
+
+    // MARK: - 홈 정보 조회
+
+    func fetchHomeInfo(hobbyId: Int?) async throws -> DTO.HomeInfoResponse {
+        return try await provider.request(.fetchHomeInfo(hobbyId: hobbyId))
+    }
+    
+    // MARK: - 홈 스티커판 조회
+
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> APIResponse<DTO.StickerBoardDTO> {
+        return try await provider.request(.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size))
+    }
+
+    // MARK: - 다른 포비들의 활동 조회
+
+    func fetchOthersActivities(hobbyId: Int) async throws -> DTO.OthersActivitiesResponse {
+        return try await provider.request(.fetchOthersActivities(hobbyId: hobbyId))
+    }
+
+    // MARK: - AI 추천
+
+    func fetchAIRecommendations(hobbyId: Int) async throws -> DTO.AIRecommendationResponse {
+        return try await provider.request(.fetchAIRecommendations(hobbyId: hobbyId))
+    }
+    
+    // MARK: - 활동 목록 조회
+
+    func fetchActivityList(hobbyId: Int) async throws -> DTO.ActivityListResponse {
+        return try await provider.request(.fetchActivityList(hobbyId: hobbyId))
+    }
+    
+    // MARK: - (드롭다운용) 특정 취미의 활동 목록 조회
+
+    func fetchActivityDropdownList(hobbyId: Int, size: Int? = nil) async throws -> DTO.ActivityDropdownListResponse {
+        return try await provider.request(.fetchActivityDropdownList(hobbyId: hobbyId, size: size))
+    }
+    
+    // MARK: - 활동 생성
+
+    func createActivities(hobbyId: Int, request: DTO.CreateActivitiesRequest) async throws -> DTO.CreateActivitiesResponse {
+        return try await provider.request(.createActivities(hobbyId: hobbyId, request: request))
+    }
+    
+    // MARK: - 활동 수정
+
+    func updateActivity(activityId: Int, request: DTO.UpdateActivityRequest) async throws -> DTO.UpdateActivityResponse {
+        return try await provider.request(.updateActivity(activityId: activityId, request: request))
+    }
+    
+    // MARK: - 활동 삭제
+
+    func deleteActivity(activityId: Int) async throws -> DTO.DeleteActivityResponse {
+        return try await provider.request(.deleteActivity(activityId: activityId))
+    }
+
+    // MARK: - 활동 기록 작성
+
+    func createActivityRecord(activityId: Int, request: DTO.CreateActivityRecordRequest) async throws -> DTO.CreateActivityRecordResponse {
+        return try await provider.request(.createActivityRecord(activityId: activityId, request: request))
+    }
+
+    // MARK: - 취미 관리
+
+    func fetchHobbySettings(hobbyStatus: String?) async throws -> DTO.HobbySettingsResponse {
+        return try await provider.request(.fetchHobbySettings(hobbyStatus: hobbyStatus))
+    }
+
+    func updateHobbyTime(hobbyId: Int, request: DTO.UpdateHobbyTimeRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateHobbyTime(hobbyId: hobbyId, request: request))
+    }
+
+    func updateExecutionCount(hobbyId: Int, request: DTO.UpdateExecutionCountRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateExecutionCount(hobbyId: hobbyId, request: request))
+    }
+
+    func updateGoalDays(hobbyId: Int, request: DTO.UpdateGoalDaysRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateGoalDays(hobbyId: hobbyId, request: request))
+    }
+
+    func updateHobbyStatus(hobbyId: Int, request: DTO.UpdateHobbyStatusRequest) async throws -> DTO.UpdateHobbyResponse {
+        return try await provider.request(.updateHobbyStatus(hobbyId: hobbyId, request: request))
+    }
+}
