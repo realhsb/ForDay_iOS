@@ -28,7 +28,10 @@ class HomeView: UIView {
     
     // Banner
     private let bannerView = UIView()
-    
+
+    // Toast
+    let toastView = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+
     // My Activity Section
     private let myActivitySectionView = UIView()
     private let myActivityTitleLabel = UILabel()
@@ -107,7 +110,12 @@ extension HomeView {
             $0.layer.shadowOffset = CGSize(width: 0, height: 2)
             $0.layer.shadowRadius = 4
         }
-        
+
+        // Toast
+        toastView.do {
+            $0.isHidden = true // 기본적으로 숨김
+        }
+
         // My Activity Section
         myActivityTitleLabel.do {
             $0.setTextWithTypography("나의 취미활동", style: .header16)
@@ -178,9 +186,10 @@ extension HomeView {
         
         addSubview(contentView)
 //        scrollView.addSubview(contentView)
-        
+
         contentView.addSubview(headerView)
         contentView.addSubview(bannerView)
+        contentView.addSubview(toastView)
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
         contentView.addSubview(stickerBoardView)
@@ -243,10 +252,16 @@ extension HomeView {
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
         }
-        
+
+        // Toast
+        toastView.snp.makeConstraints {
+            $0.top.equalTo(bannerView.snp.bottom).offset(12)
+            $0.leading.trailing.equalToSuperview().inset(20)
+        }
+
         // My Activity Section
         myActivitySectionView.snp.makeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(25)
+            $0.top.equalTo(toastView.snp.bottom).offset(12)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
             $0.height.equalTo(24)
@@ -335,9 +350,37 @@ extension HomeView {
         }
     }
 
-//    func updateStickerCount(_ count: Int) {
-//        stickerTitleLabel.text = "현재까지 \(count)개의 스티커 수집"
-//    }
+    func showToast() {
+        toastView.isHidden = false
+
+        // myActivitySectionView 제약 조건 업데이트
+        myActivitySectionView.snp.remakeConstraints {
+            $0.top.equalTo(toastView.snp.bottom).offset(12)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.height.equalTo(24)
+        }
+
+        UIView.animate(withDuration: 0.3) {
+            self.layoutIfNeeded()
+        }
+    }
+
+    func hideToast() {
+        toastView.isHidden = true
+
+        // myActivitySectionView 제약 조건 복원
+        myActivitySectionView.snp.remakeConstraints {
+            $0.top.equalTo(bannerView.snp.bottom).offset(25)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.height.equalTo(24)
+        }
+
+        UIView.animate(withDuration: 0.3) {
+            self.layoutIfNeeded()
+        }
+    }
 }
 
 #Preview {

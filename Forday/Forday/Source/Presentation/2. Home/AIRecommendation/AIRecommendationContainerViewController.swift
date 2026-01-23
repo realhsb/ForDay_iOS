@@ -13,13 +13,11 @@ import SnapKit
 class AIRecommendationContainerViewController: UIViewController {
     
     // Properties
-    
+
     private var currentView: UIView?
     private let viewModel: HomeViewModel
     private var cancellables = Set<AnyCancellable>()
-    
-    var onDismissToast: (() -> Void)?
-    
+
     private var currentStep: AIRecommendationStep = .intro {
         didSet {
             updateModalSettings()
@@ -43,21 +41,14 @@ class AIRecommendationContainerViewController: UIViewController {
     }
     
     // Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
+
         setupActions()
         bind()
         showIntro()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // 시트가 사라질 때 토스트도 제거
-        onDismissToast?()
     }
 }
 
@@ -95,12 +86,9 @@ extension AIRecommendationContainerViewController {
     }
     
     private func startAIRecommendation() {
-        // 토스트 제거
-        onDismissToast?()
-        
         currentStep = .loading
         transitionToView(loadingView)
-        
+
         // API 호출
         Task {
             do {
