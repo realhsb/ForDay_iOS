@@ -138,3 +138,7 @@ extension HobbyFilterView: UICollectionViewDelegateFlowLayout {
         return CGSize(width: 64, height: 64)
     }
 }
+
+#Preview {
+    HobbyFilterView()
+}
