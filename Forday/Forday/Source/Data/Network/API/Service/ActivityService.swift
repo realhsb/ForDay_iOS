@@ -31,7 +31,7 @@ final class ActivityService {
     
     // MARK: - 홈 스티커판 조회
 
-    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> APIResponse<DTO.StickerBoardDTO> {
+    func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> DTO.StickerBoardResponse {
         return try await provider.request(.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size))
     }
 
