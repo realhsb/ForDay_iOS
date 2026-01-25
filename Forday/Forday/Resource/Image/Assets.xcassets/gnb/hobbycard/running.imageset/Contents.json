@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "hobbycard_running.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
