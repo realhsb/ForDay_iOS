@@ -201,24 +201,21 @@ extension ActivityRepository {
                 content: "미라클 모닝 아침 독서",
                 aiRecommended: false,
                 deletable: false,
-                stickers: [
-                    ActivitySticker(activityRecordId: 1, sticker: "smile.jpg"),
-                    ActivitySticker(activityRecordId: 2, sticker: "smile.jpg")
-                ]
+                collectedStickerNum: 1
             ),
             Activity(
                 activityId: 2,
                 content: "한 챕터마다 독후감 쓰기",
                 aiRecommended: false,
                 deletable: true,
-                stickers: []
+                collectedStickerNum: 11
             ),
             Activity(
                 activityId: 3,
                 content: "SNS 독서 인증",
                 aiRecommended: true,
                 deletable: true,
-                stickers: []
+                collectedStickerNum: 111
             )
         ]
     }
