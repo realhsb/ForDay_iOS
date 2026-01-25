@@ -9,6 +9,12 @@ import Foundation
 
 final class MyPageRepository: MyPageRepositoryInterface {
 
+    private let usersService: UsersService
+
+    init(usersService: UsersService = UsersService()) {
+        self.usersService = usersService
+    }
+
     func fetchUserProfile() async throws -> UserProfile {
         #if DEBUG
         // API not ready - return mock
@@ -20,15 +26,15 @@ final class MyPageRepository: MyPageRepositoryInterface {
         #endif
     }
 
-    func fetchMyActivities(hobbyId: Int?, page: Int, size: Int) async throws -> MyActivitiesResult {
-        #if DEBUG
-        // API not ready - return mock
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
-        return makeMockMyActivitiesResult(hobbyId: hobbyId, page: page, size: size)
-        #else
-        // TODO: Implement API call when ready
-        fatalError("API not implemented")
-        #endif
+    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> MyActivitiesResult {
+        // Call real API
+        let response = try await usersService.fetchFeeds(
+            hobbyId: hobbyId,
+            lastRecordId: lastRecordId,
+            feedSize: size
+        )
+
+        return response.toDomain()
     }
 
     func fetchMyHobbies() async throws -> [MyPageHobby] {
@@ -135,20 +141,18 @@ extension MyPageRepository {
             return MyActivitiesResult(
                 activities: [],
                 hasNext: false,
-                currentPage: page,
-                totalPages: (filteredActivities.count + size - 1) / size
+                lastRecordId: nil
             )
         }
 
         let pageActivities = Array(filteredActivities[startIndex..<endIndex])
         let hasNext = endIndex < filteredActivities.count
-        let totalPages = (filteredActivities.count + size - 1) / size
+        let lastRecordId = hasNext ? pageActivities.last?.activityRecordId : nil
 
         return MyActivitiesResult(
             activities: pageActivities,
             hasNext: hasNext,
-            currentPage: page,
-            totalPages: totalPages
+            lastRecordId: lastRecordId
         )
     }
 

@@ -29,7 +29,7 @@ final class MyPageViewModel {
 
     // MARK: - Private Properties
 
-    private var currentPage: Int = 0
+    private var lastRecordId: Int? = nil
     private var hasMoreActivities: Bool = true
 
     // Use Cases
@@ -63,7 +63,7 @@ final class MyPageViewModel {
             // Fetch all data in parallel
             async let profileTask = fetchUserProfileUseCase.execute()
             async let hobbiesTask = fetchMyHobbiesUseCase.execute()
-            async let activitiesTask = fetchMyActivitiesUseCase.execute(hobbyId: nil, page: 0)
+            async let activitiesTask = fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
             async let cardsTask = fetchHobbyCardsUseCase.execute(page: 0)
 
             let (profile, hobbies, activitiesResult, cards) = try await (
@@ -79,7 +79,7 @@ final class MyPageViewModel {
                 self.activities = activitiesResult.activities
                 self.hobbyCards = cards
                 self.hasMoreActivities = activitiesResult.hasNext
-                self.currentPage = 0
+                self.lastRecordId = activitiesResult.lastRecordId
                 self.isLoading = false
             }
 
@@ -97,7 +97,7 @@ final class MyPageViewModel {
 
     func filterByHobby(hobbyId: Int?) async {
         selectedHobbyId = hobbyId
-        currentPage = 0
+        lastRecordId = nil
         hasMoreActivities = true
 
         await refreshActivities()
@@ -111,13 +111,13 @@ final class MyPageViewModel {
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
                 hobbyId: selectedHobbyId,
-                page: 0
+                lastRecordId: nil
             )
 
             await MainActor.run {
                 self.activities = result.activities
                 self.hasMoreActivities = result.hasNext
-                self.currentPage = 0
+                self.lastRecordId = result.lastRecordId
                 self.isLoading = false
             }
 
@@ -136,18 +136,16 @@ final class MyPageViewModel {
             isLoadingMore = true
         }
 
-        let nextPage = currentPage + 1
-
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
                 hobbyId: selectedHobbyId,
-                page: nextPage
+                lastRecordId: lastRecordId
             )
 
             await MainActor.run {
                 self.activities.append(contentsOf: result.activities)
                 self.hasMoreActivities = result.hasNext
-                self.currentPage = nextPage
+                self.lastRecordId = result.lastRecordId
                 self.isLoadingMore = false
             }
 

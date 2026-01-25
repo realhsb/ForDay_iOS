@@ -38,7 +38,7 @@ final class UsersService {
                         continuation.resume(throwing: error)
                         return
                     }
-                    
+
                     do {
                         let decodedResponse = try JSONDecoder().decode(DTO.SetNicknameResponse.self, from: response.data)
                         continuation.resume(returning: decodedResponse)
@@ -50,5 +50,10 @@ final class UsersService {
                 }
             }
         }
+    }
+
+    /// Users - 사용자 피드 목록 조회
+    func fetchFeeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
+        return try await provider.request(.feeds(hobbyId: hobbyId, lastRecordId: lastRecordId, feedSize: feedSize))
     }
 }

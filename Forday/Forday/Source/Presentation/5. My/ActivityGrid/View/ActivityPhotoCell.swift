@@ -41,12 +41,25 @@ final class ActivityPhotoCell: UICollectionViewCell {
     // MARK: - Configuration
 
     func configure(with activity: MyPageActivity) {
-        // TODO: Load image from URL when image loading is implemented
+        // Load image from URL
+        loadImage(from: activity.imageUrl)
+
+        // Display sticker
+        stickerLabel.text = activity.sticker
+    }
+
+    private func loadImage(from urlString: String) {
+        // TODO: Implement proper image loading with Kingfisher or similar library
         // For now, use placeholder
         imageView.image = UIImage(systemName: "photo")
         imageView.tintColor = .systemGray3
 
-        stickerLabel.text = activity.sticker
+        // Future implementation:
+        // imageView.kf.setImage(
+        //     with: URL(string: urlString),
+        //     placeholder: UIImage(systemName: "photo"),
+        //     options: [.transition(.fade(0.2))]
+        // )
     }
 }
 
