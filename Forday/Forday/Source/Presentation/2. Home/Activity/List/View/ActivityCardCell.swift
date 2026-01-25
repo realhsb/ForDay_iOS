@@ -55,6 +55,19 @@ class ActivityCardCell: UITableViewCell {
         onEditTapped = nil
         onDeleteTapped = nil
     }
+
+    // MARK: - Configuration
+
+    func configure(with activity: Activity) {
+        activityLabel.text = activity.content
+        stickerNumberLabel.text = "\(activity.collectedStickerNum)"
+
+        // Show/hide AI badge
+        aiRecommendBadge.isHidden = !activity.aiRecommended
+
+        // Show/hide delete button based on deletable flag
+        deleteButton.isHidden = !activity.deletable
+    }
 }
 
 // Setup
@@ -134,27 +147,32 @@ extension ActivityCardCell {
         activityView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
+            $0.top.equalToSuperview().offset(8)
+            $0.bottom.equalToSuperview().offset(-8)
             $0.trailing.lessThanOrEqualTo(editButton.snp.leading).offset(-8)
         }
-        
+
+        aiRecommendBadge.snp.makeConstraints {
+            $0.leading.equalToSuperview()
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(14)
+        }
+
         activityLabel.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.equalTo(aiRecommendBadge.snp.trailing).offset(4)
         }
-        
+
         stickerImageView.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.equalTo(activityLabel.snp.trailing).offset(8)
+            $0.width.height.equalTo(20)
         }
-        
+
         stickerNumberLabel.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.equalTo(stickerImageView.snp.trailing).offset(2)
-        }
-
-        aiRecommendBadge.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(14)
+            $0.trailing.lessThanOrEqualToSuperview()
         }
 
         // Edit Button (오른쪽)

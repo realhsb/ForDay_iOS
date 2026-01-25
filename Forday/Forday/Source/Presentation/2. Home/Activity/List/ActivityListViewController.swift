@@ -342,6 +342,7 @@ extension ActivityListViewController: UITableViewDataSource {
         }
 
         let activity = viewModel.activities[indexPath.row]
+        cell.configure(with: activity)
 
         cell.onEditTapped = { [weak self] in
             self?.showEditAlert(for: activity)
