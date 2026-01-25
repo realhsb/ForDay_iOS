@@ -84,12 +84,12 @@ extension ActivityListViewController {
         
         // + 버튼
         let addButton = UIBarButtonItem(
-            image: UIImage(systemName: "plus"),
+            image: .Icon.plus,
             style: .plain,
             target: self,
             action: #selector(addButtonTapped)
         )
-        addButton.tintColor = .label
+        addButton.tintColor = .neutral800
         navigationItem.rightBarButtonItem = addButton
     }
     
@@ -342,9 +342,7 @@ extension ActivityListViewController: UITableViewDataSource {
         }
 
         let activity = viewModel.activities[indexPath.row]
-        let isExpanded = viewModel.isExpanded(at: indexPath.row)
-
-        cell.configure(with: activity, isExpanded: isExpanded)
+        cell.configure(with: activity)
 
         cell.onEditTapped = { [weak self] in
             self?.showEditAlert(for: activity)

@@ -13,14 +13,5 @@ struct Activity {
     let content: String
     let aiRecommended: Bool
     let deletable: Bool
-    let stickers: [ActivitySticker]
-    
-    var hasStickers: Bool {
-        return !stickers.isEmpty
-    }
-}
-
-struct ActivitySticker {
-    let activityRecordId: Int
-    let sticker: String
+    let collectedStickerNum: Int?
 }

@@ -222,9 +222,17 @@ extension ActivityGridViewController: UICollectionViewDelegate {
 
 extension ActivityGridViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let padding: CGFloat = 4
-        let availableWidth = collectionView.bounds.width - (padding * 2)
-        let itemWidth = availableWidth / 3
+        let numberOfColumns: CGFloat = 3
+        let spacing: CGFloat = 4 // minimumInteritemSpacing
+        let inset: CGFloat = 4 // left + right insets
+
+        // Calculate total spacing between items (2 spacings for 3 columns)
+        let totalSpacing = spacing * (numberOfColumns - 1)
+        let totalInsets = inset * 2
+
+        // Calculate available width
+        let availableWidth = collectionView.bounds.width - totalSpacing - totalInsets
+        let itemWidth = floor(availableWidth / numberOfColumns)
         let itemHeight = itemWidth
 
         return CGSize(width: itemWidth, height: itemHeight)
