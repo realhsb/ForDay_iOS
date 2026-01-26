@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Then
+import Kingfisher
 
 final class ActivityDetailView: UIView {
 
@@ -37,13 +38,39 @@ final class ActivityDetailView: UIView {
     // MARK: - Configuration
 
     func configure(with detail: ActivityDetail) {
-        // TODO: Load image from URL when image loading is implemented
-        imageView.image = UIImage(systemName: "photo.fill")
-        imageView.tintColor = .systemGray3
+        // Load image from URL
+        loadImage(from: detail.imageUrl)
 
-        dateLabel.text = detail.createdDate
-        titleLabel.text = detail.title
-        contentLabel.text = detail.activityContent
+        dateLabel.text = detail.createdAt
+        titleLabel.text = detail.activityContent
+
+        // Show memo if available
+        if detail.memo.isEmpty {
+            contentLabel.text = "메모가 없습니다"
+            contentLabel.textColor = .secondaryLabel
+        } else {
+            contentLabel.text = detail.memo
+            contentLabel.textColor = .label
+        }
+    }
+
+    private func loadImage(from urlString: String) {
+        guard !urlString.isEmpty, let url = URL(string: urlString) else {
+            // Show placeholder if URL is invalid or empty
+            imageView.image = UIImage(systemName: "photo.fill")
+            imageView.tintColor = .systemGray3
+            return
+        }
+
+        let placeholder = UIImage(systemName: "photo.fill")
+        imageView.kf.setImage(
+            with: url,
+            placeholder: placeholder,
+            options: [
+                .transition(.fade(0.2)),
+                .cacheOriginalImage
+            ]
+        )
     }
 }
 

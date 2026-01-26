@@ -143,3 +143,7 @@ extension ActivityDetailViewController {
         present(alert, animated: true)
     }
 }
+
+#Preview {
+    ActivityDetailViewController(viewModel: .init(activityRecordId: 1))
+}
