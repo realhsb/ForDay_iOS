@@ -9,9 +9,14 @@ import Foundation
 
 struct ActivityDetail {
     let activityRecordId: Int
-    let imageUrl: String
-    let createdDate: String
+    let activityId: Int
     let activityContent: String
-    let title: String
-    let memo: String?
+    let imageUrl: String
+    let sticker: String
+    let createdAt: String
+    let memo: String
+    let recordOwner: Bool
+    let visibility: String
+    let newReaction: ReactionStatus
+    let userReaction: ReactionStatus
 }

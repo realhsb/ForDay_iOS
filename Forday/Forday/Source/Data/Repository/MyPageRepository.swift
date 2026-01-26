@@ -10,9 +10,11 @@ import Foundation
 final class MyPageRepository: MyPageRepositoryInterface {
 
     private let usersService: UsersService
+    private let recordsService: RecordsService
 
-    init(usersService: UsersService = UsersService()) {
+    init(usersService: UsersService = UsersService(), recordsService: RecordsService = RecordsService()) {
         self.usersService = usersService
+        self.recordsService = recordsService
     }
 
     func fetchUserProfile() async throws -> UserProfile {
@@ -60,14 +62,8 @@ final class MyPageRepository: MyPageRepositoryInterface {
     }
 
     func fetchActivityDetail(activityRecordId: Int) async throws -> ActivityDetail {
-        #if DEBUG
-        // API not ready - return mock
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s delay
-        return makeMockActivityDetail(activityRecordId: activityRecordId)
-        #else
-        // TODO: Implement API call when ready
-        fatalError("API not implemented")
-        #endif
+        let response = try await recordsService.fetchRecordDetail(recordId: activityRecordId)
+        return response.toDomain()
     }
 
     func updateProfile(nickname: String?, profileImageUrl: String?) async throws -> UserProfile {
@@ -324,11 +320,16 @@ extension MyPageRepository {
 
         return ActivityDetail(
             activityRecordId: activity.activityRecordId,
-            imageUrl: activity.imageUrl,
-            createdDate: activity.createdDate,
+            activityId: 1,
             activityContent: activity.activityContent,
-            title: activity.activityContent,
-            memo: activity.memo
+            imageUrl: activity.imageUrl,
+            sticker: activity.sticker,
+            createdAt: activity.createdDate,
+            memo: activity.memo ?? "",
+            recordOwner: true,
+            visibility: "PUBLIC",
+            newReaction: ReactionStatus(awesome: false, great: false, amazing: false, fighting: false),
+            userReaction: ReactionStatus(awesome: true, great: true, amazing: false, fighting: false)
         )
     }
 
