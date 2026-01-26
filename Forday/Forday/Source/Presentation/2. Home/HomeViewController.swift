@@ -127,14 +127,13 @@ extension HomeViewController {
             }
             .store(in: &cancellables)
 
-        // 에러 메시지
-        viewModel.$errorMessage
+        // 에러 처리
+        viewModel.$error
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                if let error = errorMessage {
-                    print("❌ 에러: \(error)")
-                    // TODO: 에러 얼럿 표시
-                }
+            .compactMap { $0 }
+            .sink { [weak self] error in
+                print("❌ 에러: \(error)")
+                self?.handleError(error)
             }
             .store(in: &cancellables)
 
@@ -416,6 +415,18 @@ extension HomeViewController {
         }
 
         present(containerVC, animated: true)
+    }
+
+    // Error Handling
+
+    private func handleError(_ error: AppError) {
+        let alert = UIAlertController(
+            title: "오류",
+            message: error.userMessage,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 
     // Public Methods

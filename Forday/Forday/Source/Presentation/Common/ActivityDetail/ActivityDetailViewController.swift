@@ -88,14 +88,12 @@ extension ActivityDetailViewController {
             }
             .store(in: &cancellables)
 
-        // Error message
-        viewModel.$errorMessage
+        // Error handling
+        viewModel.$error
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                if let error = errorMessage {
-                    print("❌ Error: \(error)")
-                    self?.showError(error)
-                }
+            .compactMap { $0 }
+            .sink { [weak self] error in
+                self?.handleError(error)
             }
             .store(in: &cancellables)
     }
@@ -133,13 +131,55 @@ extension ActivityDetailViewController {
         present(alert, animated: true)
     }
 
-    private func showError(_ message: String) {
-        let alert = UIAlertController(
-            title: "오류",
-            message: message,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+    private func handleError(_ error: AppError) {
+        print("❌ Error: \(error)")
+
+        let title: String
+        let message = error.userMessage
+        var actions: [UIAlertAction] = []
+
+        switch error {
+        case .network(let networkError):
+            title = "네트워크 오류"
+            // Add retry action for network errors
+            actions.append(UIAlertAction(title: "다시 시도", style: .default) { [weak self] _ in
+                self?.loadData()
+            })
+            actions.append(UIAlertAction(title: "취소", style: .cancel))
+
+        case .server(let serverError):
+            // Handle specific server errors
+            switch serverError.errorClassName {
+            case "ACTIVITY_RECORD_NOT_FOUND":
+                title = "활동 기록을 찾을 수 없음"
+                actions.append(UIAlertAction(title: "확인", style: .default) { [weak self] _ in
+                    self?.navigationController?.popViewController(animated: true)
+                })
+
+            case "FRIEND_ONLY_ACCESS":
+                title = "접근 권한 없음"
+                actions.append(UIAlertAction(title: "확인", style: .default) { [weak self] _ in
+                    self?.navigationController?.popViewController(animated: true)
+                })
+
+            case "PRIVATE_RECORD":
+                title = "비공개 게시글"
+                actions.append(UIAlertAction(title: "확인", style: .default) { [weak self] _ in
+                    self?.navigationController?.popViewController(animated: true)
+                })
+
+            default:
+                title = "오류"
+                actions.append(UIAlertAction(title: "확인", style: .default))
+            }
+
+        case .decoding, .unknown:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+        }
+
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        actions.forEach { alert.addAction($0) }
         present(alert, animated: true)
     }
 }
