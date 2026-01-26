@@ -63,44 +63,44 @@ final class MyPageViewModel {
             isLoading = true
         }
 
-        do {
-            // Fetch all data in parallel
-            async let profileTask = fetchUserProfileUseCase.execute()
-            async let hobbiesTask = fetchMyHobbiesUseCase.execute()
-            async let activitiesTask = fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
-            async let cardsTask = fetchHobbyCardsUseCase.execute(lastHobbyCardId: nil, size: 20)
+        // Fetch all data in parallel, each can fail independently
+        async let profile = try? await fetchUserProfileUseCase.execute()
+        async let hobbiesResult = try? await fetchMyHobbiesUseCase.execute()
+        async let activitiesResult = try? await fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
+        async let cardsResult = try? await fetchHobbyCardsUseCase.execute(lastHobbyCardId: nil, size: 20)
 
-            let (profile, hobbiesResult, activitiesResult, cardsResult) = try await (
-                profileTask,
-                hobbiesTask,
-                activitiesTask,
-                cardsTask
-            )
+        let (profileOpt, hobbiesOpt, activitiesOpt, cardsOpt) = await (
+            profile,
+            hobbiesResult,
+            activitiesResult,
+            cardsResult
+        )
 
-            await MainActor.run {
+        await MainActor.run {
+            // Update only successful results
+            if let profile = profileOpt {
                 self.userProfile = profile
-                self.myHobbies = hobbiesResult.hobbies
-                self.inProgressHobbyCount = hobbiesResult.inProgressHobbyCount
-                self.hobbyCardCount = hobbiesResult.hobbyCardCount
-                self.activities = activitiesResult.activities
-                self.hobbyCards = cardsResult.cards
-                self.hasMoreActivities = activitiesResult.hasNext
-                self.lastRecordId = activitiesResult.lastRecordId
-                self.hasMoreHobbyCards = cardsResult.hasNext
-                self.lastHobbyCardId = cardsResult.lastCardId
-                self.isLoading = false
             }
 
-        } catch let appError as AppError {
-            await MainActor.run {
-                self.error = appError
-                self.isLoading = false
+            if let hobbies = hobbiesOpt {
+                self.myHobbies = hobbies.hobbies
+                self.inProgressHobbyCount = hobbies.inProgressHobbyCount
+                self.hobbyCardCount = hobbies.hobbyCardCount
             }
-        } catch {
-            await MainActor.run {
-                self.error = .unknown(error)
-                self.isLoading = false
+
+            if let activities = activitiesOpt {
+                self.activities = activities.activities
+                self.hasMoreActivities = activities.hasNext
+                self.lastRecordId = activities.lastRecordId
             }
+
+            if let cards = cardsOpt {
+                self.hobbyCards = cards.cards
+                self.hasMoreHobbyCards = cards.hasNext
+                self.lastHobbyCardId = cards.lastCardId
+            }
+
+            self.isLoading = false
         }
     }
 
