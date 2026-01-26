@@ -20,7 +20,7 @@ extension DTO {
         struct HobbyData: Codable {
             let hobbyId: Int
             let hobbyName: String
-            let thumbnailImageUrl: String
+            let thumbnailImageUrl: String?  // 서버가 null을 보낼 수 있음
             let status: String
         }
     }
@@ -43,7 +43,7 @@ extension DTO.UsersHobbiesInProgressResponse.HobbyData {
         MyPageHobby(
             hobbyId: hobbyId,
             hobbyName: hobbyName,
-            thumbnailImageUrl: thumbnailImageUrl,
+            thumbnailImageUrl: thumbnailImageUrl ?? "",  // null이면 빈 문자열
             status: HobbyStatus(rawValue: status) ?? .inProgress
         )
     }
