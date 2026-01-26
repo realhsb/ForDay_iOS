@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Then
+import Kingfisher
 
 final class ActivityPhotoCell: UICollectionViewCell {
 
@@ -34,6 +35,7 @@ final class ActivityPhotoCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        imageView.kf.cancelDownloadTask()
         imageView.image = nil
         stickerLabel.text = nil
     }
@@ -49,17 +51,22 @@ final class ActivityPhotoCell: UICollectionViewCell {
     }
 
     private func loadImage(from urlString: String) {
-        // TODO: Implement proper image loading with Kingfisher or similar library
-        // For now, use placeholder
-        imageView.image = UIImage(systemName: "photo")
-        imageView.tintColor = .systemGray3
+        guard !urlString.isEmpty, let url = URL(string: urlString) else {
+            // Show placeholder if URL is invalid or empty
+            imageView.image = UIImage(systemName: "photo")
+            imageView.tintColor = .systemGray3
+            return
+        }
 
-        // Future implementation:
-        // imageView.kf.setImage(
-        //     with: URL(string: urlString),
-        //     placeholder: UIImage(systemName: "photo"),
-        //     options: [.transition(.fade(0.2))]
-        // )
+        let placeholder = UIImage(systemName: "photo")
+        imageView.kf.setImage(
+            with: url,
+            placeholder: placeholder,
+            options: [
+                .transition(.fade(0.2)),
+                .cacheOriginalImage
+            ]
+        )
     }
 }
 
