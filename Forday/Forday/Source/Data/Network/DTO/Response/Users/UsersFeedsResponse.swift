@@ -5,8 +5,6 @@
 //  Created by Subeen on 1/26/26.
 //
 
-import Foundation
-
 extension DTO {
     struct UsersFeedsResponse: BaseResponse {
         let status: Int

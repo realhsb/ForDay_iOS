@@ -33,26 +33,9 @@ final class MyPageRepository: MyPageRepositoryInterface {
         return response.toDomain()
     }
 
-    func fetchMyHobbies() async throws -> [MyPageHobby] {
-        #if DEBUG
-        // API not ready - return mock
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s delay
-        return makeMockMyHobbies()
-        #else
-        // TODO: Implement API call when ready
-        fatalError("API not implemented")
-        #endif
-    }
-
-    func fetchHobbyCards(page: Int) async throws -> [HobbyCardData] {
-        #if DEBUG
-        // API not ready - return mock
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
-        return makeMockHobbyCards()
-        #else
-        // TODO: Implement API call when ready
-        fatalError("API not implemented")
-        #endif
+    func fetchMyHobbies() async throws -> MyHobbiesResult {
+        let response = try await usersService.fetchHobbiesInProgress()
+        return response.toDomain()
     }
 
     func fetchActivityDetail(activityRecordId: Int) async throws -> ActivityDetail {
@@ -60,7 +43,7 @@ final class MyPageRepository: MyPageRepositoryInterface {
         return response.toDomain()
     }
 
-    func updateProfile(nickname: String?, profileImageUrl: String?) async throws -> UserProfile {
+    func updateProfile(nickname: String, profileImageUrl: String) async throws -> UserInfo {
         #if DEBUG
         // API not ready - return mock
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
@@ -76,42 +59,6 @@ final class MyPageRepository: MyPageRepositoryInterface {
 
 #if DEBUG
 extension MyPageRepository {
-
-    private func makeMockUserProfile() -> UserProfile {
-        UserProfile(
-            userId: 1,
-            nickname: "유지",
-            profileImageUrl: nil,
-            totalStickerCount: 14,
-            inProgressHobbiesCount: 2
-        )
-    }
-
-    private func makeMockMyHobbies() -> [MyPageHobby] {
-        [
-            MyPageHobby(
-                hobbyId: 1,
-                hobbyName: "독서",
-                hobbyIcon: .reading,
-                status: .inProgress,
-                activityCount: 25
-            ),
-            MyPageHobby(
-                hobbyId: 2,
-                hobbyName: "사진촬영",
-                hobbyIcon: .photo,
-                status: .inProgress,
-                activityCount: 17
-            ),
-            MyPageHobby(
-                hobbyId: 3,
-                hobbyName: "요리",
-                hobbyIcon: .cooking,
-                status: .archived,
-                activityCount: 8
-            )
-        ]
-    }
 
     private func makeMockMyActivitiesResult(hobbyId: Int?, page: Int, size: Int) -> MyActivitiesResult {
         let allActivities = makeMockAllActivities()
@@ -271,41 +218,6 @@ extension MyPageRepository {
         ]
     }
 
-    private func makeMockHobbyCards() -> [HobbyCardData] {
-        [
-            HobbyCardData(
-                cardId: 1,
-                imageUrl: "https://picsum.photos/400/600?random=101",
-                text: "주로 아침에 활동한 독서",
-                hobbyName: "독서"
-            ),
-            HobbyCardData(
-                cardId: 2,
-                imageUrl: "https://picsum.photos/400/600?random=102",
-                text: "매일 10분 산책으로 찍은 사진들",
-                hobbyName: "사진촬영"
-            ),
-            HobbyCardData(
-                cardId: 3,
-                imageUrl: "https://picsum.photos/400/600?random=103",
-                text: "저녁마다 요리하는 즐거움",
-                hobbyName: "요리"
-            ),
-            HobbyCardData(
-                cardId: 4,
-                imageUrl: "https://picsum.photos/400/600?random=104",
-                text: "책 한 페이지씩 읽는 습관",
-                hobbyName: "독서"
-            ),
-            HobbyCardData(
-                cardId: 5,
-                imageUrl: "https://picsum.photos/400/600?random=105",
-                text: "일상 속 작은 순간들",
-                hobbyName: "사진촬영"
-            ),
-        ]
-    }
-
     private func makeMockActivityDetail(activityRecordId: Int) -> ActivityDetail {
         // Find activity from mock data
         let allActivities = makeMockAllActivities()
@@ -327,15 +239,11 @@ extension MyPageRepository {
         )
     }
 
-    private func makeMockUpdatedProfile(nickname: String?, profileImageUrl: String?) -> UserProfile {
-        var profile = makeMockUserProfile()
-
-        return UserProfile(
-            userId: profile.userId,
-            nickname: nickname ?? profile.nickname,
-            profileImageUrl: profileImageUrl ?? profile.profileImageUrl,
-            totalStickerCount: profile.totalStickerCount,
-            inProgressHobbiesCount: profile.inProgressHobbiesCount
+    private func makeMockUpdatedProfile(nickname: String, profileImageUrl: String) -> UserInfo {
+        return UserInfo(
+            profileImageUrl: profileImageUrl,
+            nickname: nickname,
+            totalCollectedStickerCount: 1
         )
     }
 }

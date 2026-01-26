@@ -23,11 +23,18 @@ final class UsersRepository: UsersRepositoryInterface {
     }
     
     // MARK: - Set Nickname
-    
+
     // UsersRepository.swift
     func setNickname(nickname: String) async throws -> SetNicknameResult {
         let request = DTO.SetNicknameRequest(nickname: nickname)
         let response = try await usersService.setNickname(request: request)
+        return response.toDomain()
+    }
+
+    // MARK: - Fetch Hobby Cards
+
+    func fetchHobbyCards(lastHobbyCardId: Int?, size: Int = 20) async throws -> HobbyCardsResult {
+        let response = try await usersService.fetchHobbyCards(lastHobbyCardId: lastHobbyCardId, size: size)
         return response.toDomain()
     }
 }

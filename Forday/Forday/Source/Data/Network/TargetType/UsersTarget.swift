@@ -14,6 +14,9 @@ enum UsersTarget {
     case setNickname(request: DTO.SetNicknameRequest)
     case feeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int)
     case info                   /// 사용자 정보 조회
+    case profileImageUpload(profileImageUrl: String)     /// 사용자 프로필 이미지 설정
+    case hobbiesInProgress      /// 사용자 취미 진행 상단탭 조회
+    case hobbyCards(lastHobbyCardId: Int?, size: Int)    /// 사용자 취미 카드 리스트 조회
 }
 
 extension UsersTarget: BaseTargetType {
@@ -28,6 +31,12 @@ extension UsersTarget: BaseTargetType {
             return UsersAPI.feeds.endpoint
         case .info:
             return UsersAPI.info.endpoint
+        case .profileImageUpload:
+            return UsersAPI.profileImageUpload.endpoint
+        case .hobbiesInProgress:
+            return UsersAPI.hobbiesInProgress.endpoint
+        case .hobbyCards:
+            return UsersAPI.hobbyCards.endpoint
         }
     }
     
@@ -38,8 +47,14 @@ extension UsersTarget: BaseTargetType {
         case .setNickname:
             return .patch
         case .feeds:
+            return .get
         case .info:
             return .get
+        case .profileImageUpload:
+            return .patch
+        case .hobbiesInProgress:
+            return .get
+        case .hobbyCards:
             return .get
         }
     }
@@ -68,7 +83,22 @@ extension UsersTarget: BaseTargetType {
             
         case .info:
             return .requestPlain
-            
+
+        case .profileImageUpload(let profileImageUrl):
+            var parameters: [String: Any] = ["profileImageUrl": profileImageUrl]
+            return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+
+        case .hobbiesInProgress:
+            return .requestPlain
+
+        case .hobbyCards(let lastHobbyCardId, let size):
+            var parameters: [String: Any] = ["size": size]
+
+            if let lastHobbyCardId = lastHobbyCardId {
+                parameters["lastHobbyCardId"] = lastHobbyCardId
+            }
+
+            return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
         }
     }
     
