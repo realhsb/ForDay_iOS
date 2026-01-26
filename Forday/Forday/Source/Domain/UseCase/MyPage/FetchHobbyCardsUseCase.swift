@@ -9,13 +9,13 @@ import Foundation
 
 final class FetchHobbyCardsUseCase {
 
-    private let repository: MyPageRepositoryInterface
+    private let repository: UsersRepositoryInterface
 
-    init(repository: MyPageRepositoryInterface = MyPageRepository()) {
+    init(repository: UsersRepositoryInterface = UsersRepository()) {
         self.repository = repository
     }
 
-    func execute(page: Int) async throws -> [HobbyCardData] {
-        return try await repository.fetchHobbyCards(page: page)
+    func execute(lastHobbyCardId: Int?, size: Int = 20) async throws -> HobbyCardsResult {
+        return try await repository.fetchHobbyCards(lastHobbyCardId: lastHobbyCardId, size: size)
     }
 }

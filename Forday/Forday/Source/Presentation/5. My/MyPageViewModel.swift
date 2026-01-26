@@ -20,8 +20,10 @@ final class MyPageViewModel {
     @Published var userProfile: UserInfo?
     @Published var currentTab: MyPageTab = .activities
     @Published var myHobbies: [MyPageHobby] = []
+    @Published var inProgressHobbyCount: Int = 0  // Segment "진행 중(n)" 표시용
+    @Published var hobbyCardCount: Int = 0        // Segment "취미 카드(n)" 표시용
     @Published var activities: [MyPageActivity] = []
-    @Published var hobbyCards: [HobbyCardData] = []
+    @Published var hobbyCards: [CompletedHobbyCard] = []
     @Published var selectedHobbyId: Int? // nil = all hobbies
     @Published var isLoading: Bool = false
     @Published var isLoadingMore: Bool = false
@@ -31,6 +33,8 @@ final class MyPageViewModel {
 
     private var lastRecordId: Int? = nil
     private var hasMoreActivities: Bool = true
+    private var lastHobbyCardId: Int? = nil
+    private var hasMoreHobbyCards: Bool = true
 
     // Use Cases
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
@@ -64,9 +68,9 @@ final class MyPageViewModel {
             async let profileTask = fetchUserProfileUseCase.execute()
             async let hobbiesTask = fetchMyHobbiesUseCase.execute()
             async let activitiesTask = fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
-            async let cardsTask = fetchHobbyCardsUseCase.execute(page: 0)
+            async let cardsTask = fetchHobbyCardsUseCase.execute(lastHobbyCardId: nil, size: 20)
 
-            let (profile, hobbies, activitiesResult, cards) = try await (
+            let (profile, hobbiesResult, activitiesResult, cardsResult) = try await (
                 profileTask,
                 hobbiesTask,
                 activitiesTask,
@@ -75,11 +79,15 @@ final class MyPageViewModel {
 
             await MainActor.run {
                 self.userProfile = profile
-                self.myHobbies = hobbies
+                self.myHobbies = hobbiesResult.hobbies
+                self.inProgressHobbyCount = hobbiesResult.inProgressHobbyCount
+                self.hobbyCardCount = hobbiesResult.hobbyCardCount
                 self.activities = activitiesResult.activities
-                self.hobbyCards = cards
+                self.hobbyCards = cardsResult.cards
                 self.hasMoreActivities = activitiesResult.hasNext
                 self.lastRecordId = activitiesResult.lastRecordId
+                self.hasMoreHobbyCards = cardsResult.hasNext
+                self.lastHobbyCardId = cardsResult.lastCardId
                 self.isLoading = false
             }
 

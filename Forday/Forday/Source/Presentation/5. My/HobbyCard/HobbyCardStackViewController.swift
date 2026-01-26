@@ -84,7 +84,7 @@ extension HobbyCardStackViewController {
             .store(in: &cancellables)
     }
 
-    private func updateContent(cards: [HobbyCardData]) {
+    private func updateContent(cards: [CompletedHobbyCard]) {
         if cards.isEmpty {
             // Show empty state
             cardStackView.isHidden = true
