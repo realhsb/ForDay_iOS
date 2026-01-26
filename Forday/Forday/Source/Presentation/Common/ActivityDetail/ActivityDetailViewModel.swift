@@ -14,7 +14,7 @@ final class ActivityDetailViewModel {
 
     @Published var activityDetail: ActivityDetail?
     @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+    @Published var error: AppError?
 
     // MARK: - Private Properties
 
@@ -46,9 +46,14 @@ final class ActivityDetailViewModel {
                 self.isLoading = false
             }
 
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
             }
         }

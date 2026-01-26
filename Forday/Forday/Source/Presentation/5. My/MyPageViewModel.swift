@@ -25,7 +25,7 @@ final class MyPageViewModel {
     @Published var selectedHobbyId: Int? // nil = all hobbies
     @Published var isLoading: Bool = false
     @Published var isLoadingMore: Bool = false
-    @Published var errorMessage: String?
+    @Published var error: AppError?
 
     // MARK: - Private Properties
 
@@ -83,9 +83,14 @@ final class MyPageViewModel {
                 self.isLoading = false
             }
 
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
             }
         }
@@ -121,9 +126,14 @@ final class MyPageViewModel {
                 self.isLoading = false
             }
 
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
             }
         }
@@ -149,9 +159,14 @@ final class MyPageViewModel {
                 self.isLoadingMore = false
             }
 
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoadingMore = false
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoadingMore = false
             }
         }
