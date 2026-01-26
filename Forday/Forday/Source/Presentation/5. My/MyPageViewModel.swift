@@ -17,7 +17,7 @@ final class MyPageViewModel {
 
     // MARK: - Published Properties
 
-    @Published var userProfile: UserProfile?
+    @Published var userProfile: UserInfo?
     @Published var currentTab: MyPageTab = .activities
     @Published var myHobbies: [MyPageHobby] = []
     @Published var activities: [MyPageActivity] = []
