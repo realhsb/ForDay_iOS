@@ -17,19 +17,13 @@ final class MyPageRepository: MyPageRepositoryInterface {
         self.recordsService = recordsService
     }
 
-    func fetchUserProfile() async throws -> UserProfile {
-        #if DEBUG
-        // API not ready - return mock
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
-        return makeMockUserProfile()
-        #else
-        // TODO: Implement API call when ready
-        fatalError("API not implemented")
-        #endif
+    func fetchUserInfo() async throws -> UserInfo {
+        let response = try await usersService.fetchUserInfo()
+        
+        return response.toDomain()
     }
 
     func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> MyActivitiesResult {
-        // Call real API
         let response = try await usersService.fetchFeeds(
             hobbyId: hobbyId,
             lastRecordId: lastRecordId,

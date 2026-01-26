@@ -13,6 +13,7 @@ enum UsersTarget {
     case nicknameAvailability(nickname: String)
     case setNickname(request: DTO.SetNicknameRequest)
     case feeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int)
+    case info                   /// 사용자 정보 조회
 }
 
 extension UsersTarget: BaseTargetType {
@@ -25,6 +26,8 @@ extension UsersTarget: BaseTargetType {
             return UsersAPI.settingNickname.endpoint
         case .feeds:
             return UsersAPI.feeds.endpoint
+        case .info:
+            return UsersAPI.info.endpoint
         }
     }
     
@@ -35,6 +38,8 @@ extension UsersTarget: BaseTargetType {
         case .setNickname:
             return .patch
         case .feeds:
+        case .info:
+            return .get
             return .get
         }
     }
@@ -60,6 +65,10 @@ extension UsersTarget: BaseTargetType {
             }
 
             return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
+            
+        case .info:
+            return .requestPlain
+            
         }
     }
     

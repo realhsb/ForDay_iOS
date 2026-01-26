@@ -15,7 +15,7 @@ final class FetchUserProfileUseCase {
         self.repository = repository
     }
 
-    func execute() async throws -> UserProfile {
-        return try await repository.fetchUserProfile()
+    func execute() async throws -> UserInfo {
+        return try await repository.fetchUserInfo()
     }
 }
