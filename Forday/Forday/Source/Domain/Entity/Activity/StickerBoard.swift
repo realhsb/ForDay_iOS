@@ -9,7 +9,7 @@ import Foundation
 
 /// Domain model for sticker board
 /// Guaranteed to have valid, non-optional values
-struct StickerBoard {
+struct StickerBoard: Sendable {
     let hobbyId: Int
     let durationSet: Bool
     let activityRecordedToday: Bool

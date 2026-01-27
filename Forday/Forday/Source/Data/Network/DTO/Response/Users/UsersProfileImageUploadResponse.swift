@@ -10,10 +10,21 @@ extension DTO {
         let status: Int
         let success: Bool
         let data: UsersProfileImageUploadData
-        
+
         struct UsersProfileImageUploadData: Codable {
             let profileImageUrl: String
             let message: String
         }
+    }
+}
+
+// MARK: - Domain Mapping
+
+extension DTO.UsersProfileImageUploadResponse {
+    func toDomain() -> UpdateProfileImageResult {
+        UpdateProfileImageResult(
+            profileImageUrl: data.profileImageUrl,
+            message: data.message
+        )
     }
 }

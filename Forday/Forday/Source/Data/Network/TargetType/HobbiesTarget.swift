@@ -26,6 +26,7 @@ enum HobbiesTarget {
     case updateExecutionCount(hobbyId: Int, request: DTO.UpdateExecutionCountRequest)
     case updateGoalDays(hobbyId: Int, request: DTO.UpdateGoalDaysRequest)
     case updateHobbyStatus(hobbyId: Int, request: DTO.UpdateHobbyStatusRequest)
+    case updateCoverImage(request: DTO.UpdateHobbyCoverRequest)
 }
 
 extension HobbiesTarget: BaseTargetType {
@@ -79,6 +80,9 @@ extension HobbiesTarget: BaseTargetType {
 
         case .updateHobbyStatus(let hobbyId, _):
             return HobbiesAPI.updateHobbyStatus(hobbyId).endpoint
+
+        case .updateCoverImage:
+            return HobbiesAPI.updateCoverImage.endpoint
         }
     }
     
@@ -115,6 +119,8 @@ extension HobbiesTarget: BaseTargetType {
         case .updateGoalDays:
             return .patch
         case .updateHobbyStatus:
+            return .patch
+        case .updateCoverImage:
             return .patch
         }
     }
@@ -194,6 +200,9 @@ extension HobbiesTarget: BaseTargetType {
             return .requestJSONEncodable(request)
 
         case .updateHobbyStatus(_, let request):
+            return .requestJSONEncodable(request)
+
+        case .updateCoverImage(let request):
             return .requestJSONEncodable(request)
         }
     }

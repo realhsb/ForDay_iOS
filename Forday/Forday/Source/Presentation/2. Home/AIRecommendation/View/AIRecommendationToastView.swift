@@ -1,5 +1,5 @@
 //
-//  ToastView.swift
+//  AIRecommendationToastView.swift
 //  Forday
 //
 //  Created by Subeen on 1/15/26.
@@ -10,23 +10,23 @@ import UIKit
 import SnapKit
 import Then
 
-class ToastView: UIView {
-    
+final class AIRecommendationToastView: UIView {
+
     // Properties
-    
+
     private let containerView = UIView()
     private let iconImageView = UIImageView()
     private let messageLabel = UILabel()
-    
+
     // Initialization
-    
+
     init(message: String) {
         super.init(frame: .zero)
         messageLabel.text = message
         style()
         layout()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -34,51 +34,51 @@ class ToastView: UIView {
 
 // Setup
 
-extension ToastView {
+extension AIRecommendationToastView {
     private func style() {
         backgroundColor = .clear
-        
+
         containerView.do {
             $0.backgroundColor = .bg001
             $0.layer.cornerRadius = 20
             $0.clipsToBounds = true
         }
-        
+
         iconImageView.do {
             $0.image = .Ai.default
             $0.contentMode = .scaleAspectFit
         }
-        
+
         messageLabel.do {
             $0.applyTypography(.body14)
             $0.textColor = .neutral800
             $0.numberOfLines = 1
         }
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         containerView.applyGradientBorder(DesignGradient.gradient002, lineWidth: 1, cornerRadius: 20)
     }
-    
+
     private func layout() {
         addSubview(containerView)
-        
+
         containerView.addSubview(iconImageView)
         containerView.addSubview(messageLabel)
-        
+
         // Container
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
         // Icon
         iconImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(22)
         }
-        
+
         // Message
         messageLabel.snp.makeConstraints {
             $0.leading.equalTo(iconImageView.snp.trailing).offset(8)
@@ -91,22 +91,22 @@ extension ToastView {
 
 // Public Methods
 
-extension ToastView {
+extension AIRecommendationToastView {
     func show(in view: UIView, bottomOffset: CGFloat = 0) {
         view.addSubview(self)
-        
+
         self.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(bottomOffset)
         }
-        
+
         // 페이드 인 애니메이션
         alpha = 0
         UIView.animate(withDuration: 0.3) {
             self.alpha = 1
         }
     }
-    
+
     func hide(completion: (() -> Void)? = nil) {
         UIView.animate(withDuration: 0.3, animations: {
             self.alpha = 0
@@ -118,5 +118,5 @@ extension ToastView {
 }
 
 #Preview {
-    ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+    AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
 }

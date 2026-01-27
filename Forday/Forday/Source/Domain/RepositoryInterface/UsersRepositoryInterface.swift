@@ -12,4 +12,5 @@ protocol UsersRepositoryInterface {
     func checkNicknameAvailability(nickname: String) async throws -> NicknameCheckResult
     func setNickname(nickname: String) async throws -> SetNicknameResult
     func fetchHobbyCards(lastHobbyCardId: Int?, size: Int) async throws -> HobbyCardsResult
+    func updateProfileImage(profileImageUrl: String) async throws -> UpdateProfileImageResult
 }

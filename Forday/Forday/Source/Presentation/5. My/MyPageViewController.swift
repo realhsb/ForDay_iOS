@@ -262,6 +262,8 @@ extension MyPageViewController {
     }
 
     private func handleSettingsMenuSelection(_ menuItem: SettingsMenuItem) {
+        dismissSettingsDropdown()
+
         switch menuItem {
         case .profileSettings:
             print("👤 Profile settings")
@@ -269,7 +271,7 @@ extension MyPageViewController {
 
         case .hobbyPhotoManagement:
             print("🖼️ Hobby photo management")
-            showComingSoonAlert(feature: "취미 대표사진 관리")
+            showHobbyCoverManagement()
 
         case .generalSettings:
             print("⚙️ General settings")
@@ -284,6 +286,17 @@ extension MyPageViewController {
     private func showProfileEdit() {
         // TODO: Implement profile edit screen
         showComingSoonAlert(feature: "프로필 편집")
+    }
+
+    private func showHobbyCoverManagement() {
+        let viewModel = ManageHobbyCoverViewModel()
+        let vc = ManageHobbyCoverViewController(viewModel: viewModel)
+
+        // Pass hobbies to the viewModel
+        let inProgressHobbies = self.viewModel.myHobbies.filter { $0.status == .inProgress }
+        viewModel.setHobbies(inProgressHobbies)
+
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func showComingSoonAlert(feature: String) {

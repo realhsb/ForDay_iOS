@@ -104,4 +104,10 @@ final class ActivityService {
     func updateHobbyStatus(hobbyId: Int, request: DTO.UpdateHobbyStatusRequest) async throws -> DTO.UpdateHobbyResponse {
         return try await provider.request(.updateHobbyStatus(hobbyId: hobbyId, request: request))
     }
+
+    // MARK: - 취미 대표사진 변경
+
+    func updateCoverImage(request: DTO.UpdateHobbyCoverRequest) async throws -> DTO.UpdateHobbyCoverResponse {
+        return try await provider.request(.updateCoverImage(request: request))
+    }
 }

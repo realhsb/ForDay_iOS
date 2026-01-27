@@ -37,4 +37,11 @@ final class UsersRepository: UsersRepositoryInterface {
         let response = try await usersService.fetchHobbyCards(lastHobbyCardId: lastHobbyCardId, size: size)
         return response.toDomain()
     }
+
+    // MARK: - Update Profile Image
+
+    func updateProfileImage(profileImageUrl: String) async throws -> UpdateProfileImageResult {
+        let response = try await usersService.updateProfileImage(profileImageUrl: profileImageUrl)
+        return response.toDomain()
+    }
 }

@@ -30,7 +30,7 @@ class HomeView: UIView {
     private let bannerView = UIView()
 
     // Toast
-    let toastView = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+    let toastView = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
 
     // My Activity Section
     private let myActivitySectionView = UIView()

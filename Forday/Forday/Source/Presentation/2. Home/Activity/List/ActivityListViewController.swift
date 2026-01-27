@@ -24,7 +24,7 @@ class ActivityListViewController: UIViewController {
 
     // AI Recommendation Toast
     var shouldShowAIRecommendationToast = false
-    private var aiToastView: ToastView?
+    private var aiToastView: AIRecommendationToastView?
     
     // Initialization
     
@@ -251,7 +251,7 @@ extension ActivityListViewController {
     }
 
     private func showAIRecommendationToast() {
-        let toast = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
         toast.isUserInteractionEnabled = true
 
         // Add tap gesture
