@@ -43,8 +43,10 @@ final class StickerGridView: UIView {
     // MARK: - Setup
 
     private func setupUI() {
-        backgroundColor = .systemGray6
+        backgroundColor = .neutralWhite
         layer.cornerRadius = 16
+        layer.borderColor = UIColor.stroke001.cgColor
+        layer.borderWidth = 1
 
         addSubview(collectionView)
 

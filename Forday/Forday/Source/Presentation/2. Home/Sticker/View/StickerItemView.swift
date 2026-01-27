@@ -62,19 +62,16 @@ final class StickerItemView: UIView {
         switch state {
         case .empty:
             // 회색 빈 스티커
-            imageView.image = UIImage(systemName: "circle.fill")
-            imageView.tintColor = .systemGray5
+            imageView.image = .My.empty
 
         case .todayHighlight:
             // 핑크 외곽선 스티커 (오늘 기록 안 함)
-            imageView.image = UIImage(systemName: "circle")
-            imageView.tintColor = .systemPink
+            imageView.image = .My.todayEmpty
 
         case .filled(let stickerFileName):
             // Convert filename to StickerType and load actual image
             if let stickerType = StickerType(fileName: stickerFileName) {
                 imageView.image = stickerType.image
-                imageView.tintColor = nil
             } else {
                 // Fallback for unknown sticker types
                 imageView.image = UIImage(systemName: "circle.fill")
@@ -91,3 +88,4 @@ final class StickerItemView: UIView {
         case filled(String)             // 채워진 스티커 (파일명)
     }
 }
+
