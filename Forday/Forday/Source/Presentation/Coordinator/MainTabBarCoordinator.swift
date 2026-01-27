@@ -70,6 +70,7 @@ class MainTabBarCoordinator: NSObject, Coordinator {
 
         // 프로필 탭
         let profileVC = MyPageViewController()
+        profileVC.coordinator = self
         profileVC.view.backgroundColor = .systemBackground
         profileVC.title = "마이"
         profileVC.tabBarItem = UITabBarItem(
@@ -172,6 +173,26 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
 
         if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
             homeNav.present(nav, animated: true)
+        }
+    }
+
+    func showProfileEdit(currentProfile: UserInfo?) {
+        // Create ViewModel
+        let viewModel = EditProfileViewModel()
+
+        // Set initial profile if available
+        if let profile = currentProfile {
+            // TODO: Load actual profile image from URL when image loading is implemented
+            let placeholderImage = UIImage(systemName: "person.circle.fill")
+            viewModel.setInitialProfile(image: placeholderImage, nickname: profile.nickname)
+        }
+
+        // Create ViewController
+        let editProfileVC = EditProfileViewController(viewModel: viewModel)
+
+        // Push to MyPage navigation stack
+        if let myPageNav = tabBarController.viewControllers?.last as? UINavigationController {
+            myPageNav.pushViewController(editProfileVC, animated: true)
         }
     }
 }
