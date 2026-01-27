@@ -60,7 +60,7 @@ final class MyPageRepository: MyPageRepositoryInterface {
 #if DEBUG
 extension MyPageRepository {
 
-//    private func makeMockMyActivitiesResult(hobbyId: Int?, page: Int, size: Int) -> MyActivitiesResult {
+//    private func makeMockMyActivitiesResult(hobbyId: Int?, page: Int, size: Int) -> FeedResult {
 //        let allActivities = makeMockAllActivities()
 //
 //        // Filter by hobbyId if provided
@@ -75,7 +75,7 @@ extension MyPageRepository {
 //        let endIndex = min(startIndex + size, filteredActivities.count)
 //
 //        guard startIndex < filteredActivities.count else {
-//            return MyActivitiesResult(
+//            return FeedResult(
 //                activities: [],
 //                hasNext: false,
 //                lastRecordId: nil

@@ -71,20 +71,16 @@ final class StickerItemView: UIView {
             imageView.tintColor = .systemPink
 
         case .filled(let stickerFileName):
-            // 실제 스티커 이미지
-            // TODO: 나중에 파일명으로 이미지 로드
-            // 임시로 컬러 원으로 표시
-            imageView.image = UIImage(systemName: "circle.fill")
-            imageView.tintColor = colorForSticker(stickerFileName)
+            // Convert filename to StickerType and load actual image
+            if let stickerType = StickerType(fileName: stickerFileName) {
+                imageView.image = stickerType.image
+                imageView.tintColor = nil
+            } else {
+                // Fallback for unknown sticker types
+                imageView.image = UIImage(systemName: "circle.fill")
+                imageView.tintColor = .systemGray
+            }
         }
-    }
-
-    private func colorForSticker(_ fileName: String) -> UIColor {
-        // TODO: 실제로는 에셋에서 이미지 로드
-        // 임시로 파일명 해시로 색상 결정
-        let colors: [UIColor] = [.systemYellow, .systemGreen, .systemBlue, .systemOrange, .systemPurple]
-        let index = abs(fileName.hashValue) % colors.count
-        return colors[index]
     }
 
     // MARK: - Sticker State

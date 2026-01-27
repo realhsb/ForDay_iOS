@@ -20,4 +20,9 @@ struct FeedItem {
     let sticker: String
     let memo: String?
     let createdAt: String
+
+    /// Converts the sticker filename string to a StickerType enum
+    var stickerType: StickerType? {
+        StickerType(fileName: sticker)
+    }
 }

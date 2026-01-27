@@ -25,6 +25,11 @@ struct StickerBoard: Sendable {
 struct StickerBoardItem {
     let activityRecordId: Int
     let sticker: String
+
+    /// Converts the sticker filename string to a StickerType enum
+    var stickerType: StickerType? {
+        StickerType(fileName: sticker)
+    }
 }
 
 /// Represents the state when no hobby is in progress
