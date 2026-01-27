@@ -210,7 +210,8 @@ extension ActivityGridViewController: UICollectionViewDelegate {
         let height = scrollView.frame.size.height
 
         // Load more when scrolled to 80% of content
-        if offsetY > contentHeight - height * 1.2 {
+        // Prevent duplicate calls by checking isLoadingMore
+        if offsetY > contentHeight - height * 1.2 && !viewModel.isLoadingMore {
             Task {
                 await viewModel.loadMoreActivities()
             }

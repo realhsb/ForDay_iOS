@@ -30,7 +30,7 @@ final class MyPageRepository: MyPageRepositoryInterface {
             feedSize: size
         )
 
-        return response.toDomain()
+        return response.toDomain(requestedSize: size)
     }
 
     func fetchMyHobbies() async throws -> MyHobbiesResult {

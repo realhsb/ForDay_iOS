@@ -49,13 +49,6 @@ final class UsersRepository: UsersRepositoryInterface {
 
     func fetchFeeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int = 24) async throws -> FeedResult {
         let response = try await usersService.fetchFeeds(hobbyId: hobbyId, lastRecordId: lastRecordId, feedSize: feedSize)
-
-        let feedItems = response.data.feedList.map { $0.toDomain() }
-
-        return FeedResult(
-            totalFeedCount: response.data.totalFeedCount,
-            lastRecordId: response.data.lastRecordId,
-            feedList: feedItems
-        )
+        return response.toDomain(requestedSize: feedSize)
     }
 }

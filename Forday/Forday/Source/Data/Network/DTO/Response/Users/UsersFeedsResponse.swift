@@ -16,7 +16,6 @@ extension DTO {
         let totalFeedCount: Int
         let lastRecordId: Int?
         let feedList: [FeedItem]
-        let hasNext: Bool
     }
 
     struct FeedItem: Codable {
@@ -30,10 +29,18 @@ extension DTO {
 // MARK: - Domain Mapping
 
 extension DTO.UsersFeedsResponse {
-    func toDomain() -> FeedResult {
+    func toDomain(requestedSize: Int) -> FeedResult {
         let feeds = data.feedList.map { $0.toDomain() }
 
-        return FeedResult(totalFeedCount: data.totalFeedCount, lastRecordId: data.lastRecordId, feedList: feeds)
+        // Calculate hasNext: if received count < requested size, no more data
+        let hasNext = feeds.count >= requestedSize
+
+        return FeedResult(
+            totalFeedCount: data.totalFeedCount,
+            lastRecordId: data.lastRecordId,
+            feedList: feeds,
+            hasNext: hasNext
+        )
     }
 }
 

@@ -284,8 +284,7 @@ extension MyPageViewController {
     }
 
     private func showProfileEdit() {
-        // TODO: Implement profile edit screen
-        showComingSoonAlert(feature: "프로필 편집")
+        coordinator?.showProfileEdit(currentProfile: viewModel.userProfile)
     }
 
     private func showHobbyCoverManagement() {

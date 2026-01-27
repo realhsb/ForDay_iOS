@@ -32,7 +32,7 @@ final class MyPageViewModel {
     // MARK: - Private Properties
 
     private var lastRecordId: Int? = nil
-//    private var hasMoreActivities: Bool = true
+    private var hasMoreActivities: Bool = true
     private var lastHobbyCardId: Int? = nil
     private var hasMoreHobbyCards: Bool = true
 
@@ -90,7 +90,7 @@ final class MyPageViewModel {
 
             if let activities = activitiesOpt {
                 self.activities = activities.feedList
-//                self.hasMoreActivities = activities.hasNext
+                self.hasMoreActivities = activities.hasNext
                 self.lastRecordId = activities.lastRecordId
             }
 
@@ -111,7 +111,7 @@ final class MyPageViewModel {
     func filterByHobby(hobbyId: Int?) async {
         selectedHobbyId = hobbyId
         lastRecordId = nil
-//        hasMoreActivities = true
+        hasMoreActivities = true
 
         await refreshActivities()
     }
@@ -129,7 +129,7 @@ final class MyPageViewModel {
 
             await MainActor.run {
                 self.activities = result.feedList
-//                self.hasMoreActivities = result.hasNext
+                self.hasMoreActivities = result.hasNext
                 self.lastRecordId = result.lastRecordId
                 self.isLoading = false
             }
@@ -148,7 +148,7 @@ final class MyPageViewModel {
     }
 
     func loadMoreActivities() async {
-        guard !isLoadingMore /*&& hasMoreActivities*/ else { return }
+        guard !isLoadingMore && hasMoreActivities else { return }
 
         await MainActor.run {
             isLoadingMore = true
@@ -162,7 +162,7 @@ final class MyPageViewModel {
 
             await MainActor.run {
                 self.activities.append(contentsOf: result.feedList)
-//                self.hasMoreActivities = result.hasNext
+                self.hasMoreActivities = result.hasNext
                 self.lastRecordId = result.lastRecordId
                 self.isLoadingMore = false
             }
