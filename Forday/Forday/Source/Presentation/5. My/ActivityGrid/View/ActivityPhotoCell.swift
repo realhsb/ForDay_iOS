@@ -42,9 +42,9 @@ final class ActivityPhotoCell: UICollectionViewCell {
 
     // MARK: - Configuration
 
-    func configure(with activity: MyPageActivity) {
+    func configure(with activity: FeedItem) {
         // Load image from URL
-        loadImage(from: activity.imageUrl)
+        loadImage(from: activity.thumbnailImageUrl)
 
         // Display sticker
         stickerLabel.text = activity.sticker

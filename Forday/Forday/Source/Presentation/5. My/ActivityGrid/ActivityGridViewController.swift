@@ -190,7 +190,7 @@ extension ActivityGridViewController: UICollectionViewDataSource {
 extension ActivityGridViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let activity = viewModel.activities[indexPath.item]
-        showActivityDetail(activityRecordId: activity.activityRecordId)
+        showActivityDetail(activityRecordId: activity.recordId)
     }
 
     private func showActivityDetail(activityRecordId: Int) {

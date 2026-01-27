@@ -8,17 +8,13 @@
 import Foundation
 
 struct MyActivitiesResult {
-    let activities: [MyPageActivity]
-    let hasNext: Bool
+    let totalFeedCount: Int
     let lastRecordId: Int?
-    let currentPage: Int  // Deprecated: only for backward compatibility
-    let totalPages: Int   // Deprecated: only for backward compatibility
+    let feedList: [FeedItem]
 
-    init(activities: [MyPageActivity], hasNext: Bool, lastRecordId: Int?, currentPage: Int = 0, totalPages: Int = 0) {
-        self.activities = activities
-        self.hasNext = hasNext
+    init(totalFeedCount: Int, lastRecordId: Int?, feedList: [FeedItem]) {
+        self.totalFeedCount = totalFeedCount
         self.lastRecordId = lastRecordId
-        self.currentPage = currentPage
-        self.totalPages = totalPages
+        self.feedList = feedList
     }
 }

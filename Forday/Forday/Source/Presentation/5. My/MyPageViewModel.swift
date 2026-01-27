@@ -22,7 +22,7 @@ final class MyPageViewModel {
     @Published var myHobbies: [MyPageHobby] = []
     @Published var inProgressHobbyCount: Int = 0  // Segment "진행 중(n)" 표시용
     @Published var hobbyCardCount: Int = 0        // Segment "취미 카드(n)" 표시용
-    @Published var activities: [MyPageActivity] = []
+    @Published var activities: [FeedItem] = []
     @Published var hobbyCards: [CompletedHobbyCard] = []
     @Published var selectedHobbyId: Int? // nil = all hobbies
     @Published var isLoading: Bool = false
@@ -32,7 +32,7 @@ final class MyPageViewModel {
     // MARK: - Private Properties
 
     private var lastRecordId: Int? = nil
-    private var hasMoreActivities: Bool = true
+//    private var hasMoreActivities: Bool = true
     private var lastHobbyCardId: Int? = nil
     private var hasMoreHobbyCards: Bool = true
 
@@ -89,8 +89,8 @@ final class MyPageViewModel {
             }
 
             if let activities = activitiesOpt {
-                self.activities = activities.activities
-                self.hasMoreActivities = activities.hasNext
+                self.activities = activities.feedList
+//                self.hasMoreActivities = activities.hasNext
                 self.lastRecordId = activities.lastRecordId
             }
 
@@ -111,7 +111,7 @@ final class MyPageViewModel {
     func filterByHobby(hobbyId: Int?) async {
         selectedHobbyId = hobbyId
         lastRecordId = nil
-        hasMoreActivities = true
+//        hasMoreActivities = true
 
         await refreshActivities()
     }
@@ -128,8 +128,8 @@ final class MyPageViewModel {
             )
 
             await MainActor.run {
-                self.activities = result.activities
-                self.hasMoreActivities = result.hasNext
+                self.activities = result.feedList
+//                self.hasMoreActivities = result.hasNext
                 self.lastRecordId = result.lastRecordId
                 self.isLoading = false
             }
@@ -148,7 +148,7 @@ final class MyPageViewModel {
     }
 
     func loadMoreActivities() async {
-        guard !isLoadingMore && hasMoreActivities else { return }
+        guard !isLoadingMore /*&& hasMoreActivities*/ else { return }
 
         await MainActor.run {
             isLoadingMore = true
@@ -161,8 +161,8 @@ final class MyPageViewModel {
             )
 
             await MainActor.run {
-                self.activities.append(contentsOf: result.activities)
-                self.hasMoreActivities = result.hasNext
+                self.activities.append(contentsOf: result.feedList)
+//                self.hasMoreActivities = result.hasNext
                 self.lastRecordId = result.lastRecordId
                 self.isLoadingMore = false
             }

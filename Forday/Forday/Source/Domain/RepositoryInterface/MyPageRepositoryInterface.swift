@@ -9,7 +9,7 @@ import Foundation
 
 protocol MyPageRepositoryInterface {
     func fetchUserInfo() async throws -> UserInfo
-    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> MyActivitiesResult
+    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> FeedResult
     func fetchMyHobbies() async throws -> MyHobbiesResult
     func fetchActivityDetail(activityRecordId: Int) async throws -> ActivityDetail
     func updateProfile(nickname: String, profileImageUrl: String) async throws -> UserInfo

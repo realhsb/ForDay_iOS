@@ -17,6 +17,8 @@ class ManageHobbyCoverViewController: UIViewController {
     private let viewModel: ManageHobbyCoverViewModel
     private var cancellables = Set<AnyCancellable>()
 
+    private var doneButton: UIBarButtonItem!
+
     // MARK: - Initialization
 
     init(viewModel: ManageHobbyCoverViewModel = ManageHobbyCoverViewModel()) {
@@ -37,36 +39,34 @@ class ManageHobbyCoverViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
-        setupCollectionView()
-        setupActions()
+        setupCollectionViews()
         bind()
+        loadInitialData()
     }
 
     // MARK: - Setup
 
     private func setupNavigationBar() {
         title = "취미 대표사진 관리"
+
+        doneButton = UIBarButtonItem(
+            title: "완료",
+            style: .done,
+            target: self,
+            action: #selector(doneButtonTapped)
+        )
+        doneButton.isHidden = true
+        navigationItem.rightBarButtonItem = doneButton
     }
 
-    private func setupCollectionView() {
-        manageCoverView.collectionView.dataSource = self
-        manageCoverView.collectionView.delegate = self
-    }
+    private func setupCollectionViews() {
+        // Hobby Collection View
+        manageCoverView.hobbyCollectionView.dataSource = self
+        manageCoverView.hobbyCollectionView.delegate = self
 
-    private func setupActions() {
-        // Hobby Selection Button
-        manageCoverView.hobbySelectionButton.addTarget(
-            self,
-            action: #selector(hobbySelectionButtonTapped),
-            for: .touchUpInside
-        )
-
-        // Select Cover Button
-        manageCoverView.selectCoverButton.addTarget(
-            self,
-            action: #selector(selectCoverButtonTapped),
-            for: .touchUpInside
-        )
+        // Feed Collection View
+        manageCoverView.feedCollectionView.dataSource = self
+        manageCoverView.feedCollectionView.delegate = self
     }
 
     private func bind() {
@@ -74,25 +74,26 @@ class ManageHobbyCoverViewController: UIViewController {
         viewModel.$hobbies
             .receive(on: DispatchQueue.main)
             .sink { [weak self] hobbies in
-                // Update hobby selection if needed
+                self?.manageCoverView.updateHobbyCount(hobbies.count)
+                self?.manageCoverView.hobbyCollectionView.reloadData()
             }
             .store(in: &cancellables)
 
-        // Selected Hobby
-        viewModel.$selectedHobby
-            .compactMap { $0 }
+        // Feed Items
+        viewModel.$feedItems
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] hobby in
-                self?.manageCoverView.updateHobbyLabel(hobby.hobbyName)
+            .sink { [weak self] items in
+                self?.manageCoverView.showEmptyState(items.isEmpty)
+                self?.manageCoverView.feedCollectionView.reloadData()
             }
             .store(in: &cancellables)
 
-        // Activity Records
-        viewModel.$activityRecords
+        // Selection Mode
+        viewModel.$isSelectionMode
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] records in
-                self?.manageCoverView.collectionView.reloadData()
-                self?.manageCoverView.showEmptyState(records.isEmpty)
+            .sink { [weak self] isSelectionMode in
+                self?.doneButton.isHidden = !isSelectionMode
+                self?.manageCoverView.feedCollectionView.reloadData()
             }
             .store(in: &cancellables)
 
@@ -100,8 +101,8 @@ class ManageHobbyCoverViewController: UIViewController {
         viewModel.$selectedRecordId
             .receive(on: DispatchQueue.main)
             .sink { [weak self] selectedId in
-                self?.manageCoverView.selectCoverButton.isEnabled = selectedId != nil
-                self?.manageCoverView.collectionView.reloadData()
+                self?.doneButton.isEnabled = selectedId != nil
+                self?.manageCoverView.feedCollectionView.reloadData()
             }
             .store(in: &cancellables)
 
@@ -115,67 +116,21 @@ class ManageHobbyCoverViewController: UIViewController {
             .store(in: &cancellables)
     }
 
+    private func loadInitialData() {
+        Task {
+            await viewModel.fetchAllFeeds()
+        }
+    }
+
     // MARK: - Actions
 
-    @objc private func hobbySelectionButtonTapped() {
-        showHobbySelectionMenu()
-    }
-
-    @objc private func selectCoverButtonTapped() {
-        CoverImageOptionSheet.present(
-            on: self,
-            onGallerySelected: { [weak self] in
-                self?.handleGallerySelection()
-            },
-            onActivitySelected: { [weak self] in
-                self?.handleActivitySelection()
-            }
-        )
-    }
-
-    // MARK: - Hobby Selection
-
-    private func showHobbySelectionMenu() {
-        let alert = UIAlertController(title: "취미 선택", message: nil, preferredStyle: .actionSheet)
-
-        for hobby in viewModel.hobbies {
-            let action = UIAlertAction(title: hobby.hobbyName, style: .default) { [weak self] _ in
-                self?.viewModel.selectedHobby = hobby
-            }
-            alert.addAction(action)
-        }
-
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-
-        // iPad support
-        if let popoverController = alert.popoverPresentationController {
-            popoverController.sourceView = manageCoverView.hobbySelectionButton
-            popoverController.sourceRect = manageCoverView.hobbySelectionButton.bounds
-        }
-
-        present(alert, animated: true)
-    }
-
-    // MARK: - Cover Image Selection
-
-    private func handleGallerySelection() {
-        var configuration = PHPickerConfiguration()
-        configuration.filter = .images
-        configuration.selectionLimit = 1
-
-        let picker = PHPickerViewController(configuration: configuration)
-        picker.delegate = self
-        present(picker, animated: true)
-    }
-
-    private func handleActivitySelection() {
+    @objc private func doneButtonTapped() {
         Task {
             do {
                 let message = try await viewModel.updateCoverImageWithRecord()
 
                 await MainActor.run {
-                    guard let hobbyName = self.viewModel.selectedHobby?.hobbyName else { return }
-                    ToastView.show(message: "\(hobbyName) 대표사진 변경 완료!")
+                    ToastView.show(message: message)
                     self.navigationController?.popViewController(animated: true)
                 }
             } catch let appError as AppError {
@@ -188,6 +143,38 @@ class ManageHobbyCoverViewController: UIViewController {
                 }
             }
         }
+    }
+
+    // MARK: - Hobby Camera Icon Tapped
+
+    private func showCoverImageOptions(for hobby: MyPageHobby) {
+        CoverImageOptionSheet.present(
+            on: self,
+            onGallerySelected: { [weak self] in
+                self?.handleGallerySelection(for: hobby)
+            },
+            onActivitySelected: { [weak self] in
+                self?.handleActivitySelection(for: hobby)
+            }
+        )
+    }
+
+    private func handleGallerySelection(for hobby: MyPageHobby) {
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images
+        configuration.selectionLimit = 1
+
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        present(picker, animated: true)
+
+        // Store selected hobby for later use
+        // TODO: Better way to pass hobby to PHPicker delegate
+    }
+
+    private func handleActivitySelection(for hobby: MyPageHobby) {
+        // Enter selection mode
+        viewModel.enterSelectionMode(forHobbyId: hobby.hobbyId)
     }
 
     // MARK: - Error Handling
@@ -203,25 +190,47 @@ class ManageHobbyCoverViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDataSource
+// MARK: - UICollectionViewDataSource (Hobby)
 
 extension ManageHobbyCoverViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.activityRecords.count
+        if collectionView == manageCoverView.hobbyCollectionView {
+            return viewModel.hobbies.count
+        } else {
+            return viewModel.feedItems.count
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: "ActivityRecordCell",
-            for: indexPath
-        ) as? ActivityRecordCell else {
-            return UICollectionViewCell()
-        }
+        if collectionView == manageCoverView.hobbyCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: "HobbyCoverCell",
+                for: indexPath
+            ) as? HobbyCoverCell else {
+                return UICollectionViewCell()
+            }
 
-        let item = viewModel.activityRecords[indexPath.item]
-        let isSelected = viewModel.selectedRecordId == item.activityRecordId
-        cell.configure(with: item.sticker, isSelected: isSelected)
-        return cell
+            let hobby = viewModel.hobbies[indexPath.item]
+            cell.configure(hobby: hobby)
+            return cell
+
+        } else {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: "FeedItemCell",
+                for: indexPath
+            ) as? FeedItemCell else {
+                return UICollectionViewCell()
+            }
+
+            let feedItem = viewModel.feedItems[indexPath.item]
+            let isSelected = viewModel.selectedRecordId == feedItem.recordId
+            cell.configure(
+                feedItem: feedItem,
+                isSelectionMode: viewModel.isSelectionMode,
+                isSelected: isSelected
+            )
+            return cell
+        }
     }
 }
 
@@ -229,8 +238,24 @@ extension ManageHobbyCoverViewController: UICollectionViewDataSource {
 
 extension ManageHobbyCoverViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let item = viewModel.activityRecords[indexPath.item]
-        viewModel.toggleRecordSelection(item.activityRecordId)
+        if collectionView == manageCoverView.hobbyCollectionView {
+            let hobby = viewModel.hobbies[indexPath.item]
+
+            // Archived 취미는 선택 불가
+            guard hobby.status != .archived else {
+                return
+            }
+
+            // 카메라 아이콘 클릭으로 간주 → 바텀시트
+            showCoverImageOptions(for: hobby)
+
+        } else {
+            // Feed 선택 (선택 모드일 때만)
+            guard viewModel.isSelectionMode else { return }
+
+            let feedItem = viewModel.feedItems[indexPath.item]
+            viewModel.toggleFeedItemSelection(feedItem.recordId)
+        }
     }
 }
 
@@ -242,8 +267,12 @@ extension ManageHobbyCoverViewController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        let width = (collectionView.bounds.width - 16) / 3
-        return CGSize(width: width, height: width)
+        if collectionView == manageCoverView.hobbyCollectionView {
+            return CGSize(width: 80, height: 100)
+        } else {
+            let width = (collectionView.bounds.width - 8) / 3
+            return CGSize(width: width, height: width)
+        }
     }
 }
 
@@ -260,13 +289,12 @@ extension ManageHobbyCoverViewController: PHPickerViewControllerDelegate {
 
             Task {
                 do {
-                    let message = try await self?.viewModel.updateCoverImageWithGallery(image: image)
+                    // TODO: Get selected hobby from somewhere
+                    // let message = try await self?.viewModel.updateCoverImageWithGallery(hobbyId: hobbyId, image: image)
 
                     await MainActor.run {
-                        guard let self = self,
-                              let hobbyName = self.viewModel.selectedHobby?.hobbyName else { return }
-                        ToastView.show(message: "\(hobbyName) 대표사진 변경 완료!")
-                        self.navigationController?.popViewController(animated: true)
+                        ToastView.show(message: "대표사진 변경 완료!")
+                        self?.navigationController?.popViewController(animated: true)
                     }
                 } catch let appError as AppError {
                     await MainActor.run {

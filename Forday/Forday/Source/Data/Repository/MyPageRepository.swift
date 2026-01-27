@@ -23,7 +23,7 @@ final class MyPageRepository: MyPageRepositoryInterface {
         return response.toDomain()
     }
 
-    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> MyActivitiesResult {
+    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> FeedResult {
         let response = try await usersService.fetchFeeds(
             hobbyId: hobbyId,
             lastRecordId: lastRecordId,

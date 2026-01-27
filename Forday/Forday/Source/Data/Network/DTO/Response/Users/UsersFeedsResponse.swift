@@ -30,28 +30,31 @@ extension DTO {
 // MARK: - Domain Mapping
 
 extension DTO.UsersFeedsResponse {
-    func toDomain() -> MyActivitiesResult {
-        let activities = data.feedList.map { $0.toDomain() }
+    func toDomain() -> FeedResult {
+        let feeds = data.feedList.map { $0.toDomain() }
 
-        return MyActivitiesResult(
-            activities: activities,
-            hasNext: data.hasNext,
-            lastRecordId: data.lastRecordId
-        )
+        return FeedResult(totalFeedCount: data.totalFeedCount, lastRecordId: data.lastRecordId, feedList: feeds)
     }
 }
 
 extension DTO.FeedItem {
-    func toDomain() -> MyPageActivity {
-        return MyPageActivity(
-            activityRecordId: recordId,
-            hobbyId: 0, // Not provided by API
-            hobbyName: "", // Not provided by API
-            activityContent: "", // Not provided by API
-            imageUrl: thumbnailImageUrl ?? "",
+    func toDomain() -> FeedItem {
+        return FeedItem(
+            recordId: recordId,
+            thumbnailImageUrl: thumbnailImageUrl ?? "",
             sticker: sticker,
-            createdDate: createdAt,
-            memo: nil // Not provided by API
+            memo: nil,
+            createdAt: createdAt
+        )
+    }
+
+    func toMyPageActivity() -> FeedItem {
+        return FeedItem(
+            recordId: recordId,
+            thumbnailImageUrl: thumbnailImageUrl ?? "",
+            sticker: sticker,
+            memo: nil,
+            createdAt: createdAt
         )
     }
 }

@@ -11,7 +11,7 @@ import Foundation
 struct MyPageHobby {
     let hobbyId: Int
     let hobbyName: String
-    let thumbnailImageUrl: String
+    let thumbnailImageUrl: String?
     let status: HobbyStatus
 }
 

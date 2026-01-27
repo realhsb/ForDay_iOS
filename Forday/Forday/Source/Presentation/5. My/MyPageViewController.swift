@@ -292,9 +292,8 @@ extension MyPageViewController {
         let viewModel = ManageHobbyCoverViewModel()
         let vc = ManageHobbyCoverViewController(viewModel: viewModel)
 
-        // Pass hobbies to the viewModel
-        let inProgressHobbies = self.viewModel.myHobbies.filter { $0.status == .inProgress }
-        viewModel.setHobbies(inProgressHobbies)
+        // Pass all hobbies to the viewModel (진행 중 + 보관)
+        viewModel.setHobbies(self.viewModel.myHobbies)
 
         navigationController?.pushViewController(vc, animated: true)
     }

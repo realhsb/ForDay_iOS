@@ -38,10 +38,17 @@ final class HobbyFilterCell: UICollectionViewCell {
     func configure(with hobby: MyPageHobby, isSelected: Bool) {
         // TODO: Load image from thumbnailImageUrl using Kingfisher
         // For now, use placeholder
-        iconImageView.kf.setImage(
-              with: URL(string: hobby.thumbnailImageUrl),
-              placeholder: UIImage(systemName: "photo")
-          )   
+        
+        if let thumbnailImageUrl = hobby.thumbnailImageUrl {
+            iconImageView.kf.setImage(
+                  with: URL(string: thumbnailImageUrl),
+                  placeholder: UIImage(systemName: "photo")
+              )
+        } else {
+            iconImageView.image = UIImage(systemName: "photo")
+        }
+        
+        
         iconImageView.tintColor = .label
         nameLabel.text = hobby.hobbyName
 
