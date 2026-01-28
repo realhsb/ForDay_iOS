@@ -151,6 +151,13 @@ extension BaseOnboardingViewController {
     func hideProgressBar() {
         BaseOnboardingViewController.sharedProgressBar?.isHidden = true
     }
+
+    /// 프로그래스바 초기화 (새로운 온보딩 시작 시)
+    static func resetProgressBar() {
+        sharedProgressBar?.removeFromSuperview()
+        sharedProgressBar = nil
+        print("✅ 프로그래스바 초기화 완료")
+    }
 }
 
 // Actions

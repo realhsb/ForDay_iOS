@@ -32,6 +32,8 @@ class OnboardingCoordinator: Coordinator {
     // Coordinator
     
     func start() {
+        // 프로그래스바 초기화 (이전 인스턴스 제거)
+        BaseOnboardingViewController.resetProgressBar()
         show(.hobby)
     }
     
@@ -117,6 +119,11 @@ class OnboardingCoordinator: Coordinator {
     
     // 닉네임 설정 화면으로 (progress bar 없음, 뒤로가기 불가)
     func showNicknameSetup() {
+        // 프로그래스바 초기화 (재로그인 시)
+        if navigationController.viewControllers.isEmpty {
+            BaseOnboardingViewController.resetProgressBar()
+        }
+
         let vc = NicknameViewController()
         vc.coordinator = self
 
@@ -160,6 +167,9 @@ class OnboardingCoordinator: Coordinator {
     /// 저장된 온보딩 데이터로 온보딩 재개
     func resumeWith(savedData: SavedOnboardingData) {
         print("🔄 온보딩 재개 시작 - 저장된 데이터로 복원")
+
+        // 프로그래스바 초기화 (이전 인스턴스 제거)
+        BaseOnboardingViewController.resetProgressBar()
 
         Task {
             do {
