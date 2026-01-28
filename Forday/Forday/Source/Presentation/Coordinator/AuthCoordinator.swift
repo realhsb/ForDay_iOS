@@ -39,23 +39,29 @@ class AuthCoordinator: Coordinator {
         print("   - guestUserId: \(authToken.guestUserId ?? "nil")")
         print("   - onboardingData: \(authToken.onboardingData != nil ? "있음" : "없음")")
 
-        // 닉네임이 설정되지 않았으면 무조건 닉네임 설정 화면으로
-        if !authToken.nicknameSet {
-            // 케이스 2: 취미 생성 완료 + 닉네임 미설정 → 닉네임 설정 화면
+        // 케이스 1: 닉네임 설정 완료 → 홈
+        if authToken.nicknameSet {
+            print("   ➡️ 홈으로 이동")
+            showHome()
+        }
+        // 케이스 2: 닉네임 미설정
+        else {
+            // 케이스 2-1: 온보딩 완료 (취미 생성 완료)
             if authToken.onboardingCompleted {
-                print("   ➡️ 닉네임 설정 화면으로 이동")
-                showNicknameSetup()
+                // 온보딩 데이터가 있으면 온보딩 재개, 없으면 닉네임 설정 화면
+                if let savedData = authToken.onboardingData {
+                    print("   ➡️ 온보딩 재개 (PeriodSelection으로 복원)")
+                    resumeOnboarding(with: savedData)
+                } else {
+                    print("   ➡️ 닉네임 설정 화면으로 이동")
+                    showNicknameSetup()
+                }
             }
-            // 케이스 3: 취미 생성 안 함 → 온보딩 시작
+            // 케이스 2-2: 온보딩 미완료 → 온보딩 시작
             else {
                 print("   ➡️ 온보딩 시작 화면으로 이동")
                 showOnboarding()
             }
-        }
-        // 케이스 1: 닉네임 설정 완료 → 홈
-        else {
-            print("   ➡️ 홈으로 이동")
-            showHome()
         }
     }
     
@@ -82,6 +88,20 @@ class AuthCoordinator: Coordinator {
         let onboardingCoordinator = OnboardingCoordinator(navigationController: onboardingNav)
         onboardingCoordinator.parentCoordinator = self
         onboardingCoordinator.showNicknameSetup()
+
+        self.onboardingCoordinator = onboardingCoordinator
+        navigationController.present(onboardingNav, animated: true)
+    }
+
+    // 온보딩 재개 (기존 데이터로 복원)
+    func resumeOnboarding(with savedData: SavedOnboardingData) {
+        let onboardingNav = UINavigationController()
+
+        onboardingNav.modalPresentationStyle = .fullScreen
+
+        let onboardingCoordinator = OnboardingCoordinator(navigationController: onboardingNav)
+        onboardingCoordinator.parentCoordinator = self
+        onboardingCoordinator.resumeWith(savedData: savedData)
 
         self.onboardingCoordinator = onboardingCoordinator
         navigationController.present(onboardingNav, animated: true)

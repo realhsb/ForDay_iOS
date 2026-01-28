@@ -59,4 +59,15 @@ class PurposeSelectionViewModel {
         let purpose = purposes[index]
         return selectedPurpose?.id == purpose.id
     }
+
+    /// 초기 목적 설정 (온보딩 재개 시)
+    func setInitialPurpose(_ purposeTitle: String) {
+        if let purpose = purposes.first(where: { $0.title == purposeTitle }) {
+            selectedPurpose = purpose
+            isNextButtonEnabled = true
+            print("✅ 초기 목적 설정: \(purposeTitle)")
+        } else {
+            print("⚠️ 목적을 찾을 수 없음: \(purposeTitle)")
+        }
+    }
 }
