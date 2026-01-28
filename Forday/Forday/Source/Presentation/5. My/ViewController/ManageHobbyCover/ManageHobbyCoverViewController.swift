@@ -166,6 +166,7 @@ class ManageHobbyCoverViewController: UIViewController {
 
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = self
+        pendingGalleryHobbyId = hobby.hobbyId
         present(picker, animated: true)
 
         // Store selected hobby for later use
@@ -285,24 +286,25 @@ extension ManageHobbyCoverViewController: PHPickerViewControllerDelegate {
         guard let result = results.first else { return }
 
         result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
-            guard let image = object as? UIImage else { return }
-
+            guard let self, let image = object as? UIImage else { return }
+            guard let hobbyId = self.pendingGalleryHobbyId else { return }
+            
             Task {
                 do {
-                    // TODO: Get selected hobby from somewhere
-                    // let message = try await self?.viewModel.updateCoverImageWithGallery(hobbyId: hobbyId, image: image)
-
+                    let message = try await self.viewModel.updateCoverImageWithGallery(hobbyId: hobbyId, image: image)
                     await MainActor.run {
-                        ToastView.show(message: "대표사진 변경 완료!")
-                        self?.navigationController?.popViewController(animated: true)
+                        ToastView.show(message: message)
+                        self.navigationController?.popViewController(animated: true)
                     }
+
+                    
                 } catch let appError as AppError {
                     await MainActor.run {
-                        self?.handleError(appError)
+                        self.handleError(appError)
                     }
                 } catch {
                     await MainActor.run {
-                        self?.handleError(.unknown(error))
+                        self.handleError(.unknown(error))
                     }
                 }
             }

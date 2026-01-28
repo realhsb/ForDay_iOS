@@ -1,5 +1,5 @@
 //
-//  UserProfile.swift
+//  UserInfo.swift
 //  Forday
 //
 //  Created by Subeen on 1/23/26.
