@@ -16,7 +16,7 @@ class HobbySettingsViewModel {
     @Published var hobbySettings: HobbySettings?
     @Published var inProgressCount: Int = 0
     @Published var archivedCount: Int = 0
-    @Published var hobbies: [HobbyInfo] = []
+    @Published var hobbies: [HobbySetting] = []
     @Published var showAddHobbyCell: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?

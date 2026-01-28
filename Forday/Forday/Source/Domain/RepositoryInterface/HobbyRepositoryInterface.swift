@@ -9,7 +9,7 @@ import Foundation
 
 protocol HobbyRepositoryInterface {
     func createHobby(
-        hobbyCardId: Int,
+        hobbyInfoId: Int,
         hobbyName: String,
         hobbyTimeMinutes: Int,
         hobbyPurpose: String,

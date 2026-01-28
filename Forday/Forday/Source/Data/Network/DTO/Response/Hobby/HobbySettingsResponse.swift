@@ -35,7 +35,7 @@ extension DTO.HobbySettingsResponse {
         let status = HobbyStatus(rawValue: data.currentHobbyStatus) ?? .inProgress
 
         let hobbies = data.hobbies.map { dto in
-            HobbyInfo(
+            HobbySetting(
                 hobbyId: dto.hobbyId,
                 hobbyName: dto.hobbyName,
                 hobbyTimeMinutes: dto.hobbyTimeMinutes,

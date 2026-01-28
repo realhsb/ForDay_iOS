@@ -11,10 +11,10 @@ struct HobbySettings {
     let currentHobbyStatus: HobbyStatus
     let inProgressHobbyCount: Int
     let archivedHobbyCount: Int
-    let hobbies: [HobbyInfo]
+    let hobbies: [HobbySetting]
 }
 
-struct HobbyInfo {
+struct HobbySetting {
     let hobbyId: Int
     let hobbyName: String
     let hobbyTimeMinutes: Int
