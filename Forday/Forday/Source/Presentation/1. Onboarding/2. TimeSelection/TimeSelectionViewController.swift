@@ -37,6 +37,7 @@ class TimeSelectionViewController: BaseOnboardingViewController {
         super.viewDidLoad()
         setNavigationTitle("취미 시간")
         hideNextButton()
+        setupHobbyCard()
         setupSlider()
         bind()
     }
@@ -44,6 +45,18 @@ class TimeSelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.4)
+    }
+
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.image
+
+        timeView.configureHobbyCard(icon: icon, title: hobbyCard.name)
     }
 
     // Actions
@@ -67,6 +80,7 @@ extension TimeSelectionViewController {
     private func setupSlider() {
         timeView.timeSlider.onValueChanged = { [weak self] time in
             self?.viewModel.selectTime(time)
+            self?.timeView.selectedHobbyCard.setSelected(true)
             self?.autoAdvance()
         }
     }

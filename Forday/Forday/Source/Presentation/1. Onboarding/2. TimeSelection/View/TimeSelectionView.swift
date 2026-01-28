@@ -41,31 +41,30 @@ class TimeSelectionView: UIView {
 extension TimeSelectionView {
     private func style() {
         backgroundColor = .systemBackground
-        
-        // TODO: 앞 뷰에서 선택한 취미에 따른 아이콘, 타이틀 적용
-        selectedHobbyCard.configure(
-            iconName: "book.fill",
-            time: "30분",
-            title: "독서"
-        )
-        
+
         titleLabel.do {
             $0.text = "한 번에 얼마나 할 수 있나요?"
             $0.font = .systemFont(ofSize: 24, weight: .bold)
             $0.textColor = .label
             $0.numberOfLines = 0
         }
-        
+
         subtitleLabel.do {
             $0.text = "독서에 투자할 수 있는 시간을 선택해주세요.\n💡 처음엔 짧게 시작하는 게 좋아요. 습관이 되면 자연스럽게 늘어나요!"
             $0.font = .systemFont(ofSize: 14, weight: .regular)
             $0.textColor = .secondaryLabel
             $0.numberOfLines = 0
         }
-        
+
         hobbyView.do {
             $0.backgroundColor = .bg001
         }
+    }
+
+    // Configure
+
+    func configureHobbyCard(icon: UIImage?, title: String) {
+        selectedHobbyCard.configure(icon: icon, title: title)
     }
     
     private func layout() {

@@ -37,6 +37,7 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
         super.viewDidLoad()
         setNavigationTitle("여정일")
         hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -69,11 +70,38 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 // Setup
 
 extension PeriodSelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        // 횟수 정보 설정
+        let frequency = onboardingData.executionCount > 0 ? "주 \(onboardingData.executionCount)회" : nil
+
+        // 목적 정보 설정 (빈 문자열이 아닐 때만)
+        let purpose = !onboardingData.purpose.isEmpty ? onboardingData.purpose : nil
+
+        periodView.configureHobbyCard(
+            icon: icon,
+            title: hobbyCard.name,
+            time: time,
+            frequency: frequency,
+            purpose: purpose
+        )
+    }
+
     private func setupCollectionView() {
         periodView.collectionView.delegate = self
         periodView.collectionView.dataSource = self
     }
-    
+
     private func bind() {
         // 선택된 기간 변경 시 CollectionView 업데이트
         viewModel.$selectedPeriod
@@ -145,6 +173,7 @@ extension PeriodSelectionViewController: UICollectionViewDataSource {
 extension PeriodSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectPeriod(at: indexPath.item)
+        periodView.selectedHobbyCard.setSelected(true)
     }
 }
 

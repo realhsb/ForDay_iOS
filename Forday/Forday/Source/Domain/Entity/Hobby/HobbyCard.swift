@@ -55,4 +55,29 @@ enum HobbyImageAsset: String, Codable {
                 .Hobbycard.writing
         }
     }
+    
+    var icon: UIImage {
+        switch self {
+        case .drawing:
+                .My.todayEmpty
+        case .gym:
+                .My.todayEmpty
+        case .reading:
+                .My.todayEmpty
+        case .music:
+                .My.todayEmpty
+        case .running:
+                .My.todayEmpty
+        case .cooking:
+                .My.todayEmpty
+        case .cafe:
+                .My.todayEmpty
+        case .movie:
+                .My.todayEmpty
+        case .photo:
+                .My.todayEmpty
+        case .writing:
+                .My.todayEmpty
+        }
+    }
 }

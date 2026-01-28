@@ -37,6 +37,7 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
         super.viewDidLoad()
         setNavigationTitle("취미 목적")
         hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         setupActions()
         bind()
@@ -65,11 +66,26 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
 // Setup
 
 extension PurposeSelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        purposeView.configureHobbyCard(icon: icon, title: hobbyCard.name, time: time)
+    }
+
     private func setupCollectionView() {
         purposeView.collectionView.delegate = self
         purposeView.collectionView.dataSource = self
     }
-    
+
     private func setupActions() {
         purposeView.customInputButton.addTarget(
             self,
@@ -123,6 +139,7 @@ extension PurposeSelectionViewController: UICollectionViewDataSource {
 extension PurposeSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectPurpose(at: indexPath.item)
+        purposeView.selectedHobbyCard.setSelected(true)
     }
 }
 

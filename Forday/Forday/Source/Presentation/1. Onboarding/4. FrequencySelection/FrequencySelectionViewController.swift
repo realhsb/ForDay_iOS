@@ -37,6 +37,7 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
         super.viewDidLoad()
         setNavigationTitle("실행 횟수")
         hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -64,11 +65,29 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
 // Setup
 
 extension FrequencySelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        // 목적 정보 설정
+        let purpose = !onboardingData.purpose.isEmpty ? onboardingData.purpose : nil
+
+        frequencyView.configureHobbyCard(icon: icon, title: hobbyCard.name, time: time, purpose: purpose)
+    }
+
     private func setupCollectionView() {
         frequencyView.collectionView.delegate = self
         frequencyView.collectionView.dataSource = self
     }
-    
+
     private func bind() {
         // 선택된 횟수 변경 시 CollectionView 업데이트 및 자동 진행
         viewModel.$selectedFrequency
@@ -109,6 +128,7 @@ extension FrequencySelectionViewController: UICollectionViewDataSource {
 extension FrequencySelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectFrequency(at: indexPath.item)
+        frequencyView.selectedHobbyCard.setSelected(true)
     }
 }
 

@@ -32,13 +32,13 @@ class PeriodSelectionView: UIView {
         super.init(frame: frame)
         style()
         layout()
-        
-        // 임시 데이터
-        selectedHobbyCard.configure(
-            iconName: "book.fill",
-            time: "30분 · 주 2회 · 66일",
-            title: "독서"
-        )
+    }
+
+    // Configure
+
+    func configureHobbyCard(icon: UIImage?, title: String, time: String?, frequency: String?, purpose: String?) {
+        selectedHobbyCard.configure(icon: icon, title: title)
+        selectedHobbyCard.updateInfo(time: time, frequency: frequency, purpose: purpose)
     }
     
     required init?(coder: NSCoder) {
