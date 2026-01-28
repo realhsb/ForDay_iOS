@@ -93,14 +93,17 @@ extension LoginViewController {
     }
     
     @objc private func guestLoginButtonTapped() {
+        print("🟡 게스트 로그인 버튼 클릭됨")
         Task {
             do {
                 let authToken = try await guestLoginUseCase.execute()
                 await MainActor.run {
+                    print("🟡 게스트 로그인 성공 → handleLoginSuccess 호출")
                     coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
                 await MainActor.run {
+                    print("🟡 게스트 로그인 실패: \(error)")
                     showError(error)
                 }
             }
