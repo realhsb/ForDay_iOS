@@ -57,8 +57,8 @@ class OnboardingCoordinator: Coordinator {
             
         case .purpose:
             let viewModel = PurposeSelectionViewModel()
-            viewModel.onPurposesSelected = { [weak self] purposes in
-                self?.updatePurposes(purposes)
+            viewModel.onPurposeSelected = { [weak self] purpose in
+                self?.updatePurpose(purpose)
             }
             vc = PurposeSelectionViewController(viewModel: viewModel)
             
@@ -132,9 +132,27 @@ class OnboardingCoordinator: Coordinator {
         navigationController.setViewControllers(viewControllers, animated: true)
     }
     
-    // 닉네임 설정 완료 후 홈으로
+    // 닉네임 설정 완료 후 전환 화면으로
     func completeNicknameSetup() {
-        print("🔵 completeNicknameSetup 호출됨")
+        print("🔵 completeNicknameSetup 호출됨 - 전환 화면 표시")
+        showNicknameTransition()
+    }
+
+    // 닉네임 전환 화면 표시
+    private func showNicknameTransition() {
+        let vc = NicknameTransitionViewController()
+        vc.coordinator = self
+        navigationController.pushViewController(vc, animated: true)
+    }
+
+    // 온보딩 완료 화면 표시
+    func showOnboardingComplete() {
+        show(.complete)
+    }
+
+    // 온보딩 완전 종료 (홈으로)
+    func finishOnboarding() {
+        print("🔵 finishOnboarding 호출됨")
         print("🔵 navigationController dismiss 시작")
 
         // ✅ dismiss만 하고 바로 AuthCoordinator에 알림
@@ -170,9 +188,9 @@ extension OnboardingCoordinator {
         print("✅ 시간 저장: \(minutes)분")
     }
     
-    func updatePurposes(_ purposes: [String]) {
-        onboardingData.purposes = purposes
-        print("✅ 목적 저장: \(purposes)")
+    func updatePurpose(_ purpose: String) {
+        onboardingData.purpose = purpose
+        print("✅ 목적 저장: \(purpose)")
     }
     
     func updateFrequency(_ count: Int) {

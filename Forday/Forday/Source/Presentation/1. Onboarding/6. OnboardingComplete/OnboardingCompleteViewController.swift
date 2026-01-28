@@ -47,7 +47,7 @@ extension OnboardingCompleteViewController {
     }
     
     @objc private func startButtonTapped() {
-        coordinator?.showNicknameSetup()
+        coordinator?.finishOnboarding()
     }
 }
 
