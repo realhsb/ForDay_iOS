@@ -18,6 +18,7 @@ class ManageHobbyCoverViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
 
     private var doneButton: UIBarButtonItem!
+    private var pendingGalleryHobbyId: Int?
 
     // MARK: - Initialization
 
@@ -130,6 +131,9 @@ class ManageHobbyCoverViewController: UIViewController {
                 let message = try await viewModel.updateCoverImageWithRecord()
 
                 await MainActor.run {
+                    // Notify MyPageViewController to refresh hobbies data
+                    AppEventBus.shared.hobbiesDidUpdate.send()
+
                     ToastView.show(message: message)
                     self.navigationController?.popViewController(animated: true)
                 }
@@ -283,27 +287,42 @@ extension ManageHobbyCoverViewController: PHPickerViewControllerDelegate {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
 
-        guard let result = results.first else { return }
+        guard let result = results.first else {
+            // User cancelled - clear pending state
+            pendingGalleryHobbyId = nil
+            return
+        }
 
         result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
-            guard let self, let image = object as? UIImage else { return }
+            guard let self, let image = object as? UIImage else {
+                Task { @MainActor in
+                    self?.pendingGalleryHobbyId = nil
+                }
+                return
+            }
             guard let hobbyId = self.pendingGalleryHobbyId else { return }
             
             Task {
                 do {
                     let message = try await self.viewModel.updateCoverImageWithGallery(hobbyId: hobbyId, image: image)
                     await MainActor.run {
+                        // Clear pending state
+                        self.pendingGalleryHobbyId = nil
+
+                        // Notify MyPageViewController to refresh hobbies data
+                        AppEventBus.shared.hobbiesDidUpdate.send()
+
                         ToastView.show(message: message)
                         self.navigationController?.popViewController(animated: true)
                     }
-
-                    
                 } catch let appError as AppError {
                     await MainActor.run {
+                        self.pendingGalleryHobbyId = nil
                         self.handleError(appError)
                     }
                 } catch {
                     await MainActor.run {
+                        self.pendingGalleryHobbyId = nil
                         self.handleError(.unknown(error))
                     }
                 }

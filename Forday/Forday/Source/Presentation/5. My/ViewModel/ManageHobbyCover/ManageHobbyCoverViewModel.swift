@@ -23,19 +23,22 @@ class ManageHobbyCoverViewModel {
 
     private var cancellables = Set<AnyCancellable>()
 
-    // MARK: - Repositories
+    // MARK: - Dependencies
 
     private let usersRepository: UsersRepositoryInterface
     private let hobbyRepository: HobbyRepositoryInterface
+    private let uploadImageUseCase: UploadImageUseCase
 
     // MARK: - Initialization
 
     init(
         usersRepository: UsersRepositoryInterface = UsersRepository(),
-        hobbyRepository: HobbyRepositoryInterface = HobbyRepository()
+        hobbyRepository: HobbyRepositoryInterface = HobbyRepository(),
+        uploadImageUseCase: UploadImageUseCase = UploadImageUseCase()
     ) {
         self.usersRepository = usersRepository
         self.hobbyRepository = hobbyRepository
+        self.uploadImageUseCase = uploadImageUseCase
     }
 
     // MARK: - Methods
@@ -125,16 +128,23 @@ class ManageHobbyCoverViewModel {
 
     /// 갤러리에서 이미지 선택하여 대표사진 변경
     func updateCoverImageWithGallery(hobbyId: Int, image: UIImage) async throws -> String {
-        // 1. Presigned URL 발급 (COVER_IMAGE)
-        let presignedResult = try await usersRepository.updateProfileImage(profileImageUrl: "temp")
+        // 1. UploadImageUseCase를 사용하여 S3에 이미지 업로드
+        let uploadedUrls = try await uploadImageUseCase.execute(
+            images: [(image: image, usage: .coverImage)]
+        )
 
-        // TODO: S3 업로드 구현 필요
-        // 2. S3에 이미지 업로드
+        guard let coverImageUrl = uploadedUrls.first else {
+            throw AppError.unknown(NSError(
+                domain: "",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "이미지 업로드에 실패했습니다"]
+            ))
+        }
 
-        // 3. API 호출: { hobbyId, coverImageUrl, recordId: null }
+        // 2. API 호출: { hobbyId, coverImageUrl, recordId: null }
         let result = try await hobbyRepository.updateCoverImage(
             hobbyId: hobbyId,
-            coverImageUrl: "uploaded-url", // TODO: 실제 업로드된 URL
+            coverImageUrl: coverImageUrl,
             recordId: nil
         )
 
