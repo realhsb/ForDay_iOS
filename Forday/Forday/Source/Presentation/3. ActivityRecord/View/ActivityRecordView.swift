@@ -268,9 +268,15 @@ extension ActivityRecordView {
     
     func setSubmitButtonEnabled(_ isEnabled: Bool) {
         submitButton.isEnabled = isEnabled
-        
+
         var config = submitButton.configuration
         config?.baseBackgroundColor = isEnabled ? .action001 : .systemGray4
+        submitButton.configuration = config
+    }
+
+    func setSubmitButtonTitle(_ title: String) {
+        var config = submitButton.configuration
+        config?.title = title
         submitButton.configuration = config
     }
 }

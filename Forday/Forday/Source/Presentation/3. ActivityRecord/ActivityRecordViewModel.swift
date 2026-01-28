@@ -40,6 +40,7 @@ class ActivityRecordViewModel {
     private let createActivityRecordUseCase: CreateActivityRecordUseCase
 
     private let hobbyId: Int
+    private let activityDetail: ActivityDetail?
 
     // MARK: - Public Properties
 
@@ -48,21 +49,51 @@ class ActivityRecordViewModel {
         return hobbyId
     }
 
+    /// Whether this is in edit mode
+    var isEditMode: Bool {
+        return activityDetail != nil
+    }
+
     // Initialization
 
     init(
         hobbyId: Int,
+        activityDetail: ActivityDetail? = nil,
         fetchActivityListUseCase: FetchActivityDropdownListUseCase = FetchActivityDropdownListUseCase(),
         uploadImageUseCase: UploadImageUseCase = UploadImageUseCase(),
         deleteImageUseCase: DeleteImageUseCase = DeleteImageUseCase(),
         createActivityRecordUseCase: CreateActivityRecordUseCase = CreateActivityRecordUseCase()
     ) {
         self.hobbyId = hobbyId
+        self.activityDetail = activityDetail
         self.fetchActivityListUseCase = fetchActivityListUseCase
         self.uploadImageUseCase = uploadImageUseCase
         self.deleteImageUseCase = deleteImageUseCase
         self.createActivityRecordUseCase = createActivityRecordUseCase
         bind()
+        loadExistingData()
+    }
+
+    // MARK: - Load Existing Data (for Edit Mode)
+
+    private func loadExistingData() {
+        guard let detail = activityDetail else { return }
+
+        // Set memo
+        memo = detail.memo
+
+        // Set privacy
+        if let privacyType = Privacy(rawValue: detail.visibility) {
+            privacy = privacyType
+        }
+
+        // Set uploaded image URL
+        if !detail.imageUrl.isEmpty {
+            uploadedImageUrl = detail.imageUrl
+        }
+
+        // Note: selectedActivity and selectedSticker will be set after fetching activity list
+        // We'll match them by activityId and sticker filename
     }
 
     // Methods
@@ -83,6 +114,19 @@ class ActivityRecordViewModel {
         let fetchedActivities = try await fetchActivityListUseCase.execute(hobbyId: hobbyId)
         await MainActor.run {
             self.activities = fetchedActivities
+
+            // If in edit mode, select the existing activity
+            if let detail = activityDetail,
+               let activity = fetchedActivities.first(where: { $0.activityId == detail.activityId }) {
+                self.selectedActivity = activity
+            }
+
+            // If in edit mode, select the existing sticker
+            if let detail = activityDetail,
+               let stickerType = StickerType(fileName: detail.sticker),
+               let sticker = stickers.first(where: { $0.type == stickerType }) {
+                self.selectedSticker = sticker
+            }
         }
     }
 
@@ -125,6 +169,13 @@ class ActivityRecordViewModel {
 
         // Convert sticker type to filename for API
         let stickerFileName = selectedSticker.type.rawValue
+
+        if isEditMode {
+            // TODO: Update existing activity record
+            // - API가 준비되면 UpdateActivityRecordUseCase 호출
+            // - 현재는 임시로 create API 호출
+            print("⚠️ 수정 API 미구현: activityRecordId = \(activityDetail?.activityRecordId ?? 0)")
+        }
 
         return try await createActivityRecordUseCase.execute(
             activityId: activityId,

@@ -26,8 +26,8 @@ class ActivityRecordViewController: UIViewController {
 
     // Initialization
 
-    init(hobbyId: Int) {
-        self.viewModel = ActivityRecordViewModel(hobbyId: hobbyId)
+    init(hobbyId: Int, activityDetail: ActivityDetail? = nil) {
+        self.viewModel = ActivityRecordViewModel(hobbyId: hobbyId, activityDetail: activityDetail)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -46,6 +46,7 @@ class ActivityRecordViewController: UIViewController {
         setupNavigationBar()
         setupActions()
         bind()
+        setupForEditMode()
         fetchActivities()
     }
 }
@@ -54,17 +55,28 @@ class ActivityRecordViewController: UIViewController {
 
 extension ActivityRecordViewController {
     private func setupNavigationBar() {
-        title = "내 활동 남기기"
-        
-        // X 버튼
-        let closeButton = UIBarButtonItem(
-            image: UIImage(systemName: "xmark"),
-            style: .plain,
-            target: self,
-            action: #selector(closeButtonTapped)
-        )
-        closeButton.tintColor = .label
-        navigationItem.leftBarButtonItem = closeButton
+        title = viewModel.isEditMode ? "내 활동 수정하기" : "내 활동 남기기"
+
+        // X 버튼 (수정 모드) 또는 뒤로 가기 버튼 (생성 모드)
+        if viewModel.isEditMode {
+            let backButton = UIBarButtonItem(
+                image: UIImage(systemName: "chevron.left"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            backButton.tintColor = .label
+            navigationItem.leftBarButtonItem = backButton
+        } else {
+            let closeButton = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            closeButton.tintColor = .label
+            navigationItem.leftBarButtonItem = closeButton
+        }
     }
     
     private func setupActions() {
@@ -126,7 +138,10 @@ extension ActivityRecordViewController {
         viewModel.$isSubmitEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isEnabled in
-                self?.recordView.setSubmitButtonEnabled(isEnabled)
+                guard let self = self else { return }
+                // 수정 모드에서는 항상 활성화
+                let shouldEnable = self.viewModel.isEditMode ? true : isEnabled
+                self.recordView.setSubmitButtonEnabled(shouldEnable)
             }
             .store(in: &cancellables)
 
@@ -137,6 +152,16 @@ extension ActivityRecordViewController {
                 self?.updatePhotoButton(with: image)
             }
             .store(in: &cancellables)
+    }
+
+    private func setupForEditMode() {
+        if viewModel.isEditMode {
+            // 수정 모드: 버튼 텍스트 변경
+            recordView.setSubmitButtonTitle("수정완료")
+
+            // 메모 설정
+            recordView.memoTextField.text = viewModel.memo
+        }
     }
 
     private func fetchActivities() {
@@ -188,7 +213,16 @@ extension ActivityRecordViewController {
     }
 
     @objc private func memoTextFieldChanged() {
-        viewModel.updateMemo(recordView.memoTextField.text ?? "")
+        let text = recordView.memoTextField.text ?? ""
+
+        // 200자 제한
+        if text.count > 200 {
+            let limitedText = String(text.prefix(200))
+            recordView.memoTextField.text = limitedText
+            viewModel.updateMemo(limitedText)
+        } else {
+            viewModel.updateMemo(text)
+        }
     }
 
     @objc private func submitButtonTapped() {
