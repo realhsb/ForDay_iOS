@@ -22,7 +22,9 @@ class HomeView: UIView {
     
     // Header
     private let headerView = UIView()
-    let hobbyDropdownButton = UIButton()
+    let firstHobbyButton = UIButton()
+    private let dividerLabel = UILabel()
+    let secondHobbyButton = UIButton()
     let settingsButton = UIButton()
     let notificationButton = UIButton()
     
@@ -78,20 +80,41 @@ extension HomeView {
         headerView.do {
             $0.backgroundColor = .clear
         }
-        
-        hobbyDropdownButton.do {
+
+        firstHobbyButton.do {
             var config = UIButton.Configuration.plain()
-            config.title = "독서"
-            config.image = UIImage(systemName: "chevron.down")
-            config.imagePlacement = .trailing
-            config.imagePadding = 4
-            config.baseForegroundColor = .label
-            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
-                var outgoing = incoming
-                outgoing.font = .systemFont(ofSize: 20, weight: .bold)
-                return outgoing
-            }
+            config.baseForegroundColor = .neutral900
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            config.background.cornerRadius = 0
+            config.background.backgroundColor = .clear
             $0.configuration = config
+            $0.configurationUpdateHandler = { button in
+                var config = button.configuration
+                config?.baseForegroundColor = button.isHighlighted ? .neutral900 : .neutral900
+                button.configuration = config
+            }
+        }
+
+        dividerLabel.do {
+            $0.text = " | "
+            $0.setTextWithTypography(" | ", style: .header22)
+            $0.textColor = .neutral500
+            $0.isHidden = true // 기본적으로 숨김 (취미가 2개일 때만 표시)
+        }
+
+        secondHobbyButton.do {
+            var config = UIButton.Configuration.plain()
+            config.baseForegroundColor = .neutral500
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            config.background.cornerRadius = 0
+            config.background.backgroundColor = .clear
+            $0.configuration = config
+            $0.configurationUpdateHandler = { button in
+                var config = button.configuration
+                config?.baseForegroundColor = button.isHighlighted ? .neutral500 : .neutral500
+                button.configuration = config
+            }
+            $0.isHidden = true // 기본적으로 숨김 (취미가 2개일 때만 표시)
         }
 
         settingsButton.do {
@@ -195,7 +218,9 @@ extension HomeView {
         contentView.addSubview(stickerBoardView)
         
         // Header
-        headerView.addSubview(hobbyDropdownButton)
+        headerView.addSubview(firstHobbyButton)
+        headerView.addSubview(dividerLabel)
+        headerView.addSubview(secondHobbyButton)
         headerView.addSubview(settingsButton)
         headerView.addSubview(notificationButton)
         
@@ -229,20 +254,30 @@ extension HomeView {
             $0.height.equalTo(54)
         }
         
-        hobbyDropdownButton.snp.makeConstraints {
+        firstHobbyButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalToSuperview().offset(-12)
         }
 
+        dividerLabel.snp.makeConstraints {
+            $0.leading.equalTo(firstHobbyButton.snp.trailing)
+            $0.centerY.equalTo(firstHobbyButton)
+        }
+
+        secondHobbyButton.snp.makeConstraints {
+            $0.leading.equalTo(dividerLabel.snp.trailing)
+            $0.centerY.equalTo(firstHobbyButton)
+        }
+
         notificationButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-20)
-            $0.centerY.equalTo(hobbyDropdownButton)
+            $0.centerY.equalTo(firstHobbyButton)
             $0.width.height.equalTo(24)
         }
 
         settingsButton.snp.makeConstraints {
             $0.trailing.equalTo(notificationButton.snp.leading).offset(-12)
-            $0.centerY.equalTo(hobbyDropdownButton)
+            $0.centerY.equalTo(firstHobbyButton)
             $0.width.height.equalTo(24)
         }
         
@@ -311,6 +346,80 @@ extension HomeView {
 // Public Methods
 
 extension HomeView {
+    func updateHobbies(_ hobbies: [InProgressHobby]) {
+        if hobbies.count == 1 {
+            // 취미가 1개인 경우
+            let hobby = hobbies[0]
+            firstHobbyButton.setTitleWithTypography(hobby.hobbyName, style: .header22)
+
+            var config = firstHobbyButton.configuration
+            config?.baseForegroundColor = .neutral900
+            firstHobbyButton.configuration = config
+
+            firstHobbyButton.configurationUpdateHandler = { button in
+                var config = button.configuration
+                config?.baseForegroundColor = .neutral900
+                button.configuration = config
+            }
+
+            dividerLabel.isHidden = true
+            secondHobbyButton.isHidden = true
+        } else if hobbies.count >= 2 {
+            // 취미가 2개 이상인 경우 (최대 2개만 표시)
+            let firstHobby = hobbies[0]
+            let secondHobby = hobbies[1]
+
+            firstHobbyButton.setTitleWithTypography(firstHobby.hobbyName, style: .header22)
+            secondHobbyButton.setTitleWithTypography(secondHobby.hobbyName, style: .header22)
+
+            // currentHobby가 true인 취미를 선택 상태로 설정
+            if firstHobby.currentHobby {
+                var firstConfig = firstHobbyButton.configuration
+                firstConfig?.baseForegroundColor = .neutral900
+                firstHobbyButton.configuration = firstConfig
+
+                firstHobbyButton.configurationUpdateHandler = { button in
+                    var config = button.configuration
+                    config?.baseForegroundColor = .neutral900
+                    button.configuration = config
+                }
+
+                var secondConfig = secondHobbyButton.configuration
+                secondConfig?.baseForegroundColor = .neutral500
+                secondHobbyButton.configuration = secondConfig
+
+                secondHobbyButton.configurationUpdateHandler = { button in
+                    var config = button.configuration
+                    config?.baseForegroundColor = .neutral500
+                    button.configuration = config
+                }
+            } else {
+                var firstConfig = firstHobbyButton.configuration
+                firstConfig?.baseForegroundColor = .neutral500
+                firstHobbyButton.configuration = firstConfig
+
+                firstHobbyButton.configurationUpdateHandler = { button in
+                    var config = button.configuration
+                    config?.baseForegroundColor = .neutral500
+                    button.configuration = config
+                }
+
+                var secondConfig = secondHobbyButton.configuration
+                secondConfig?.baseForegroundColor = .neutral900
+                secondHobbyButton.configuration = secondConfig
+
+                secondHobbyButton.configurationUpdateHandler = { button in
+                    var config = button.configuration
+                    config?.baseForegroundColor = .neutral900
+                    button.configuration = config
+                }
+            }
+
+            dividerLabel.isHidden = false
+            secondHobbyButton.isHidden = false
+        }
+    }
+
     func updateActivityPreview(_ activityPreview: ActivityPreview?) {
         if let preview = activityPreview {
             // 활동이 있는 경우
