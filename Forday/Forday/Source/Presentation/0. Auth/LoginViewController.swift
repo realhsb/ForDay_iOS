@@ -75,9 +75,9 @@ extension LoginViewController {
     @objc private func kakaoLoginButtonTapped() {
         Task {
             do {
-                let isNewUser = try await kakaoLoginUseCase.execute()
+                let authToken = try await kakaoLoginUseCase.execute()
                 await MainActor.run {
-                    coordinator?.handleLoginSuccess(isNewUser: isNewUser)
+                    coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
                 await MainActor.run {
@@ -95,9 +95,9 @@ extension LoginViewController {
     @objc private func guestLoginButtonTapped() {
         Task {
             do {
-                let isNewUser = try await guestLoginUseCase.execute()
+                let authToken = try await guestLoginUseCase.execute()
                 await MainActor.run {
-                    coordinator?.handleLoginSuccess(isNewUser: isNewUser)
+                    coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
                 await MainActor.run {

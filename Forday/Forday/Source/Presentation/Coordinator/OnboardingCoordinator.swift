@@ -81,8 +81,8 @@ class OnboardingCoordinator: Coordinator {
                 if let completionHandler = self?.onHobbyCreationCompleted {
                     completionHandler()
                 } else {
-                    // Normal onboarding flow - proceed to complete screen
-                    self?.next(from: .period)
+                    // Normal onboarding flow - proceed to transition screen
+                    self?.showNicknameTransition()
                 }
             }
             vc = PeriodSelectionViewController(viewModel: viewModel)
@@ -108,34 +108,25 @@ class OnboardingCoordinator: Coordinator {
         case .frequency: show(.period)
         case .period:
             // API 호출은 ViewModel에서 처리하고, 성공 시 onHobbyCreated 클로저를 통해 여기로 돌아옴
-            show(.complete)
-            // Complete 화면이 push 완료된 후 스택 정리
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.removeOnboardingStepsFromStack()
-            }
+            // Period 완료 후 닉네임 설정 화면으로
+            break
         case .complete:
             break
         }
     }
     
-    // 닉네임 설정 화면으로
+    // 닉네임 설정 화면으로 (progress bar 없음, 뒤로가기 불가)
     func showNicknameSetup() {
         let vc = NicknameViewController()
         vc.coordinator = self
-        
-        // Complete 화면 제거하고 Nickname만 남기기
-        var viewControllers = navigationController.viewControllers
-        if let completeIndex = viewControllers.firstIndex(where: { $0 is OnboardingCompleteViewController }) {
-            viewControllers.remove(at: completeIndex)
+
+        // 재로그인 시: 온보딩 스택 전부 제거하고 닉네임만 표시
+        if navigationController.viewControllers.isEmpty {
+            navigationController.setViewControllers([vc], animated: true)
+        } else {
+            // 온보딩 진행 중: 그냥 push
+            navigationController.pushViewController(vc, animated: true)
         }
-        viewControllers.append(vc)
-        navigationController.setViewControllers(viewControllers, animated: true)
-    }
-    
-    // 닉네임 설정 완료 후 전환 화면으로
-    func completeNicknameSetup() {
-        print("🔵 completeNicknameSetup 호출됨 - 전환 화면 표시")
-        showNicknameTransition()
     }
 
     // 닉네임 전환 화면 표시
@@ -152,20 +143,11 @@ class OnboardingCoordinator: Coordinator {
 
     // 온보딩 완전 종료 (홈으로)
     func finishOnboarding() {
-        print("🔵 finishOnboarding 호출됨")
-        print("🔵 navigationController dismiss 시작")
+        print("✅ 온보딩 완전 종료 - 홈으로 이동")
 
-        // ✅ dismiss만 하고 바로 AuthCoordinator에 알림
+        // dismiss하고 AuthCoordinator에 알림
         navigationController.dismiss(animated: true) {
-            print("🔵 dismiss 완료, completeOnboarding 호출")
             self.parentCoordinator?.completeOnboarding()
-        }
-    }
-    
-    // 온보딩 단계들을 스택에서 제거
-    private func removeOnboardingStepsFromStack() {
-        if let completeVC = navigationController.viewControllers.last as? OnboardingCompleteViewController {
-            navigationController.setViewControllers([completeVC], animated: false)
         }
     }
     

@@ -30,12 +30,23 @@ class AppCoordinator: Coordinator {
 
             await MainActor.run {
                 if isTokenValid {
-                    showMainTabBar()
+                    // 토큰은 유효하지만, 사용자 상태를 확인해야 함
+                    // AuthCoordinator를 통해 자동 로그인 처리
+                    performAutoLogin()
                 } else {
                     showAuth()
                 }
             }
         }
+    }
+
+    // 자동 로그인 처리
+    private func performAutoLogin() {
+        window.rootViewController = navigationController
+        let authCoordinator = AuthCoordinator(navigationController: navigationController)
+        authCoordinator.parentCoordinator = self
+        authCoordinator.autoLogin()
+        self.authCoordinator = authCoordinator
     }
     
     // 로그인 여부 확인
