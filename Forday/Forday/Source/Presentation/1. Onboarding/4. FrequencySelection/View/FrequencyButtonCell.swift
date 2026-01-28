@@ -15,7 +15,7 @@ class FrequencyButtonCell: UICollectionViewCell {
     static let identifier = "FrequencyButtonCell"
     
     // Properties
-    
+
     private let containerView = UIView()
     private let numberLabel = UILabel()
     
@@ -35,7 +35,7 @@ class FrequencyButtonCell: UICollectionViewCell {
     
     func configure(count: Int, isSelected: Bool) {
         numberLabel.text = "\(count)"
-        
+
         // 선택 상태에 따른 스타일 변경
         if isSelected {
             containerView.backgroundColor = .primary003
@@ -71,11 +71,11 @@ extension FrequencyButtonCell {
     private func layout() {
         contentView.addSubview(containerView)
         containerView.addSubview(numberLabel)
-        
+
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
         numberLabel.snp.makeConstraints {
             $0.center.equalToSuperview()
         }

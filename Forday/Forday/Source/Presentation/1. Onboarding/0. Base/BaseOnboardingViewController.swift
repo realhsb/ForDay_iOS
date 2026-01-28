@@ -141,6 +141,11 @@ extension BaseOnboardingViewController {
     func updateProgress(_ progress: Float) {
         BaseOnboardingViewController.sharedProgressBar?.setProgress(progress, animated: true)
     }
+
+    /// 다음 버튼 숨기기 (자동 진행 화면용)
+    func hideNextButton() {
+        nextButton.isHidden = true
+    }
 }
 
 // Actions

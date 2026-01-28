@@ -13,15 +13,15 @@ import Foundation
 import Combine
 
 class PurposeSelectionViewModel {
-    
+
     // Published Properties
-    
+
     @Published var purposes: [PurposeModel] = []
-    @Published var selectedPurposes: [PurposeModel] = []
+    @Published var selectedPurpose: PurposeModel?
     @Published var isNextButtonEnabled: Bool = false
-    
+
     // Coordinator에게 데이터 전달
-    var onPurposesSelected: (([String]) -> Void)?
+    var onPurposeSelected: ((String) -> Void)?
     
     // Initialization
     
@@ -41,32 +41,22 @@ class PurposeSelectionViewModel {
         ]
     }
     
-    /// 목적 선택/해제 토글
-    func togglePurpose(at index: Int) {
+    /// 목적 선택 (단일 선택)
+    func selectPurpose(at index: Int) {
         guard index < purposes.count else { return }
-        
+
         let purpose = purposes[index]
-        
-        // 이미 선택되어 있으면 제거
-        if let selectedIndex = selectedPurposes.firstIndex(where: { $0.id == purpose.id }) {
-            selectedPurposes.remove(at: selectedIndex)
-        } else {
-            // 선택되어 있지 않으면 추가
-            selectedPurposes.append(purpose)
-        }
-        
-        // 최소 1개 선택해야 다음 버튼 활성화
-        isNextButtonEnabled = !selectedPurposes.isEmpty
-        
-        // 클로저 호출 (title만 추출)
-        let purposeTitles = selectedPurposes.map { $0.title }
-        onPurposesSelected?(purposeTitles)
+        selectedPurpose = purpose
+        isNextButtonEnabled = true
+
+        // 클로저 호출
+        onPurposeSelected?(purpose.title)
     }
-    
+
     /// 해당 인덱스가 선택되었는지 확인
     func isSelected(at index: Int) -> Bool {
         guard index < purposes.count else { return false }
         let purpose = purposes[index]
-        return selectedPurposes.contains(where: { $0.id == purpose.id })
+        return selectedPurpose?.id == purpose.id
     }
 }

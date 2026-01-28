@@ -36,18 +36,19 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("여정일")
+        hideNextButton()
         setupCollectionView()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(1.0)  // 5/5 = 100%
     }
-    
+
     // Actions
 
-    override func nextButtonTapped() {
+    private func autoAdvance() {
         print("Selected period: \(viewModel.selectedPeriod?.title ?? "None")")
 
         guard let onboardingCoordinator = coordinator as? OnboardingCoordinator else {
@@ -56,8 +57,11 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 
         let onboardingData = onboardingCoordinator.getOnboardingData()
 
-        Task {
-            await viewModel.createHobby(with: onboardingData)
+        // 약간의 딜레이 후 취미 생성
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            Task { [weak self] in
+                await self?.viewModel.createHobby(with: onboardingData)
+            }
         }
     }
 }
@@ -79,11 +83,13 @@ extension PeriodSelectionViewController {
             }
             .store(in: &cancellables)
 
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
+        // 실제 선택이 발생했을 때만 자동 진행 (초기값 무시)
+        viewModel.$selectedPeriod
+            .dropFirst()  // 초기값(nil) 무시
+            .compactMap { $0 }  // nil이 아닐 때만
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
+            .sink { [weak self] _ in
+                self?.autoAdvance()
             }
             .store(in: &cancellables)
 
@@ -91,8 +97,10 @@ extension PeriodSelectionViewController {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isLoading in
-                self?.setNextButtonEnabled(!isLoading)
                 // TODO: 로딩 인디케이터 표시
+                if isLoading {
+                    print("⏳ 취미 생성 중...")
+                }
             }
             .store(in: &cancellables)
 
@@ -144,9 +152,13 @@ extension PeriodSelectionViewController: UICollectionViewDelegate {
 
 extension PeriodSelectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = collectionView.bounds.width
-        let height: CGFloat = 84
-        
+        // 가로 배치: 셀을 가로로 나란히 배치 (스페이싱 고려)
+        let spacing: CGFloat = 16  // minimumLineSpacing
+        let numberOfItems = CGFloat(viewModel.periods.count)
+        let totalSpacing = spacing * (numberOfItems - 1)
+        let width = (collectionView.bounds.width - totalSpacing) / numberOfItems
+        let height = collectionView.bounds.height
+
         return CGSize(width: width, height: height)
     }
 }

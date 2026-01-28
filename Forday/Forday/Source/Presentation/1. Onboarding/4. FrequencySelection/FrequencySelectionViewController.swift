@@ -36,25 +36,28 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("실행 횟수")
+        hideNextButton()
         setupCollectionView()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.8)  // 4/5 = 80%
     }
-    
+
     // Actions
-    
-    override func nextButtonTapped() {
+
+    private func autoAdvance() {
         guard let selectedFrequency = viewModel.selectedFrequency else { return }
-        
+
         // Coordinator에게 데이터 전달
         viewModel.onFrequencySelected?(selectedFrequency.count)
-        
-        // 다음 화면으로
-        coordinator?.next(from: .frequency)
+
+        // 다음 화면으로 (약간의 딜레이 후)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            self?.coordinator?.next(from: .frequency)
+        }
     }
 }
 
@@ -67,19 +70,12 @@ extension FrequencySelectionViewController {
     }
     
     private func bind() {
-        // 선택된 횟수 변경 시 CollectionView 업데이트
+        // 선택된 횟수 변경 시 CollectionView 업데이트 및 자동 진행
         viewModel.$selectedFrequency
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.frequencyView.collectionView.reloadData()
-            }
-            .store(in: &cancellables)
-        
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
+                self?.autoAdvance()
             }
             .store(in: &cancellables)
     }

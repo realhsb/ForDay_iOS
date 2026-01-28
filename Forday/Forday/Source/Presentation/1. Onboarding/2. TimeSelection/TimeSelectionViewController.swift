@@ -36,25 +36,28 @@ class TimeSelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("취미 시간")
+        hideNextButton()
         setupSlider()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.4)
     }
-    
+
     // Actions
-    
-    override func nextButtonTapped() {
+
+    private func autoAdvance() {
         guard let selectedTime = viewModel.selectedTime else { return }
-        
+
         // Coordinator에게 데이터 전달
         viewModel.selectTime(selectedTime)
-        
-        // 다음 화면으로
-        coordinator?.next(from: .time)
+
+        // 다음 화면으로 (약간의 딜레이 후)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            self?.coordinator?.next(from: .time)
+        }
     }
 }
 
@@ -64,17 +67,12 @@ extension TimeSelectionViewController {
     private func setupSlider() {
         timeView.timeSlider.onValueChanged = { [weak self] time in
             self?.viewModel.selectTime(time)
+            self?.autoAdvance()
         }
     }
-    
+
     private func bind() {
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
-            }
-            .store(in: &cancellables)
+        // 슬라이더는 항상 활성화되어 있으므로 바인딩 불필요
     }
 }
 
