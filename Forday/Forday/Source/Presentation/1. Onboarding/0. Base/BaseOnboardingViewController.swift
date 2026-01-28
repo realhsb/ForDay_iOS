@@ -146,6 +146,11 @@ extension BaseOnboardingViewController {
     func hideNextButton() {
         nextButton.isHidden = true
     }
+
+    /// 프로그래스바 숨기기 (닉네임 설정 화면용)
+    func hideProgressBar() {
+        BaseOnboardingViewController.sharedProgressBar?.isHidden = true
+    }
 }
 
 // Actions
