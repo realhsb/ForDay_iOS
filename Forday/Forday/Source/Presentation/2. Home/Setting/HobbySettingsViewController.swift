@@ -147,6 +147,11 @@ class HobbySettingsViewController: UIViewController {
             Task {
                 do {
                     try await self?.viewModel.archiveHobby(hobbyId: hobbyId)
+
+                    await MainActor.run {
+                        // Notify other screens that a hobby was archived
+                        AppEventBus.shared.hobbyDeleted.send()
+                    }
                 } catch {
                     // Error already handled via binding
                 }
@@ -160,6 +165,11 @@ class HobbySettingsViewController: UIViewController {
         Task {
             do {
                 try await viewModel.unarchiveHobby(hobbyId: hobbyId)
+
+                await MainActor.run {
+                    // Notify other screens that a hobby was restored
+                    AppEventBus.shared.hobbiesDidUpdate.send()
+                }
             } catch {
                 // Error already handled via binding
             }
@@ -229,6 +239,9 @@ class HobbySettingsViewController: UIViewController {
             do {
                 try await viewModel.updateTime(hobbyId: hobbyId, minutes: minutes)
                 await MainActor.run {
+                    // Notify HomeViewController to refresh hobby info
+                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+
                     dismissPresentedViewController()
                 }
             } catch {
@@ -321,6 +334,9 @@ class HobbySettingsViewController: UIViewController {
             do {
                 try await viewModel.updateExecutionCount(hobbyId: hobbyId, count: selectedFrequency)
                 await MainActor.run {
+                    // Notify HomeViewController to refresh hobby info
+                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+
                     dismissPresentedViewController()
                 }
             } catch {
@@ -396,6 +412,9 @@ class HobbySettingsViewController: UIViewController {
             do {
                 try await viewModel.updateGoalDays(hobbyId: hobbyId, isDurationSet: isDurationSet)
                 await MainActor.run {
+                    // Notify HomeViewController to refresh hobby info
+                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+
                     dismissPresentedViewController()
                 }
             } catch {

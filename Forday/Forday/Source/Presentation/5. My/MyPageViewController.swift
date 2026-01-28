@@ -110,6 +110,18 @@ extension MyPageViewController {
                 }
             }
             .store(in: &cancellables)
+
+        // Listen to hobby deletion
+        AppEventBus.shared.hobbyDeleted
+            .sink { [weak self] in
+                print("🗑️ 취미 삭제됨! MyPage 새로고침")
+                Task {
+                    // Refresh both hobbies and activities
+                    await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func bind() {

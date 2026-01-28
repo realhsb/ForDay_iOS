@@ -147,6 +147,9 @@ extension HomeViewController {
     // MARK: - Event Subscriptions
     // 구독 중인 이벤트:
     // - activityRecordCreated: 활동 기록 생성 시 스티커 보드 새로고침
+    // - hobbySettingsUpdated: 취미 설정 변경 시 홈 정보 새로고침
+    // - hobbyCreated: 새 취미 생성 시 홈 정보 및 스티커 보드 새로고침
+    // - hobbyDeleted: 취미 삭제 시 홈 정보 및 스티커 보드 새로고침
 
     private func setupEventBus() {
         // 활동 기록 생성 이벤트 구독
@@ -155,6 +158,41 @@ extension HomeViewController {
                 print("🎉 활동 기록 생성됨! hobbyId: \(hobbyId)")
                 Task {
                     // 스티커 보드 새로고침
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 취미 설정 변경 이벤트 구독
+        AppEventBus.shared.hobbySettingsUpdated
+            .sink { [weak self] hobbyId in
+                print("⚙️ 취미 설정 변경됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 새로고침
+                    await self?.viewModel.fetchHomeInfo()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 새 취미 생성 이벤트 구독
+        AppEventBus.shared.hobbyCreated
+            .sink { [weak self] hobbyId in
+                print("🎉 새 취미 생성됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 및 스티커 보드 새로고침
+                    await self?.viewModel.fetchHomeInfo()
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 취미 삭제 이벤트 구독
+        AppEventBus.shared.hobbyDeleted
+            .sink { [weak self] in
+                print("🗑️ 취미 삭제됨!")
+                Task {
+                    // 홈 정보 및 스티커 보드 새로고침
+                    await self?.viewModel.fetchHomeInfo()
                     await self?.stickerBoardViewModel.loadInitialStickerBoard()
                 }
             }
