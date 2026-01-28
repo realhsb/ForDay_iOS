@@ -41,6 +41,13 @@ class ActivityRecordViewModel {
 
     private let hobbyId: Int
 
+    // MARK: - Public Properties
+
+    /// Current hobby ID for this activity record
+    var currentHobbyId: Int {
+        return hobbyId
+    }
+
     // Initialization
 
     init(

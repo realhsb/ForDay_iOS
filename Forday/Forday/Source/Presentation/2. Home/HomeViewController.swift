@@ -139,6 +139,26 @@ extension HomeViewController {
 
         // 스티커판 상태 바인딩
         bindStickerBoard()
+
+        // 이벤트 구독
+        setupEventBus()
+    }
+
+    // MARK: - Event Subscriptions
+    // 구독 중인 이벤트:
+    // - activityRecordCreated: 활동 기록 생성 시 스티커 보드 새로고침
+
+    private func setupEventBus() {
+        // 활동 기록 생성 이벤트 구독
+        AppEventBus.shared.activityRecordCreated
+            .sink { [weak self] hobbyId in
+                print("🎉 활동 기록 생성됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 스티커 보드 새로고침
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func bindStickerBoard() {
