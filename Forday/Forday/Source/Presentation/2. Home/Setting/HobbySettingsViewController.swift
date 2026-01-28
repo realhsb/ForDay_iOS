@@ -144,10 +144,10 @@ class HobbySettingsViewController: UIViewController {
 
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
         alert.addAction(UIAlertAction(title: "보관", style: .destructive) { [weak self] _ in
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 do {
-                    try await self?.viewModel.archiveHobby(hobbyId: hobbyId)
-
+                    try await self.viewModel.archiveHobby(hobbyId: hobbyId)
                     await MainActor.run {
                         // Notify other screens that a hobby was archived
                         AppEventBus.shared.hobbyDeleted.send()
