@@ -54,6 +54,7 @@ final class MyPageViewController: UIViewController {
         setupNavigationBar()
         setupSegmentedControl()
         bind()
+        setupEventBus()
         loadData()
     }
 }
@@ -89,6 +90,26 @@ extension MyPageViewController {
         myPageView.segmentedControlView.onSegmentChanged = { [weak self] tab in
             self?.viewModel.switchTab(to: tab)
         }
+    }
+
+    private func setupEventBus() {
+        // Listen to profile updates
+        AppEventBus.shared.profileDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshUserProfile()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobbies updates
+        AppEventBus.shared.hobbiesDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshHobbies()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func bind() {

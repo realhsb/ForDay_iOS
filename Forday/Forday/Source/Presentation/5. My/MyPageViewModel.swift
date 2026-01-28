@@ -179,4 +179,32 @@ final class MyPageViewModel {
             }
         }
     }
+
+    // MARK: - Refresh Individual Data
+
+    func refreshUserProfile() async {
+        do {
+            let profile = try await fetchUserProfileUseCase.execute()
+            await MainActor.run {
+                self.userProfile = profile
+            }
+        } catch {
+            // Silently fail - user can refresh manually if needed
+            print("❌ Failed to refresh user profile: \(error)")
+        }
+    }
+
+    func refreshHobbies() async {
+        do {
+            let hobbies = try await fetchMyHobbiesUseCase.execute()
+            await MainActor.run {
+                self.myHobbies = hobbies.hobbies
+                self.inProgressHobbyCount = hobbies.inProgressHobbyCount
+                self.hobbyCardCount = hobbies.hobbyCardCount
+            }
+        } catch {
+            // Silently fail - user can refresh manually if needed
+            print("❌ Failed to refresh hobbies: \(error)")
+        }
+    }
 }
