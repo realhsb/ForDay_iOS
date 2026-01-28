@@ -21,7 +21,7 @@ final class CreateHobbyUseCase {
             throw NSError(domain: "CreateHobbyUseCase", code: -1, userInfo: [NSLocalizedDescriptionKey: "취미 카드를 선택해주세요."])
         }
 
-        let hobbyPurpose = onboardingData.purposes.joined(separator: ", ")
+        let hobbyPurpose = onboardingData.purpose
 
         return try await repository.createHobby(
             hobbyInfoId: hobbyInfoId,
