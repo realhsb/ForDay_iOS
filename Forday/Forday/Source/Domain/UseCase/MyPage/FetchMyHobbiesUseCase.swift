@@ -15,7 +15,7 @@ final class FetchMyHobbiesUseCase {
         self.repository = repository
     }
 
-    func execute() async throws -> [MyPageHobby] {
+    func execute() async throws -> MyHobbiesResult {
         return try await repository.fetchMyHobbies()
     }
 }

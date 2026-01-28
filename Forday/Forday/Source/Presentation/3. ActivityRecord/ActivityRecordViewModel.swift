@@ -25,10 +25,10 @@ class ActivityRecordViewModel {
 
     // Mock Data
     let stickers: [Sticker] = [
-        Sticker(id: 1, image: .My.red),
-        Sticker(id: 2, image: .My.green),
-        Sticker(id: 3, image: .My.blue),
-        Sticker(id: 4, image: .My.yellow)
+        Sticker(id: 1, image: .My.smileJpg, type: .smile),
+        Sticker(id: 2, image: .My.sadJpg, type: .sad),
+        Sticker(id: 3, image: .My.laughJpg, type: .laugh),
+        Sticker(id: 4, image: .My.angryJpg, type: .angry)
     ]
 
     private var cancellables = Set<AnyCancellable>()
@@ -40,6 +40,13 @@ class ActivityRecordViewModel {
     private let createActivityRecordUseCase: CreateActivityRecordUseCase
 
     private let hobbyId: Int
+
+    // MARK: - Public Properties
+
+    /// Current hobby ID for this activity record
+    var currentHobbyId: Int {
+        return hobbyId
+    }
 
     // Initialization
 
@@ -116,9 +123,8 @@ class ActivityRecordViewModel {
             throw ActivityRecordError.missingRequiredFields
         }
 
-        // sticker.image를 파일명으로 변환 (실제로는 스티커 파일명을 사용)
-        // 현재는 mock data이므로 임시로 "smile.jpg" 사용
-        let stickerFileName = "smile.jpg"
+        // Convert sticker type to filename for API
+        let stickerFileName = selectedSticker.type.rawValue
 
         return try await createActivityRecordUseCase.execute(
             activityId: activityId,
@@ -139,6 +145,7 @@ enum ActivityRecordError: Error {
 struct Sticker {
     let id: Int
     let image: UIImage
+    let type: StickerType
 }
 
 extension Sticker: Equatable {

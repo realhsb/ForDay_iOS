@@ -18,7 +18,7 @@ class HomeViewModel {
     @Published var aiRecommendationResult: AIRecommendationResult?
     @Published var currentHobbyId: Int?
     @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+    @Published var error: AppError?
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -43,7 +43,7 @@ class HomeViewModel {
 
     func fetchHomeInfo() async {
         isLoading = true
-        errorMessage = nil
+        error = nil
 
         do {
             let info = try await fetchHomeInfoUseCase.execute(hobbyId: nil)
@@ -56,9 +56,15 @@ class HomeViewModel {
                 }
                 self.isLoading = false
             }
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+                print("❌ 홈 정보 로드 실패: \(appError)")
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
                 print("❌ 홈 정보 로드 실패: \(error)")
             }

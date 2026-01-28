@@ -54,6 +54,7 @@ final class MyPageViewController: UIViewController {
         setupNavigationBar()
         setupSegmentedControl()
         bind()
+        setupEventBus()
         loadData()
     }
 }
@@ -89,6 +90,38 @@ extension MyPageViewController {
         myPageView.segmentedControlView.onSegmentChanged = { [weak self] tab in
             self?.viewModel.switchTab(to: tab)
         }
+    }
+
+    private func setupEventBus() {
+        // Listen to profile updates
+        AppEventBus.shared.profileDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshUserProfile()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobbies updates
+        AppEventBus.shared.hobbiesDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshHobbies()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobby deletion
+        AppEventBus.shared.hobbyDeleted
+            .sink { [weak self] in
+                print("🗑️ 취미 삭제됨! MyPage 새로고침")
+                Task {
+                    // Refresh both hobbies and activities
+                    await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func bind() {
@@ -146,14 +179,13 @@ extension MyPageViewController {
             }
             .store(in: &cancellables)
 
-        // Error message
-        viewModel.$errorMessage
+        // Error handling
+        viewModel.$error
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                if let error = errorMessage {
-                    print("❌ Error: \(error)")
-                    self?.showError(error)
-                }
+            .compactMap { $0 }
+            .sink { [weak self] error in
+                print("❌ Error: \(error)")
+                self?.handleError(error)
             }
             .store(in: &cancellables)
     }
@@ -263,6 +295,8 @@ extension MyPageViewController {
     }
 
     private func handleSettingsMenuSelection(_ menuItem: SettingsMenuItem) {
+        dismissSettingsDropdown()
+
         switch menuItem {
         case .profileSettings:
             print("👤 Profile settings")
@@ -270,7 +304,7 @@ extension MyPageViewController {
 
         case .hobbyPhotoManagement:
             print("🖼️ Hobby photo management")
-            showComingSoonAlert(feature: "취미 대표사진 관리")
+            showHobbyCoverManagement()
 
         case .generalSettings:
             print("⚙️ General settings")
@@ -283,8 +317,17 @@ extension MyPageViewController {
     }
 
     private func showProfileEdit() {
-        // TODO: Implement profile edit screen
-        showComingSoonAlert(feature: "프로필 편집")
+        coordinator?.showProfileEdit(currentProfile: viewModel.userProfile)
+    }
+
+    private func showHobbyCoverManagement() {
+        let viewModel = ManageHobbyCoverViewModel()
+        let vc = ManageHobbyCoverViewController(viewModel: viewModel)
+
+        // Pass all hobbies to the viewModel (진행 중 + 보관)
+        viewModel.setHobbies(self.viewModel.myHobbies)
+
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func showComingSoonAlert(feature: String) {
@@ -329,6 +372,33 @@ extension MyPageViewController {
             print("❌ Logout failed: \(error)")
             showError(error.localizedDescription)
         }
+    }
+
+    private func handleError(_ error: AppError) {
+        let title: String
+        let message = error.userMessage
+        var actions: [UIAlertAction] = []
+
+        switch error {
+        case .network:
+            title = "네트워크 오류"
+            actions.append(UIAlertAction(title: "다시 시도", style: .default) { [weak self] _ in
+                self?.loadData()
+            })
+            actions.append(UIAlertAction(title: "취소", style: .cancel))
+
+        case .server:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+
+        case .decoding, .unknown:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+        }
+
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        actions.forEach { alert.addAction($0) }
+        present(alert, animated: true)
     }
 
     private func showError(_ message: String) {

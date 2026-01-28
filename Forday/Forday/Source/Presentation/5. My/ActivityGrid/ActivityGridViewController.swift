@@ -190,7 +190,7 @@ extension ActivityGridViewController: UICollectionViewDataSource {
 extension ActivityGridViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let activity = viewModel.activities[indexPath.item]
-        showActivityDetail(activityRecordId: activity.activityRecordId)
+        showActivityDetail(activityRecordId: activity.recordId)
     }
 
     private func showActivityDetail(activityRecordId: Int) {
@@ -210,7 +210,8 @@ extension ActivityGridViewController: UICollectionViewDelegate {
         let height = scrollView.frame.size.height
 
         // Load more when scrolled to 80% of content
-        if offsetY > contentHeight - height * 1.2 {
+        // Prevent duplicate calls by checking isLoadingMore
+        if offsetY > contentHeight - height * 1.2 && !viewModel.isLoadingMore {
             Task {
                 await viewModel.loadMoreActivities()
             }

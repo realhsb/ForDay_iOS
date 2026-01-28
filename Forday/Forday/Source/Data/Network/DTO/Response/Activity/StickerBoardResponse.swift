@@ -8,9 +8,13 @@
 import Foundation
 
 extension DTO {
-    /// Pure DTO - no domain mapping logic
-    /// Repository will handle nil interpretation and transformation
-    struct StickerBoardDTO: Decodable {
+    struct StickerBoardResponse: Decodable {
+        let status: Int
+        let success: Bool
+        let data: StickerBoardData?
+    }
+
+    struct StickerBoardData: Decodable {
         let hobbyId: Int
         let durationSet: Bool
         let activityRecordedToday: Bool
@@ -20,11 +24,59 @@ extension DTO {
         let totalStickerNum: Int
         let hasPrevious: Bool
         let hasNext: Bool
-        let stickers: [StickerDTO]?
+        let stickers: [StickerItem]
+    }
 
-        struct StickerDTO: Decodable {
-            let activityRecordId: Int?
-            let sticker: String?
+    struct StickerItem: Decodable {
+        let activityRecordId: Int
+        let sticker: String
+    }
+}
+
+// MARK: - Domain Mapping
+
+extension DTO.StickerBoardResponse {
+    func toDomain() -> StickerBoardResult {
+        guard let data = data else {
+            return .noHobbyInProgress
         }
+
+        if data.stickers.isEmpty {
+            let board = StickerBoard(
+                hobbyId: data.hobbyId,
+                durationSet: data.durationSet,
+                activityRecordedToday: data.activityRecordedToday,
+                currentPage: data.currentPage,
+                totalPage: data.totalPage,
+                pageSize: data.pageSize,
+                totalStickerNum: data.totalStickerNum,
+                hasPrevious: data.hasPrevious,
+                hasNext: data.hasNext,
+                stickers: []
+            )
+            return .emptyBoard(board)
+        }
+
+        let stickerItems = data.stickers.map { item in
+            StickerBoardItem(
+                activityRecordId: item.activityRecordId,
+                sticker: item.sticker
+            )
+        }
+
+        let board = StickerBoard(
+            hobbyId: data.hobbyId,
+            durationSet: data.durationSet,
+            activityRecordedToday: data.activityRecordedToday,
+            currentPage: data.currentPage,
+            totalPage: data.totalPage,
+            pageSize: data.pageSize,
+            totalStickerNum: data.totalStickerNum,
+            hasPrevious: data.hasPrevious,
+            hasNext: data.hasNext,
+            stickers: stickerItems
+        )
+
+        return .loaded(board)
     }
 }

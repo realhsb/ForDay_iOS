@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Then
+import Kingfisher
 
 final class HobbyFilterCell: UICollectionViewCell {
 
@@ -35,11 +36,24 @@ final class HobbyFilterCell: UICollectionViewCell {
     // MARK: - Configuration
 
     func configure(with hobby: MyPageHobby, isSelected: Bool) {
-        iconImageView.image = hobby.hobbyIcon.image
+        // TODO: Load image from thumbnailImageUrl using Kingfisher
+        // For now, use placeholder
+        
+        if let thumbnailImageUrl = hobby.thumbnailImageUrl {
+            iconImageView.kf.setImage(
+                  with: URL(string: thumbnailImageUrl),
+                  placeholder: UIImage(systemName: "photo")
+              )
+        } else {
+            iconImageView.image = UIImage(systemName: "photo")
+        }
+        
+        
+        iconImageView.tintColor = .label
         nameLabel.text = hobby.hobbyName
 
         // Apply dim for archived hobbies
-        let alpha: CGFloat = hobby.isArchived ? 0.4 : 1.0
+        let alpha: CGFloat = hobby.status == .archived ? 0.4 : 1.0
         iconImageView.alpha = alpha
         nameLabel.alpha = alpha
 

@@ -10,9 +10,9 @@ import Foundation
 import Moya
 
 final class UsersService {
-
+    
     private let provider: MoyaProvider<UsersTarget>
-
+    
     init(provider: MoyaProvider<UsersTarget> = NetworkProvider.createProvider()) {
         self.provider = provider
     }
@@ -50,5 +50,30 @@ final class UsersService {
                 }
             }
         }
+    }
+    
+    /// Users - 사용자 피드 목록 조회
+    func fetchFeeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
+        return try await provider.request(.feeds(hobbyId: hobbyId, lastRecordId: lastRecordId, feedSize: feedSize))
+    }
+    
+    /// Users - 사용자 정보 조회
+    func fetchUserInfo() async throws -> DTO.UsersInfoResponse {
+        return try await provider.request(.info)
+    }
+    
+    /// Users - 사용자 프로필 이미지 설정
+    func updateProfileImage(profileImageUrl: String) async throws -> DTO.UsersProfileImageUploadResponse {
+        return try await provider.request(.profileImageUpload(profileImageUrl: profileImageUrl))
+    }
+
+    /// Users - 사용자 취미 진행 상단탭 조회
+    func fetchHobbiesInProgress() async throws -> DTO.UsersHobbiesInProgressResponse {
+        return try await provider.request(.hobbiesInProgress)
+    }
+
+    /// Users - 사용자 취미 카드 리스트 조회
+    func fetchHobbyCards(lastHobbyCardId: Int?, size: Int = 20) async throws -> DTO.UsersHobbyCardResponse {
+        return try await provider.request(.hobbyCards(lastHobbyCardId: lastHobbyCardId, size: size))
     }
 }

@@ -69,4 +69,14 @@ final class HobbyRepository: HobbyRepositoryInterface {
         let response = try await activityService.updateHobbyStatus(hobbyId: hobbyId, request: request)
         return response.toDomain()
     }
+
+    func updateCoverImage(hobbyId: Int?, coverImageUrl: String?, recordId: Int?) async throws -> UpdateHobbyCoverResult {
+        let request = DTO.UpdateHobbyCoverRequest(
+            hobbyId: hobbyId,
+            coverImageUrl: coverImageUrl,
+            recordId: recordId
+        )
+        let response = try await activityService.updateCoverImage(request: request)
+        return response.toDomain()
+    }
 }

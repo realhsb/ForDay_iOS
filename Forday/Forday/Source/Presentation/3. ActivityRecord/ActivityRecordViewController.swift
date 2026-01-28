@@ -197,6 +197,10 @@ extension ActivityRecordViewController {
                 let result = try await viewModel.submitActivityRecord()
                 await MainActor.run {
                     print("✅ 활동 기록 작성 성공: \(result.message)")
+
+                    // Notify HomeViewController to refresh sticker board
+                    AppEventBus.shared.activityRecordCreated.send(viewModel.currentHobbyId)
+
                     dismiss(animated: true)
                 }
             } catch {

@@ -15,7 +15,7 @@ class ActivityListViewModel {
 
     @Published var activities: [Activity] = []
     @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+    @Published var error: AppError?
     @Published var expandedActivityIds: Set<Int> = []
 
     private var cancellables = Set<AnyCancellable>()
@@ -47,19 +47,25 @@ class ActivityListViewModel {
     
     func fetchActivities(hobbyId: Int) async {
         isLoading = true
-        errorMessage = nil
-        
+        error = nil
+
         do {
             let activities = try await fetchActivityListUseCase.execute(hobbyId: hobbyId)
-            
+
             await MainActor.run {
                 self.activities = activities
                 self.isLoading = false
                 print("✅ 활동 목록 로드 완료: \(activities.count)개")
             }
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+                print("❌ 활동 목록 로드 실패: \(appError)")
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
                 print("❌ 활동 목록 로드 실패: \(error)")
             }

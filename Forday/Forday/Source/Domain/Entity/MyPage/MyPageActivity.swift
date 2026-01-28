@@ -16,4 +16,9 @@ struct MyPageActivity {
     let sticker: String
     let createdDate: String
     let memo: String?
+
+    /// Converts the sticker filename string to a StickerType enum
+    var stickerType: StickerType? {
+        StickerType(fileName: sticker)
+    }
 }

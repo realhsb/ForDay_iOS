@@ -26,6 +26,7 @@ enum HobbiesAPI {
     case updateExecutionCount(Int)      /// 실행 횟수 변경
     case updateGoalDays(Int)            /// 목표 기간 변경
     case updateHobbyStatus(Int)         /// 취미 보관/꺼내기
+    case updateCoverImage               /// 취미 대표사진 변경
     
     var endpoint: String {
         switch self {
@@ -76,6 +77,9 @@ enum HobbiesAPI {
 
         case .updateHobbyStatus(let hobbyId):
             return "/hobbies/\(hobbyId)/status"
+
+        case .updateCoverImage:
+            return "/hobbies/cover-image"
         }
     }
 }

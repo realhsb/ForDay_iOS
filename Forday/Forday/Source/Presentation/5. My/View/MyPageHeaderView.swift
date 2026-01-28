@@ -31,12 +31,12 @@ final class MyPageHeaderView: UIView {
 
     // MARK: - Configuration
 
-    func configure(with profile: UserProfile) {
-        nicknameLabel.text = profile.nickname
-        stickerCountLabel.text = profile.stickerDisplayText
+    func configure(with info: UserInfo) {
+        nicknameLabel.text = info.nickname
+        stickerCountLabel.text = "\(info.totalCollectedStickerCount)개 스티커 수집 중"
 
         // Profile image
-        if let imageUrlString = profile.profileImageUrl,
+        if let imageUrlString = info.profileImageUrl,
            let imageUrl = URL(string: imageUrlString) {
             // TODO: Load image from URL when image loading is implemented
             profileImageView.image = UIImage(systemName: "person.circle.fill")

@@ -40,7 +40,7 @@ extension DTO.ActivityDropdownData {
             content: content,
             aiRecommended: aiRecommended,
             deletable: true,
-            collectedStickerNum: nil
+            collectedStickerNum: 0
         )
     }
 }

@@ -31,12 +31,12 @@ final class HobbyCardItemView: UIView {
 
     // MARK: - Configuration
 
-    func configure(with card: HobbyCardData) {
+    func configure(with card: CompletedHobbyCard) {
         // TODO: Load image from URL when image loading is implemented
         imageView.image = UIImage(systemName: "photo.fill")
         imageView.tintColor = .systemGray3
 
-        textLabel.text = card.text
+        textLabel.text = card.content
     }
 }
 

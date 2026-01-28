@@ -9,4 +9,6 @@ import Foundation
 
 enum ImageUsage: String {
     case activityRecord = "ACTIVITY_RECORD"
+    case profileImage = "PROFILE_IMAGE"
+    case coverImage = "COVER_IMAGE"
 }

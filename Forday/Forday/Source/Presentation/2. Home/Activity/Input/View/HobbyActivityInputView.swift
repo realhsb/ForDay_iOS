@@ -24,7 +24,7 @@ class HobbyActivityInputView: UIView {
     private let recommendationLabel = UILabel()
     private let flowLayoutView = FlowLayoutView()
     private let saveButton = UIButton()
-    private var aiToastView: ToastView?
+    private var aiToastView: AIRecommendationToastView?
 
     private var activityFields: [ActivityInputField] = []
     private let maxFields = 3
@@ -271,7 +271,7 @@ extension HobbyActivityInputView {
         // 이미 토스트가 있으면 제거
         aiToastView?.removeFromSuperview()
 
-        let toast = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
         toast.isUserInteractionEnabled = true
 
         // Add tap gesture

@@ -24,7 +24,7 @@ class ActivityListViewController: UIViewController {
 
     // AI Recommendation Toast
     var shouldShowAIRecommendationToast = false
-    private var aiToastView: ToastView?
+    private var aiToastView: AIRecommendationToastView?
     
     // Initialization
     
@@ -117,12 +117,12 @@ extension ActivityListViewController {
             }
             .store(in: &cancellables)
 
-        // 에러 메시지
-        viewModel.$errorMessage
+        // 에러 처리
+        viewModel.$error
             .receive(on: DispatchQueue.main)
             .compactMap { $0 }
             .sink { [weak self] error in
-                self?.showError(error)
+                self?.handleError(error)
             }
             .store(in: &cancellables)
     }
@@ -213,6 +213,33 @@ extension ActivityListViewController {
         }
     }
     
+    private func handleError(_ error: AppError) {
+        let title: String
+        let message = error.userMessage
+        var actions: [UIAlertAction] = []
+
+        switch error {
+        case .network:
+            title = "네트워크 오류"
+            actions.append(UIAlertAction(title: "다시 시도", style: .default) { [weak self] _ in
+                self?.loadActivities()
+            })
+            actions.append(UIAlertAction(title: "취소", style: .cancel))
+
+        case .server:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+
+        case .decoding, .unknown:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+        }
+
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        actions.forEach { alert.addAction($0) }
+        present(alert, animated: true)
+    }
+
     private func showError(_ message: String) {
         let alert = UIAlertController(
             title: "오류",
@@ -224,7 +251,7 @@ extension ActivityListViewController {
     }
 
     private func showAIRecommendationToast() {
-        let toast = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
         toast.isUserInteractionEnabled = true
 
         // Add tap gesture

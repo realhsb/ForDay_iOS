@@ -65,3 +65,7 @@ extension MyPageView {
         }
     }
 }
+
+#Preview {
+    MyPageView()
+}

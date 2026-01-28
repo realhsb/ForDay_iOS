@@ -17,20 +17,24 @@ final class MyPageViewModel {
 
     // MARK: - Published Properties
 
-    @Published var userProfile: UserProfile?
+    @Published var userProfile: UserInfo?
     @Published var currentTab: MyPageTab = .activities
     @Published var myHobbies: [MyPageHobby] = []
-    @Published var activities: [MyPageActivity] = []
-    @Published var hobbyCards: [HobbyCardData] = []
+    @Published var inProgressHobbyCount: Int = 0  // Segment "진행 중(n)" 표시용
+    @Published var hobbyCardCount: Int = 0        // Segment "취미 카드(n)" 표시용
+    @Published var activities: [FeedItem] = []
+    @Published var hobbyCards: [CompletedHobbyCard] = []
     @Published var selectedHobbyId: Int? // nil = all hobbies
     @Published var isLoading: Bool = false
     @Published var isLoadingMore: Bool = false
-    @Published var errorMessage: String?
+    @Published var error: AppError?
 
     // MARK: - Private Properties
 
-    private var currentPage: Int = 0
+    private var lastRecordId: Int? = nil
     private var hasMoreActivities: Bool = true
+    private var lastHobbyCardId: Int? = nil
+    private var hasMoreHobbyCards: Bool = true
 
     // Use Cases
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
@@ -59,35 +63,44 @@ final class MyPageViewModel {
             isLoading = true
         }
 
-        do {
-            // Fetch all data in parallel
-            async let profileTask = fetchUserProfileUseCase.execute()
-            async let hobbiesTask = fetchMyHobbiesUseCase.execute()
-            async let activitiesTask = fetchMyActivitiesUseCase.execute(hobbyId: nil, page: 0)
-            async let cardsTask = fetchHobbyCardsUseCase.execute(page: 0)
+        // Fetch all data in parallel, each can fail independently
+        async let profile = try? await fetchUserProfileUseCase.execute()
+        async let hobbiesResult = try? await fetchMyHobbiesUseCase.execute()
+        async let activitiesResult = try? await fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
+        async let cardsResult = try? await fetchHobbyCardsUseCase.execute(lastHobbyCardId: nil, size: 20)
 
-            let (profile, hobbies, activitiesResult, cards) = try await (
-                profileTask,
-                hobbiesTask,
-                activitiesTask,
-                cardsTask
-            )
+        let (profileOpt, hobbiesOpt, activitiesOpt, cardsOpt) = await (
+            profile,
+            hobbiesResult,
+            activitiesResult,
+            cardsResult
+        )
 
-            await MainActor.run {
+        await MainActor.run {
+            // Update only successful results
+            if let profile = profileOpt {
                 self.userProfile = profile
-                self.myHobbies = hobbies
-                self.activities = activitiesResult.activities
-                self.hobbyCards = cards
-                self.hasMoreActivities = activitiesResult.hasNext
-                self.currentPage = 0
-                self.isLoading = false
             }
 
-        } catch {
-            await MainActor.run {
-                self.errorMessage = error.localizedDescription
-                self.isLoading = false
+            if let hobbies = hobbiesOpt {
+                self.myHobbies = hobbies.hobbies
+                self.inProgressHobbyCount = hobbies.inProgressHobbyCount
+                self.hobbyCardCount = hobbies.hobbyCardCount
             }
+
+            if let activities = activitiesOpt {
+                self.activities = activities.feedList
+                self.hasMoreActivities = activities.hasNext
+                self.lastRecordId = activities.lastRecordId
+            }
+
+            if let cards = cardsOpt {
+                self.hobbyCards = cards.cards
+                self.hasMoreHobbyCards = cards.hasNext
+                self.lastHobbyCardId = cards.lastCardId
+            }
+
+            self.isLoading = false
         }
     }
 
@@ -97,7 +110,7 @@ final class MyPageViewModel {
 
     func filterByHobby(hobbyId: Int?) async {
         selectedHobbyId = hobbyId
-        currentPage = 0
+        lastRecordId = nil
         hasMoreActivities = true
 
         await refreshActivities()
@@ -111,19 +124,24 @@ final class MyPageViewModel {
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
                 hobbyId: selectedHobbyId,
-                page: 0
+                lastRecordId: nil
             )
 
             await MainActor.run {
-                self.activities = result.activities
+                self.activities = result.feedList
                 self.hasMoreActivities = result.hasNext
-                self.currentPage = 0
+                self.lastRecordId = result.lastRecordId
                 self.isLoading = false
             }
 
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+            }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = .unknown(error)
                 self.isLoading = false
             }
         }
@@ -136,26 +154,57 @@ final class MyPageViewModel {
             isLoadingMore = true
         }
 
-        let nextPage = currentPage + 1
-
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
                 hobbyId: selectedHobbyId,
-                page: nextPage
+                lastRecordId: lastRecordId
             )
 
             await MainActor.run {
-                self.activities.append(contentsOf: result.activities)
+                self.activities.append(contentsOf: result.feedList)
                 self.hasMoreActivities = result.hasNext
-                self.currentPage = nextPage
+                self.lastRecordId = result.lastRecordId
                 self.isLoadingMore = false
             }
 
-        } catch {
+        } catch let appError as AppError {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.error = appError
                 self.isLoadingMore = false
             }
+        } catch {
+            await MainActor.run {
+                self.error = .unknown(error)
+                self.isLoadingMore = false
+            }
+        }
+    }
+
+    // MARK: - Refresh Individual Data
+
+    func refreshUserProfile() async {
+        do {
+            let profile = try await fetchUserProfileUseCase.execute()
+            await MainActor.run {
+                self.userProfile = profile
+            }
+        } catch {
+            // Silently fail - user can refresh manually if needed
+            print("❌ Failed to refresh user profile: \(error)")
+        }
+    }
+
+    func refreshHobbies() async {
+        do {
+            let hobbies = try await fetchMyHobbiesUseCase.execute()
+            await MainActor.run {
+                self.myHobbies = hobbies.hobbies
+                self.inProgressHobbyCount = hobbies.inProgressHobbyCount
+                self.hobbyCardCount = hobbies.hobbyCardCount
+            }
+        } catch {
+            // Silently fail - user can refresh manually if needed
+            print("❌ Failed to refresh hobbies: \(error)")
         }
     }
 }

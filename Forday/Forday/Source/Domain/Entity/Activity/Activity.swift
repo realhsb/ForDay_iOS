@@ -13,5 +13,5 @@ struct Activity {
     let content: String
     let aiRecommended: Bool
     let deletable: Bool
-    let collectedStickerNum: Int?
+    let collectedStickerNum: Int
 }

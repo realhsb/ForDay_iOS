@@ -15,7 +15,7 @@ final class FetchMyActivitiesUseCase {
         self.repository = repository
     }
 
-    func execute(hobbyId: Int?, page: Int, size: Int = 20) async throws -> MyActivitiesResult {
-        return try await repository.fetchMyActivities(hobbyId: hobbyId, page: page, size: size)
+    func execute(hobbyId: Int?, lastRecordId: Int? = nil, size: Int = 24) async throws -> FeedResult {
+        return try await repository.fetchMyActivities(hobbyId: hobbyId, lastRecordId: lastRecordId, size: size)
     }
 }

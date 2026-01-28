@@ -15,7 +15,7 @@ final class UpdateProfileUseCase {
         self.repository = repository
     }
 
-    func execute(nickname: String?, profileImageUrl: String?) async throws -> UserProfile {
+    func execute(nickname: String, profileImageUrl: String) async throws -> UserInfo {
         return try await repository.updateProfile(nickname: nickname, profileImageUrl: profileImageUrl)
     }
 }

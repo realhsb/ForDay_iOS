@@ -18,7 +18,7 @@ final class HobbyCardStackView: UIView {
 
     // MARK: - Properties
 
-    private var cards: [HobbyCardData] = []
+    private var cards: [CompletedHobbyCard] = []
     private var currentIndex: Int = 0
 
     private let topCardView = HobbyCardItemView()
@@ -42,7 +42,7 @@ final class HobbyCardStackView: UIView {
 
     // MARK: - Configuration
 
-    func configure(with cards: [HobbyCardData]) {
+    func configure(with cards: [CompletedHobbyCard]) {
         guard !cards.isEmpty else { return }
 
         self.cards = cards
