@@ -24,6 +24,7 @@ final class StickerBoardViewModel {
     // MARK: - Navigation Callbacks
 
     var onNavigateToActivityDetail: ((Int) -> Void)? // (activityRecordId)
+    var onNavigateToActivityRecord: (() -> Void)? // Navigate to activity record screen
 
     // MARK: - Initialization
 
@@ -115,8 +116,8 @@ final class StickerBoardViewModel {
     }
 
     private func navigateToActivityRecord() {
-        // TODO: 활동 기록 화면으로 이동
         print("🎯 Navigate to Activity Record")
+        onNavigateToActivityRecord?()
     }
 
     private func navigateToActivityDetail(activityRecordId: Int) {

@@ -16,6 +16,7 @@ class MainTabBarCoordinator: NSObject, Coordinator {
 
     weak var parentCoordinator: AppCoordinator?
     private weak var homeViewController: HomeViewController?
+    private var onboardingCoordinator: OnboardingCoordinator?
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -208,5 +209,62 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
             homeNav.pushViewController(detailVC, animated: true)
         }
+    }
+
+    func showActivityRecord() {
+        // Get current hobby ID from HomeViewController
+        guard let hobbyId = homeViewController?.getCurrentHobbyId() else {
+            print("❌ 취미 ID 없음 - ActivityRecordViewController를 표시할 수 없습니다")
+            return
+        }
+
+        let recordVC = ActivityRecordViewController(hobbyId: hobbyId)
+        let nav = UINavigationController(rootViewController: recordVC)
+        nav.modalPresentationStyle = .fullScreen
+
+        // Present from Home navigation stack
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.present(nav, animated: true)
+        }
+    }
+
+    func showAddHobbyOnboarding() {
+        // Get home navigation controller
+        guard let homeNav = tabBarController.viewControllers?.first as? UINavigationController else {
+            print("❌ Home navigation controller not found")
+            return
+        }
+
+        // Create onboarding navigation controller
+        let onboardingNav = UINavigationController()
+        onboardingNav.modalPresentationStyle = .fullScreen
+
+        // Create onboarding coordinator
+        onboardingCoordinator = OnboardingCoordinator(navigationController: onboardingNav)
+
+        // Set completion handler to dismiss and refresh home
+        onboardingCoordinator?.onHobbyCreationCompleted = { [weak self] in
+            // Dismiss onboarding
+            onboardingNav.dismiss(animated: true) {
+                // Refresh home view
+                Task {
+                    await self?.homeViewController?.viewModel.fetchHomeInfo()
+                }
+                // Clean up coordinator reference
+                self?.onboardingCoordinator = nil
+            }
+        }
+
+        // Start onboarding
+        onboardingCoordinator?.start()
+
+        // Present onboarding
+        homeNav.present(onboardingNav, animated: true)
+    }
+
+    func updateTabBarRecordingButtonState(enabled: Bool) {
+        // Get recording tab (index 2)
+        guard let recordVC = tabBarController.viewControllers?[2] else { return }
+        recordVC.tabBarItem.isEnabled = enabled
     }
 }

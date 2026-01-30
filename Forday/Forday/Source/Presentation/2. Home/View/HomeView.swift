@@ -25,6 +25,7 @@ class HomeView: UIView {
     let firstHobbyButton = UIButton()
     private let dividerLabel = UILabel()
     let secondHobbyButton = UIButton()
+    let addHobbyButton = UIButton() // For no-hobby state
     let settingsButton = UIButton()
     let notificationButton = UIButton()
     
@@ -47,7 +48,12 @@ class HomeView: UIView {
     
     // Sticker Collection Section
     let stickerBoardView = StickerBoardView()
-    
+
+    // Floating Action Button
+    let dimOverlayView = UIView()
+    let floatingActionButton = FloatingActionButton()
+    let floatingActionMenu = FloatingActionMenu()
+
     // Initialization
     
     override init(frame: CGRect) {
@@ -115,6 +121,20 @@ extension HomeView {
                 button.configuration = config
             }
             $0.isHidden = true // 기본적으로 숨김 (취미가 2개일 때만 표시)
+        }
+
+        addHobbyButton.do {
+            var config = UIButton.Configuration.plain()
+            config.baseForegroundColor = .neutral900
+            config.image = .Icon.chevronRight
+            config.imagePlacement = .trailing
+            config.imagePadding = 4
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            config.background.cornerRadius = 0
+            config.background.backgroundColor = .clear
+            $0.configuration = config
+            $0.setTitleWithTypography("취미 추가", style: .header22)
+            $0.isHidden = true // 기본적으로 숨김 (취미가 없을 때만 표시)
         }
 
         settingsButton.do {
@@ -202,6 +222,13 @@ extension HomeView {
             $0.backgroundColor = .neutralWhite
             $0.layer.cornerRadius = 20
         }
+
+        // Floating Action Button
+        dimOverlayView.do {
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+            $0.alpha = 0
+            $0.isHidden = true
+        }
     }
     
     private func layout() {
@@ -216,11 +243,17 @@ extension HomeView {
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
         contentView.addSubview(stickerBoardView)
+
+        // Floating elements (added to self, not contentView, to stay above all content)
+        addSubview(dimOverlayView)
+        addSubview(floatingActionMenu)
+        addSubview(floatingActionButton)
         
         // Header
         headerView.addSubview(firstHobbyButton)
         headerView.addSubview(dividerLabel)
         headerView.addSubview(secondHobbyButton)
+        headerView.addSubview(addHobbyButton)
         headerView.addSubview(settingsButton)
         headerView.addSubview(notificationButton)
         
@@ -267,6 +300,11 @@ extension HomeView {
         secondHobbyButton.snp.makeConstraints {
             $0.leading.equalTo(dividerLabel.snp.trailing)
             $0.centerY.equalTo(firstHobbyButton)
+        }
+
+        addHobbyButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.bottom.equalToSuperview().offset(-12)
         }
 
         notificationButton.snp.makeConstraints {
@@ -340,6 +378,23 @@ extension HomeView {
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
         }
+
+        // Dim Overlay
+        dimOverlayView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        // Floating Action Button
+        floatingActionButton.snp.makeConstraints {
+            $0.trailing.equalTo(safeAreaLayoutGuide).offset(-20)
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-20)
+        }
+
+        // Floating Action Menu
+        floatingActionMenu.snp.makeConstraints {
+            $0.trailing.equalTo(floatingActionButton)
+            $0.bottom.equalTo(floatingActionButton.snp.top).offset(-16)
+        }
     }
 }
 
@@ -347,7 +402,16 @@ extension HomeView {
 
 extension HomeView {
     func updateHobbies(_ hobbies: [InProgressHobby]) {
-        if hobbies.count == 1 {
+        if hobbies.isEmpty {
+            // 취미가 없는 경우 - "취미 추가" 버튼 표시
+            firstHobbyButton.isHidden = true
+            dividerLabel.isHidden = true
+            secondHobbyButton.isHidden = true
+            addHobbyButton.isHidden = false
+
+            setNeedsLayout()
+            layoutIfNeeded()
+        } else if hobbies.count == 1 {
             // 취미가 1개인 경우
             let hobby = hobbies[0]
             firstHobbyButton.setTitleWithTypography(hobby.hobbyName, style: .header22)
@@ -362,8 +426,14 @@ extension HomeView {
                 button.configuration = config
             }
 
+            firstHobbyButton.isHidden = false
             dividerLabel.isHidden = true
             secondHobbyButton.isHidden = true
+            addHobbyButton.isHidden = true
+
+            // 레이아웃 업데이트
+            setNeedsLayout()
+            layoutIfNeeded()
         } else if hobbies.count >= 2 {
             // 취미가 2개 이상인 경우 (최대 2개만 표시)
             let firstHobby = hobbies[0]
@@ -415,8 +485,22 @@ extension HomeView {
                 }
             }
 
+            firstHobbyButton.isHidden = false
             dividerLabel.isHidden = false
             secondHobbyButton.isHidden = false
+            addHobbyButton.isHidden = true
+
+            // 레이아웃 업데이트
+            setNeedsLayout()
+            layoutIfNeeded()
+        }
+    }
+
+    func updateAddActivityButtonTitle(hasHobbies: Bool) {
+        if hasHobbies {
+            addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+        } else {
+            addActivityButton.setTitleWithTypography("취미 추가하기", style: .header14)
         }
     }
 
@@ -489,6 +573,31 @@ extension HomeView {
         UIView.animate(withDuration: 0.3) {
             self.layoutIfNeeded()
         }
+    }
+
+    func showFloatingMenu() {
+        dimOverlayView.isHidden = false
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.dimOverlayView.alpha = 1
+        }
+
+        floatingActionButton.isExpanded = true
+        floatingActionMenu.show(animated: true)
+    }
+
+    func hideFloatingMenu() {
+        UIView.animate(
+            withDuration: 0.3,
+            animations: { [weak self] in
+                self?.dimOverlayView.alpha = 0
+            },
+            completion: { [weak self] _ in
+                self?.dimOverlayView.isHidden = true
+            }
+        )
+
+        floatingActionButton.isExpanded = false
+        floatingActionMenu.hide(animated: true)
     }
 }
 

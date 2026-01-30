@@ -256,27 +256,33 @@ extension ActivityRecordViewController {
                         message: "활동과 스티커를 모두 선택해주세요."
                     )
                 }
+            } catch let appError as AppError {
+                await MainActor.run {
+                    print("❌ 활동 기록 작성 실패: \(appError)")
+                    // Use common error handler
+                    self.handleActivityRecordError(appError)
+                }
             } catch {
                 await MainActor.run {
                     print("❌ 활동 기록 작성 실패: \(error)")
-                    showErrorAlert(
-                        title: "오류",
-                        message: "활동 기록을 저장하는 중 오류가 발생했습니다.\n다시 시도해주세요."
-                    )
+                    self.handleActivityRecordError(.unknown(error))
                 }
             }
         }
     }
 
-    private func showErrorAlert(title: String, message: String) {
+    private func showErrorAlert(title: String, message: String, action: (() -> Void)? = nil) {
         let alert = UIAlertController(
             title: title,
             message: message,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+            action?()
+        })
         present(alert, animated: true)
     }
+
 
     private func showActivityDropdown() {
         guard activityDropdownView == nil else { return }

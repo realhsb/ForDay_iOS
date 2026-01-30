@@ -11,7 +11,7 @@ extension DTO {
     struct HomeInfoResponse: BaseResponse {
         let status: Int
         let success: Bool
-        let data: HomeInfoData
+        let data: HomeInfoData?
 
         struct HomeInfoData: Codable {
             let inProgressHobbies: [InProgressHobby]
@@ -35,7 +35,12 @@ extension DTO {
 }
 
 extension DTO.HomeInfoResponse {
-    func toDomain() -> HomeInfo {
+    func toDomain() -> HomeInfo? {
+        guard let data = data else {
+            // No hobbies - return nil
+            return nil
+        }
+
         return HomeInfo(
             inProgressHobbies: data.inProgressHobbies.map { hobby in
                 InProgressHobby(

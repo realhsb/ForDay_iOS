@@ -196,6 +196,6 @@ private final class StickerBoardCell: UICollectionViewCell {
     }
 
     func configure(with state: StickerItemView.StickerState) {
-        stickerItemView.configure(with: state) { }
+        stickerItemView.configure(with: state)
     }
 }

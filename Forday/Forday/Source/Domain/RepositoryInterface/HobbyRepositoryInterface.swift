@@ -17,7 +17,7 @@ protocol HobbyRepositoryInterface {
         isDurationSet: Bool
     ) async throws -> Int
 
-    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo
+    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo?
 
     // Hobby Management
     func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings

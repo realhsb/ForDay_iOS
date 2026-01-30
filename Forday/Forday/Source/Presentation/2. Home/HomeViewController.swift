@@ -15,7 +15,7 @@ class HomeViewController: UIViewController {
     // Properties
 
     private let homeView = HomeView()
-    private let viewModel = HomeViewModel()
+    let viewModel = HomeViewModel()
     private let stickerBoardViewModel = StickerBoardViewModel()
     private var cancellables = Set<AnyCancellable>()
     
@@ -74,6 +74,13 @@ extension HomeViewController {
             for: .touchUpInside
         )
 
+        // 취미 추가 버튼 (No hobby state)
+        homeView.addHobbyButton.addTarget(
+            self,
+            action: #selector(addHobbyButtonTapped),
+            for: .touchUpInside
+        )
+
         // 설정 버튼
         homeView.settingsButton.addTarget(
             self,
@@ -115,12 +122,34 @@ extension HomeViewController {
             action: #selector(toastViewTapped)
         )
         homeView.toastView.addGestureRecognizer(toastTapGesture)
+
+        // Floating Action Button
+        homeView.floatingActionButton.onTap = { [weak self] in
+            self?.toggleFloatingMenu()
+        }
+
+        // Dim overlay tap to dismiss
+        let dimTapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissFloatingMenu)
+        )
+        homeView.dimOverlayView.addGestureRecognizer(dimTapGesture)
+
+        // Floating Action Menu
+        homeView.floatingActionMenu.onActionSelected = { [weak self] actionType in
+            self?.handleFloatingMenuAction(actionType)
+        }
     }
 
     private func setupStickerBoardCallbacks() {
         // 스티커판에서 활동 상세 화면으로 이동
         stickerBoardViewModel.onNavigateToActivityDetail = { [weak self] activityRecordId in
             self?.coordinator?.showActivityDetail(activityRecordId: activityRecordId)
+        }
+
+        // 스티커판에서 활동 기록 화면으로 이동
+        stickerBoardViewModel.onNavigateToActivityRecord = { [weak self] in
+            self?.coordinator?.showActivityRecord()
         }
     }
     
@@ -274,8 +303,12 @@ extension HomeViewController {
 
     private func updateUI(with homeInfo: HomeInfo?) {
         guard let homeInfo = homeInfo else {
+            // Handle server error - show no hobby state
+            handleNoHobbyState()
             return
         }
+
+        let hasHobbies = !homeInfo.inProgressHobbies.isEmpty
 
         // 취미 리스트 업데이트
         homeView.updateHobbies(homeInfo.inProgressHobbies)
@@ -283,21 +316,55 @@ extension HomeViewController {
         // 활동 미리보기 업데이트
         homeView.updateActivityPreview(homeInfo.activityPreview)
 
+        // Update add activity button title
+        homeView.updateAddActivityButtonTitle(hasHobbies: hasHobbies)
+
         // 토스트 표시 조건: AI 추천 횟수가 남아있고, 활동이 없을 때
-        if homeInfo.aiCallRemaining {
+        if homeInfo.aiCallRemaining && hasHobbies {
             homeView.showToast()
         } else {
             homeView.hideToast()
         }
 
+        // Update floating button state
+        updateFloatingButtonState(enabled: hasHobbies)
+
+        // Update TabBar recording button state
+        coordinator?.updateTabBarRecordingButtonState(enabled: hasHobbies)
+
         // 스티커 개수 업데이트
 //        homeView.updateStickerCount(homeInfo.totalStickerNum)
+    }
+
+    private func handleNoHobbyState() {
+        // Show no hobby UI
+        homeView.updateHobbies([])
+        homeView.updateActivityPreview(nil)
+        homeView.updateAddActivityButtonTitle(hasHobbies: false)
+        homeView.hideToast()
+        homeView.hideFloatingMenu()
+
+        // Disable floating button
+        updateFloatingButtonState(enabled: false)
+
+        // Disable TabBar recording button
+        coordinator?.updateTabBarRecordingButtonState(enabled: false)
+    }
+
+    private func updateFloatingButtonState(enabled: Bool) {
+        homeView.floatingActionButton.isUserInteractionEnabled = enabled
+        homeView.floatingActionButton.alpha = enabled ? 1.0 : 0.4
     }
 }
 
 // Actions
 
 extension HomeViewController {
+    @objc private func addHobbyButtonTapped() {
+        print("취미 추가 탭")
+        coordinator?.showAddHobbyOnboarding()
+    }
+
     @objc private func firstHobbyTapped() {
         guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
             return
@@ -461,8 +528,16 @@ extension HomeViewController {
     }
 
     @objc private func addActivityButtonTapped() {
+        // Check if user has hobbies
+        guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
+            // No hobbies - show onboarding
+            print("취미 추가하기 탭")
+            coordinator?.showAddHobbyOnboarding()
+            return
+        }
+
         // activityPreview 유무에 따라 다른 동작
-        if viewModel.homeInfo?.activityPreview != nil {
+        if homeInfo.activityPreview != nil {
             // 스티커 붙이기
             print("오늘의 스티커 붙이기 탭")
             // TODO: 스티커 붙이기 API 연동
@@ -516,6 +591,61 @@ extension HomeViewController {
         }
 
         present(containerVC, animated: true)
+    }
+
+    // MARK: - Floating Action Menu
+
+    private func toggleFloatingMenu() {
+        if homeView.floatingActionButton.isExpanded {
+            dismissFloatingMenu()
+        } else {
+            homeView.showFloatingMenu()
+        }
+    }
+
+    @objc private func dismissFloatingMenu() {
+        homeView.hideFloatingMenu()
+    }
+
+    private func handleFloatingMenuAction(_ actionType: FloatingActionMenu.ActionType) {
+        dismissFloatingMenu()
+
+        switch actionType {
+        case .addActivity:
+            showActivityInputFromFloatingButton()
+
+        case .viewActivityList:
+            showActivityListFromFloatingButton()
+        }
+    }
+
+    private func showActivityInputFromFloatingButton() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.onActivityCreated = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+
+    private func showActivityListFromFloatingButton() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let activityListVC = ActivityListViewController(hobbyId: hobbyId)
+        activityListVC.isPresentedModally = true
+        let nav = UINavigationController(rootViewController: activityListVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 
     // Error Handling
