@@ -36,7 +36,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
         return response.data.hobbyId
     }
 
-    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo {
+    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo? {
         let response = try await activityService.fetchHomeInfo(hobbyId: hobbyId)
         return response.toDomain()
     }
