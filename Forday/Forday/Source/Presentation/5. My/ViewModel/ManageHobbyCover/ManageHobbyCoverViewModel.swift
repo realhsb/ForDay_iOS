@@ -25,18 +25,18 @@ class ManageHobbyCoverViewModel {
 
     // MARK: - Dependencies
 
-    private let usersRepository: UsersRepositoryInterface
+    private let myPageRepository: MyPageRepositoryInterface
     private let hobbyRepository: HobbyRepositoryInterface
     private let uploadImageUseCase: UploadImageUseCase
 
     // MARK: - Initialization
 
     init(
-        usersRepository: UsersRepositoryInterface = UsersRepository(),
+        myPageRepository: MyPageRepositoryInterface = MyPageRepository(),
         hobbyRepository: HobbyRepositoryInterface = HobbyRepository(),
         uploadImageUseCase: UploadImageUseCase = UploadImageUseCase()
     ) {
-        self.usersRepository = usersRepository
+        self.myPageRepository = myPageRepository
         self.hobbyRepository = hobbyRepository
         self.uploadImageUseCase = uploadImageUseCase
     }
@@ -50,20 +50,20 @@ class ManageHobbyCoverViewModel {
 
     /// 전체 피드 조회 (초기 로드)
     func fetchAllFeeds() async {
-        await fetchFeeds(hobbyId: nil)
+        await fetchFeeds(hobbyIds: [])
     }
 
     /// 특정 취미의 피드 조회
-    func fetchFeeds(hobbyId: Int?) async {
+    func fetchFeeds(hobbyIds: [Int]) async {
         await MainActor.run {
             self.isLoading = true
         }
 
         do {
-            let result = try await usersRepository.fetchFeeds(
-                hobbyId: hobbyId,
+            let result = try await myPageRepository.fetchMyActivities(
+                hobbyIds: hobbyIds,
                 lastRecordId: nil,
-                feedSize: 100
+                size: 100
             )
 
             await MainActor.run {
@@ -89,7 +89,7 @@ class ManageHobbyCoverViewModel {
     func selectHobby(_ hobbyId: Int) {
         self.selectedHobbyId = hobbyId
         Task {
-            await fetchFeeds(hobbyId: hobbyId)
+            await fetchFeeds(hobbyIds: [hobbyId])
         }
     }
 
@@ -101,7 +101,7 @@ class ManageHobbyCoverViewModel {
 
         // 해당 취미의 피드만 로드
         Task {
-            await fetchFeeds(hobbyId: hobbyId)
+            await fetchFeeds(hobbyIds: [hobbyId])
         }
     }
 

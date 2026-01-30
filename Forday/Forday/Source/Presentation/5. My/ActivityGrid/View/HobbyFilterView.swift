@@ -15,9 +15,9 @@ final class HobbyFilterView: UIView {
 
     private let collectionView: UICollectionView
     private var hobbies: [MyPageHobby] = []
-    private var selectedHobbyId: Int? // nil = "전체" (all)
+    private var selectedHobbyIds: Set<Int> = [] // Empty = all hobbies
 
-    var onHobbySelected: ((Int?) -> Void)?
+    var onHobbiesSelected: ((Set<Int>) -> Void)?
 
     // MARK: - Initialization
 
@@ -47,8 +47,8 @@ final class HobbyFilterView: UIView {
         collectionView.reloadData()
     }
 
-    func selectHobby(_ hobbyId: Int?) {
-        selectedHobbyId = hobbyId
+    func selectHobbies(_ hobbyIds: Set<Int>) {
+        selectedHobbyIds = hobbyIds
         collectionView.reloadData()
     }
 }
@@ -87,7 +87,7 @@ extension HobbyFilterView {
 
 extension HobbyFilterView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return hobbies.count + 1 // +1 for "전체" cell
+        return hobbies.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -98,15 +98,9 @@ extension HobbyFilterView: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
 
-        if indexPath.item == 0 {
-            // "전체" cell
-            cell.configureAsAll(isSelected: selectedHobbyId == nil)
-        } else {
-            // Hobby cell
-            let hobby = hobbies[indexPath.item - 1]
-            let isSelected = selectedHobbyId == hobby.hobbyId
-            cell.configure(with: hobby, isSelected: isSelected)
-        }
+        let hobby = hobbies[indexPath.item]
+        let isSelected = selectedHobbyIds.contains(hobby.hobbyId)
+        cell.configure(with: hobby, isSelected: isSelected)
 
         return cell
     }
@@ -116,18 +110,18 @@ extension HobbyFilterView: UICollectionViewDataSource {
 
 extension HobbyFilterView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.item == 0 {
-            // Selected "전체"
-            selectedHobbyId = nil
-            onHobbySelected?(nil)
+        let hobby = hobbies[indexPath.item]
+
+        // Calculate new selection state
+        var newSelectedIds = selectedHobbyIds
+        if newSelectedIds.contains(hobby.hobbyId) {
+            newSelectedIds.remove(hobby.hobbyId)
         } else {
-            // Selected hobby
-            let hobby = hobbies[indexPath.item - 1]
-            selectedHobbyId = hobby.hobbyId
-            onHobbySelected?(hobby.hobbyId)
+            newSelectedIds.insert(hobby.hobbyId)
         }
 
-        collectionView.reloadData()
+        // Notify selection change (ViewModel will update and sync back)
+        onHobbiesSelected?(newSelectedIds)
     }
 }
 

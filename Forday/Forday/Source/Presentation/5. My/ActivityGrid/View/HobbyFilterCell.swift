@@ -38,7 +38,7 @@ final class HobbyFilterCell: UICollectionViewCell {
     func configure(with hobby: MyPageHobby, isSelected: Bool) {
         // TODO: Load image from thumbnailImageUrl using Kingfisher
         // For now, use placeholder
-        
+
         if let thumbnailImageUrl = hobby.thumbnailImageUrl {
             iconImageView.kf.setImage(
                   with: URL(string: thumbnailImageUrl),
@@ -47,8 +47,8 @@ final class HobbyFilterCell: UICollectionViewCell {
         } else {
             iconImageView.image = UIImage(systemName: "photo")
         }
-        
-        
+
+
         iconImageView.tintColor = .label
         nameLabel.text = hobby.hobbyName
 
@@ -58,17 +58,6 @@ final class HobbyFilterCell: UICollectionViewCell {
         nameLabel.alpha = alpha
 
         // Show selection border
-        selectionBorderView.isHidden = !isSelected
-    }
-
-    func configureAsAll(isSelected: Bool) {
-        iconImageView.image = UIImage(systemName: "square.grid.2x2")
-        iconImageView.tintColor = .label
-        nameLabel.text = "전체"
-
-        iconImageView.alpha = 1.0
-        nameLabel.alpha = 1.0
-
         selectionBorderView.isHidden = !isSelected
     }
 }

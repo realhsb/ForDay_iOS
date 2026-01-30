@@ -24,7 +24,7 @@ final class MyPageViewModel {
     @Published var hobbyCardCount: Int = 0        // Segment "취미 카드(n)" 표시용
     @Published var activities: [FeedItem] = []
     @Published var hobbyCards: [CompletedHobbyCard] = []
-    @Published var selectedHobbyId: Int? // nil = all hobbies
+    @Published var selectedHobbyIds: Set<Int> = [] // Empty = all hobbies
     @Published var isLoading: Bool = false
     @Published var isLoadingMore: Bool = false
     @Published var error: AppError?
@@ -66,7 +66,7 @@ final class MyPageViewModel {
         // Fetch all data in parallel, each can fail independently
         async let profile = try? await fetchUserProfileUseCase.execute()
         async let hobbiesResult = try? await fetchMyHobbiesUseCase.execute()
-        async let activitiesResult = try? await fetchMyActivitiesUseCase.execute(hobbyId: nil, lastRecordId: nil)
+        async let activitiesResult = try? await fetchMyActivitiesUseCase.execute(hobbyIds: [], lastRecordId: nil)
         async let cardsResult = try? await fetchHobbyCardsUseCase.execute(lastHobbyCardId: nil, size: 20)
 
         let (profileOpt, hobbiesOpt, activitiesOpt, cardsOpt) = await (
@@ -108,8 +108,8 @@ final class MyPageViewModel {
         currentTab = tab
     }
 
-    func filterByHobby(hobbyId: Int?) async {
-        selectedHobbyId = hobbyId
+    func filterByHobbies(hobbyIds: Set<Int>) async {
+        selectedHobbyIds = hobbyIds
         lastRecordId = nil
         hasMoreActivities = true
 
@@ -123,7 +123,7 @@ final class MyPageViewModel {
 
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
-                hobbyId: selectedHobbyId,
+                hobbyIds: Array(selectedHobbyIds),
                 lastRecordId: nil
             )
 
@@ -156,7 +156,7 @@ final class MyPageViewModel {
 
         do {
             let result = try await fetchMyActivitiesUseCase.execute(
-                hobbyId: selectedHobbyId,
+                hobbyIds: Array(selectedHobbyIds),
                 lastRecordId: lastRecordId
             )
 
