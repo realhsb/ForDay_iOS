@@ -21,7 +21,7 @@ class PeriodSelectionView: UIView {
     let selectedHobbyCard = SelectedHobbyCardView()
     let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
+        layout.scrollDirection = .horizontal  // 가로 스크롤로 변경
         layout.minimumLineSpacing = 16
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
@@ -32,13 +32,13 @@ class PeriodSelectionView: UIView {
         super.init(frame: frame)
         style()
         layout()
-        
-        // 임시 데이터
-        selectedHobbyCard.configure(
-            iconName: "book.fill",
-            time: "30분 · 주 2회 · 66일",
-            title: "독서"
-        )
+    }
+
+    // Configure
+
+    func configureHobbyCard(icon: UIImage?, title: String, time: String?, frequency: String?, purpose: String?) {
+        selectedHobbyCard.configure(icon: icon, title: title)
+        selectedHobbyCard.updateInfo(time: time, frequency: frequency, purpose: purpose)
     }
     
     required init?(coder: NSCoder) {
@@ -68,7 +68,7 @@ extension PeriodSelectionView {
         
         collectionView.do {
             $0.backgroundColor = .clear
-            $0.isScrollEnabled = false
+            $0.isScrollEnabled = false  // 스크롤 비활성화
             $0.register(PeriodOptionCell.self, forCellWithReuseIdentifier: PeriodOptionCell.identifier)
         }
     }
@@ -107,11 +107,11 @@ extension PeriodSelectionView {
             $0.leading.trailing.equalToSuperview()
         }
         
-        // CollectionView
+        // CollectionView (가로 스크롤, 단일 셀 높이)
         collectionView.snp.makeConstraints {
             $0.top.equalTo(selectedHobbyCard.snp.bottom).offset(32)
             $0.leading.trailing.equalToSuperview()
-            $0.height.equalTo(360)  // 2개 셀 높이
+            $0.height.equalTo(160)  // 단일 셀 높이
         }
     }
 }

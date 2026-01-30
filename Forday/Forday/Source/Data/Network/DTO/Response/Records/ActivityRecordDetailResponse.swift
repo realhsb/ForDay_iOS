@@ -15,6 +15,7 @@ extension DTO {
     }
 
     struct ActivityRecordDetailData: Codable {
+        let hobbyId: Int
         let activityId: Int?
         let activityContent: String
         let activityRecordId: Int
@@ -49,6 +50,7 @@ extension DTO.ActivityRecordDetailResponse {
     func toDomain() -> ActivityDetail {
         return ActivityDetail(
             activityRecordId: data.activityRecordId,
+            hobbyId: data.hobbyId,
             activityId: data.activityId ?? 0,
             activityContent: data.activityContent,
             imageUrl: data.imageUrl,

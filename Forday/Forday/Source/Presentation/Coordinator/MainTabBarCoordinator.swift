@@ -195,4 +195,18 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
             myPageNav.pushViewController(editProfileVC, animated: true)
         }
     }
+
+    func showActivityDetail(activityRecordId: Int) {
+        // Create ViewModel
+        let viewModel = ActivityDetailViewModel(activityRecordId: activityRecordId)
+
+        // Create ViewController
+        let detailVC = ActivityDetailViewController(viewModel: viewModel)
+        detailVC.coordinator = self
+
+        // Push to Home navigation stack
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.pushViewController(detailVC, animated: true)
+        }
+    }
 }

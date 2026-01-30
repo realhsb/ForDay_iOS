@@ -64,8 +64,8 @@ final class TokenManager {
         } catch {
             print("❌ 토큰 재발급 실패: \(error)")
 
-            // refreshToken 만료 - 로그아웃 필요
-            try? tokenStorage.deleteAllTokens()
+            // refreshToken 만료 - 토큰만 삭제 (guestUserId는 유지)
+            try? tokenStorage.deleteTokens()
             return false
         }
     }

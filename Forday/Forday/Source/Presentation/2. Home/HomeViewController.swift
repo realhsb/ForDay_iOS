@@ -36,6 +36,7 @@ class HomeViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupActions()
+        setupStickerBoardCallbacks()
         bind()
 
         // 홈 정보 로드
@@ -59,10 +60,17 @@ extension HomeViewController {
     }
     
     private func setupActions() {
-        // 취미 드롭다운 버튼
-        homeView.hobbyDropdownButton.addTarget(
+        // 첫 번째 취미 버튼
+        homeView.firstHobbyButton.addTarget(
             self,
-            action: #selector(hobbyDropdownTapped),
+            action: #selector(firstHobbyTapped),
+            for: .touchUpInside
+        )
+
+        // 두 번째 취미 버튼
+        homeView.secondHobbyButton.addTarget(
+            self,
+            action: #selector(secondHobbyTapped),
             for: .touchUpInside
         )
 
@@ -107,6 +115,13 @@ extension HomeViewController {
             action: #selector(toastViewTapped)
         )
         homeView.toastView.addGestureRecognizer(toastTapGesture)
+    }
+
+    private func setupStickerBoardCallbacks() {
+        // 스티커판에서 활동 상세 화면으로 이동
+        stickerBoardViewModel.onNavigateToActivityDetail = { [weak self] activityRecordId in
+            self?.coordinator?.showActivityDetail(activityRecordId: activityRecordId)
+        }
     }
     
     private func bind() {
@@ -262,15 +277,8 @@ extension HomeViewController {
             return
         }
 
-        // currentHobby가 true인 취미 찾기
-        let currentHobby = homeInfo.inProgressHobbies.first { $0.currentHobby }
-
-        // 취미 이름 업데이트
-        if let currentHobby = currentHobby {
-            var config = homeView.hobbyDropdownButton.configuration
-            config?.title = currentHobby.hobbyName
-            homeView.hobbyDropdownButton.configuration = config
-        }
+        // 취미 리스트 업데이트
+        homeView.updateHobbies(homeInfo.inProgressHobbies)
 
         // 활동 미리보기 업데이트
         homeView.updateActivityPreview(homeInfo.activityPreview)
@@ -290,9 +298,44 @@ extension HomeViewController {
 // Actions
 
 extension HomeViewController {
-    @objc private func hobbyDropdownTapped() {
-        print("취미 드롭다운 탭")
-        // TODO: 취미 목록 바텀시트
+    @objc private func firstHobbyTapped() {
+        guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
+            return
+        }
+
+        let firstHobby = homeInfo.inProgressHobbies[0]
+        print("첫 번째 취미 탭: \(firstHobby.hobbyName)")
+
+        // 이미 선택된 취미면 무시
+        if firstHobby.currentHobby {
+            return
+        }
+
+        // 취미 선택
+        Task {
+            await viewModel.selectHobby(hobbyId: firstHobby.hobbyId)
+            await stickerBoardViewModel.loadInitialStickerBoard(hobbyId: firstHobby.hobbyId)
+        }
+    }
+
+    @objc private func secondHobbyTapped() {
+        guard let homeInfo = viewModel.homeInfo, homeInfo.inProgressHobbies.count >= 2 else {
+            return
+        }
+
+        let secondHobby = homeInfo.inProgressHobbies[1]
+        print("두 번째 취미 탭: \(secondHobby.hobbyName)")
+
+        // 이미 선택된 취미면 무시
+        if secondHobby.currentHobby {
+            return
+        }
+
+        // 취미 선택
+        Task {
+            await viewModel.selectHobby(hobbyId: secondHobby.hobbyId)
+            await stickerBoardViewModel.loadInitialStickerBoard(hobbyId: secondHobby.hobbyId)
+        }
     }
 
     @objc private func settingsButtonTapped() {

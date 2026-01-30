@@ -10,32 +10,92 @@ import SnapKit
 import Then
 
 class SelectedHobbyCardView: UIView {
-    
+
     // Properties
-    
+
     private let iconImageView = UIImageView()
-    private let timeLabel = UILabel()
+    private let infoStackView = UIStackView()
     private let titleLabel = UILabel()
     private let checkmarkImageView = UIImageView()
-    
+
+    private let contentStackView = UIStackView()
+
     // Initialization
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         style()
         layout()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // Configuration
-    
-    func configure(iconName: String, time: String, title: String) {
-        iconImageView.image = UIImage(systemName: iconName)
-        timeLabel.text = time
+
+    func configure(icon: UIImage?, title: String) {
+        iconImageView.image = icon
         titleLabel.text = title
+
+        // 정보가 없으면 타이틀만 표시 (centerY)
+        contentStackView.axis = .vertical
+        infoStackView.isHidden = true
+        updateCheckmarkColor(isSelected: false)
+    }
+
+    func updateInfo(time: String? = nil, frequency: String? = nil, purpose: String? = nil) {
+        // 기존 infoStackView의 arrangedSubviews 제거
+        infoStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
+        var infoItems: [String] = []
+
+        if let time = time, !time.isEmpty {
+            infoItems.append(time)
+        }
+
+        if let frequency = frequency, !frequency.isEmpty {
+            infoItems.append(frequency)
+        }
+
+        if let purpose = purpose, !purpose.isEmpty {
+            infoItems.append(purpose)
+        }
+
+        // 정보가 있으면 infoStackView 표시
+        if !infoItems.isEmpty {
+            infoStackView.isHidden = false
+
+            for (index, item) in infoItems.enumerated() {
+                let label = UILabel()
+                label.font = .systemFont(ofSize: 10, weight: .regular)
+                label.textColor = .neutral600
+                label.text = item
+                infoStackView.addArrangedSubview(label)
+
+                // 마지막 아이템이 아니면 점(•) 추가
+                if index < infoItems.count - 1 {
+                    let dotLabel = UILabel()
+                    dotLabel.text = "•"
+                    dotLabel.font = .systemFont(ofSize: 10, weight: .regular)
+                    dotLabel.textColor = .neutral600
+                    infoStackView.addArrangedSubview(dotLabel)
+                }
+            }
+        } else {
+            infoStackView.isHidden = true
+        }
+
+        updateCheckmarkColor(isSelected: false)
+    }
+
+    func setSelected(_ isSelected: Bool) {
+        updateCheckmarkColor(isSelected: isSelected)
+    }
+
+    private func updateCheckmarkColor(isSelected: Bool) {
+        // 셀을 선택하기 전: .neutral200, 선택 후: .action001
+        checkmarkImageView.tintColor = isSelected ? .action001 : .neutral200
     }
 }
 
@@ -46,64 +106,73 @@ extension SelectedHobbyCardView {
         backgroundColor = .bg001
         layer.cornerRadius = 8
         layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.05
+        layer.shadowOpacity = 0.06
         layer.shadowOffset = CGSize(width: 0, height: 2)
-        layer.shadowRadius = 8
-        
+        layer.shadowRadius = 12
+
         iconImageView.do {
             $0.contentMode = .scaleAspectFit
             $0.tintColor = .systemOrange
         }
-        
-        timeLabel.do {
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+
+        infoStackView.do {
+            $0.axis = .horizontal
+            $0.spacing = 3
+            $0.alignment = .center
+            $0.isHidden = true
         }
-        
+
         titleLabel.do {
-            $0.font = .systemFont(ofSize: 18, weight: .bold)
-            $0.textColor = .label
+            $0.font = .systemFont(ofSize: 16, weight: .medium)
+            $0.textColor = .neutral800
         }
-        
+
         checkmarkImageView.do {
-            $0.image = UIImage(systemName: "checkmark")
+            $0.image = .Icon.check
             $0.contentMode = .scaleAspectFit
-            $0.tintColor = .secondaryLabel
+            $0.tintColor = .neutral200
+        }
+
+        contentStackView.do {
+            $0.axis = .vertical
+            $0.spacing = 3
+            $0.alignment = .leading
         }
     }
-    
+
     private func layout() {
         addSubview(iconImageView)
-        addSubview(timeLabel)
-        addSubview(titleLabel)
+        addSubview(contentStackView)
         addSubview(checkmarkImageView)
-        
+
+        contentStackView.addArrangedSubview(infoStackView)
+        contentStackView.addArrangedSubview(titleLabel)
+
         iconImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(20)
+            $0.width.height.equalTo(24)
         }
-        
-        timeLabel.snp.makeConstraints {
+
+        contentStackView.snp.makeConstraints {
             $0.leading.equalTo(iconImageView.snp.trailing).offset(10)
-            $0.top.equalToSuperview().offset(12)
+            $0.centerY.equalToSuperview()
+            $0.top.greaterThanOrEqualToSuperview().offset(12)
+            $0.bottom.lessThanOrEqualToSuperview().offset(-12)
         }
-        
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalTo(timeLabel)
-            $0.top.equalTo(timeLabel.snp.bottom).offset(3)
-            $0.bottom.equalToSuperview().offset(-12)
-        }
-        
+
         checkmarkImageView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(16)
-            $0.leading.greaterThanOrEqualTo(titleLabel.snp.trailing).offset(10)  // 겹치지 않게
+            $0.width.height.equalTo(24)
+            $0.leading.greaterThanOrEqualTo(contentStackView.snp.trailing).offset(10)
         }
     }
 }
 
 #Preview {
-    SelectedHobbyCardView()
+    let view = SelectedHobbyCardView()
+    view.configure(icon: UIImage(systemName: "book.fill"), title: "독서")
+    view.updateInfo(time: "30분", frequency: "주 2회", purpose: nil)
+    return view
 }

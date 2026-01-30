@@ -109,7 +109,6 @@ extension ActivityDetailViewController {
 
 extension ActivityDetailViewController {
     @objc private func moreButtonTapped() {
-        // TODO: Show more options (edit, delete, share, etc.)
         print("⋯ More button tapped")
 
         let alert = UIAlertController(
@@ -118,17 +117,71 @@ extension ActivityDetailViewController {
             preferredStyle: .actionSheet
         )
 
-        alert.addAction(UIAlertAction(title: "수정하기", style: .default) { _ in
-            print("✏️ Edit activity")
+        alert.addAction(UIAlertAction(title: "대표사진 설정", style: .default) { [weak self] _ in
+            self?.setAsProfileImage()
         })
 
-        alert.addAction(UIAlertAction(title: "삭제하기", style: .destructive) { _ in
-            print("🗑️ Delete activity")
+        alert.addAction(UIAlertAction(title: "수정하기", style: .default) { [weak self] _ in
+            self?.editActivity()
+        })
+
+        alert.addAction(UIAlertAction(title: "삭제하기", style: .destructive) { [weak self] _ in
+            self?.showDeleteConfirmation()
         })
 
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
 
         present(alert, animated: true)
+    }
+
+    private func setAsProfileImage() {
+        guard let detail = viewModel.activityDetail else { return }
+
+        print("📸 대표사진 설정: \(detail.imageUrl)")
+
+        // TODO: UpdateProfileUseCase 호출
+        // - 이미지 URL을 프로필 이미지로 설정
+        // - API가 준비되면 구현
+    }
+
+    private func editActivity() {
+        guard let detail = viewModel.activityDetail else { return }
+
+        print("✏️ 수정하기")
+
+        // ActivityRecordViewController를 수정 모드로 열기
+        let recordVC = ActivityRecordViewController(hobbyId: viewModel.hobbyId, activityDetail: detail)
+        let nav = UINavigationController(rootViewController: recordVC)
+        nav.modalPresentationStyle = .fullScreen
+
+        present(nav, animated: true)
+    }
+
+    private func showDeleteConfirmation() {
+        print("🗑️ 삭제 확인 팝업 표시")
+
+        let alertVC = CommonAlertViewController(
+            title: "활동 기록 삭제",
+            message: "정말 이 활동 기록을\n삭제하시겠어요?",
+            cancelButtonTitle: "취소",
+            confirmButtonTitle: "삭제",
+            onCancel: {
+                print("취소 선택")
+            },
+            onConfirm: { [weak self] in
+                self?.deleteActivity()
+            }
+        )
+
+        present(alertVC, animated: true)
+    }
+
+    private func deleteActivity() {
+        print("🗑️ 활동 기록 삭제")
+
+        // TODO: 삭제 API 호출
+        // - API가 준비되면 구현
+        // - 성공 시 이전 화면으로 이동
     }
 
     private func handleError(_ error: AppError) {

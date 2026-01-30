@@ -36,38 +36,56 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("취미 목적")
+        hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         setupActions()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.6)  // 3/5 = 60%
     }
-    
+
     // Actions
-    
-    override func nextButtonTapped() {
-        // PurposeModel → String(title) 변환
-        let purposeTitles = viewModel.selectedPurposes.map { $0.title }
-        
+
+    private func autoAdvance() {
+        guard let selectedPurpose = viewModel.selectedPurpose else { return }
+
         // Coordinator에게 데이터 전달
-        viewModel.onPurposesSelected?(purposeTitles)
-        
-        // 다음 화면으로
-        coordinator?.next(from: .purpose)
+        viewModel.onPurposeSelected?(selectedPurpose.title)
+
+        // 다음 화면으로 (약간의 딜레이 후)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            self?.coordinator?.next(from: .purpose)
+        }
     }
 }
 
 // Setup
 
 extension PurposeSelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        purposeView.configureHobbyCard(icon: icon, title: hobbyCard.name, time: time)
+    }
+
     private func setupCollectionView() {
         purposeView.collectionView.delegate = self
         purposeView.collectionView.dataSource = self
     }
-    
+
     private func setupActions() {
         purposeView.customInputButton.addTarget(
             self,
@@ -77,19 +95,12 @@ extension PurposeSelectionViewController {
     }
     
     private func bind() {
-        // 선택된 목적 변경 시 CollectionView 업데이트
-        viewModel.$selectedPurposes
+        // 선택된 목적 변경 시 CollectionView 업데이트 및 자동 진행
+        viewModel.$selectedPurpose
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.purposeView.collectionView.reloadData()
-            }
-            .store(in: &cancellables)
-        
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
+                self?.autoAdvance()
             }
             .store(in: &cancellables)
     }
@@ -127,7 +138,8 @@ extension PurposeSelectionViewController: UICollectionViewDataSource {
 
 extension PurposeSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        viewModel.togglePurpose(at: indexPath.item)
+        viewModel.selectPurpose(at: indexPath.item)
+        purposeView.selectedHobbyCard.setSelected(true)
     }
 }
 

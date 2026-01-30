@@ -21,6 +21,12 @@ final class ActivityDetailViewModel {
     private let activityRecordId: Int
     private let fetchActivityDetailUseCase: FetchActivityDetailUseCase
 
+    // MARK: - Public Properties
+
+    var hobbyId: Int {
+        return activityDetail?.hobbyId ?? 0
+    }
+
     // MARK: - Initialization
 
     init(

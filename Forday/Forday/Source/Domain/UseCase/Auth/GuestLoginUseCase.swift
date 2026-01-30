@@ -22,26 +22,32 @@ struct GuestLoginUseCase {
     }
     
     // MARK: - Execute
-    
-    func execute() async throws -> Bool {
+
+    func execute() async throws -> AuthToken {
         // 1. 저장된 guestUserId 조회
         let savedGuestUserId = tokenStorage.loadGuestUserId()
-        
+        print("🟢 GuestLoginUseCase - savedGuestUserId: \(savedGuestUserId ?? "nil")")
+
         // 2. guestUserId로 게스트 로그인 (없으면 nil 전송)
         let authToken = try await authRepository.loginAsGuest(guestUserId: savedGuestUserId)
-        
+        print("🟢 GuestLoginUseCase - API 응답 받음")
+        print("   - nicknameSet: \(authToken.nicknameSet)")
+        print("   - onboardingCompleted: \(authToken.onboardingCompleted)")
+        print("   - guestUserId: \(authToken.guestUserId ?? "nil")")
+
         // 3. 받은 토큰들 저장
         try tokenStorage.saveTokens(
             accessToken: authToken.accessToken,
             refreshToken: authToken.refreshToken
         )
-        
+
         // 4. guestUserId 저장 (처음 로그인이면 새로 받은 값 저장)
         if let guestUserId = authToken.guestUserId {
             try tokenStorage.saveGuestUserId(guestUserId)
+            print("🟢 GuestLoginUseCase - guestUserId 저장됨: \(guestUserId)")
         }
-        
-        // 5. 신규 유저 여부 반환
-        return authToken.isNewUser
+
+        // 5. 전체 AuthToken 반환
+        return authToken
     }
 }

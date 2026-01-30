@@ -41,12 +41,12 @@ class HomeViewModel {
     
     // Methods
 
-    func fetchHomeInfo() async {
+    func fetchHomeInfo(hobbyId: Int? = nil) async {
         isLoading = true
         error = nil
 
         do {
-            let info = try await fetchHomeInfoUseCase.execute(hobbyId: nil)
+            let info = try await fetchHomeInfoUseCase.execute(hobbyId: hobbyId)
             await MainActor.run {
                 self.homeInfo = info
                 // currentHobby가 true인 취미의 hobbyId 저장
@@ -69,6 +69,11 @@ class HomeViewModel {
                 print("❌ 홈 정보 로드 실패: \(error)")
             }
         }
+    }
+
+    func selectHobby(hobbyId: Int) async {
+        print("🔄 취미 선택: \(hobbyId)")
+        await fetchHomeInfo(hobbyId: hobbyId)
     }
 
     func fetchAIRecommendations() async throws {

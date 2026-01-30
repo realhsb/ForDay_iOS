@@ -25,42 +25,60 @@ class NicknameViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("닉네임")
+        setupNavigationBar()
         setupTextField()
         setupActions()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // 네비게이션 바 보이기
         navigationController?.setNavigationBarHidden(false, animated: true)
+    }
+
+    private func setupNavigationBar() {
+        // Progress bar 숨기기
+        hideProgressBar()
+
+        // 커스텀 뒤로가기 버튼 (로그인 화면으로 이동)
+        let backButton = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.left"),
+            style: .plain,
+            target: self,
+            action: #selector(backToLogin)
+        )
+        backButton.tintColor = .label
+        navigationItem.leftBarButtonItem = backButton
+
+        // Swipe back gesture 비활성화
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
+    }
+
+    @objc private func backToLogin() {
+        // 온보딩 dismiss하고 로그인 화면으로
+        coordinator?.dismissOnboarding()
     }
     
     // Actions
 
     override func nextButtonTapped() {
         print("닉네임 설정 완료: \(viewModel.nickname)")
-        
+
         // 다음 버튼 비활성화 (중복 클릭 방지)
         setNextButtonEnabled(false)
-        
+
         Task {
             do {
                 // 닉네임 설정 API 호출
                 try await viewModel.setNickname()
-                
-                // ✅ 여기에 로그 추가
-                print("🔵 API 성공, coordinator 호출 시작")
-                print("🔵 coordinator: \(String(describing: coordinator))")
-                
+
+                print("✅ 닉네임 설정 API 성공")
+
                 // 성공 시 홈으로
                 await MainActor.run {
                     if let onboardingCoordinator = coordinator as? OnboardingCoordinator {
-                        print("🔵 OnboardingCoordinator 캐스팅 성공")
-                        onboardingCoordinator.completeNicknameSetup()
-                    } else {
-                        print("❌ OnboardingCoordinator 캐스팅 실패")
-                        print("❌ coordinator 타입: \(type(of: coordinator))")
+                        onboardingCoordinator.finishOnboarding()
                     }
                 }
             } catch {

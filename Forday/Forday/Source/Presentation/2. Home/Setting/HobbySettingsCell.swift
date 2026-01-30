@@ -184,7 +184,7 @@ class HobbySettingsCell: UITableViewCell {
         onGoalDaysEditTapped?(hobbyId)
     }
 
-    func configure(with hobby: HobbyInfo, isArchived: Bool) {
+    func configure(with hobby: HobbySetting, isArchived: Bool) {
         self.hobbyId = hobby.hobbyId
         self.isArchived = isArchived
 

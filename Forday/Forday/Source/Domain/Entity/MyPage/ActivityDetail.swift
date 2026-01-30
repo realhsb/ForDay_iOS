@@ -9,6 +9,7 @@ import Foundation
 
 struct ActivityDetail {
     let activityRecordId: Int
+    let hobbyId: Int
     let activityId: Int
     let activityContent: String
     let imageUrl: String

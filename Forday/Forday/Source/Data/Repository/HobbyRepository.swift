@@ -16,7 +16,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
     }
 
     func createHobby(
-        hobbyCardId: Int,
+        hobbyInfoId: Int,
         hobbyName: String,
         hobbyTimeMinutes: Int,
         hobbyPurpose: String,
@@ -24,7 +24,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
         isDurationSet: Bool
     ) async throws -> Int {
         let request = DTO.CreateHobbyRequest(
-            hobbyCardId: hobbyCardId,
+            hobbyInfoId: hobbyInfoId,
             hobbyName: hobbyName,
             hobbyTimeMinutes: hobbyTimeMinutes,
             hobbyPurpose: hobbyPurpose,

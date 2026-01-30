@@ -15,6 +15,7 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 
     private let periodView = PeriodSelectionView()
     let viewModel: PeriodSelectionViewModel
+    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -36,40 +37,78 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("여정일")
+        hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(1.0)  // 5/5 = 100%
     }
-    
+
     // Actions
 
-    override func nextButtonTapped() {
+    private func autoAdvance() {
         print("Selected period: \(viewModel.selectedPeriod?.title ?? "None")")
 
         guard let onboardingCoordinator = coordinator as? OnboardingCoordinator else {
             return
         }
 
+        // 이전 자동 진행 작업 취소
+        autoAdvanceWorkItem?.cancel()
+
         let onboardingData = onboardingCoordinator.getOnboardingData()
 
-        Task {
-            await viewModel.createHobby(with: onboardingData)
+        // 약간의 딜레이 후 취미 생성
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { [weak self] in
+                await self?.viewModel.createHobby(with: onboardingData)
+            }
         }
+        autoAdvanceWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
     }
 }
 
 // Setup
 
 extension PeriodSelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        // 횟수 정보 설정
+        let frequency = onboardingData.executionCount > 0 ? "주 \(onboardingData.executionCount)회" : nil
+
+        // 목적 정보 설정 (빈 문자열이 아닐 때만)
+        let purpose = !onboardingData.purpose.isEmpty ? onboardingData.purpose : nil
+
+        periodView.configureHobbyCard(
+            icon: icon,
+            title: hobbyCard.name,
+            time: time,
+            frequency: frequency,
+            purpose: purpose
+        )
+    }
+
     private func setupCollectionView() {
         periodView.collectionView.delegate = self
         periodView.collectionView.dataSource = self
     }
-    
+
     private func bind() {
         // 선택된 기간 변경 시 CollectionView 업데이트
         viewModel.$selectedPeriod
@@ -79,11 +118,13 @@ extension PeriodSelectionViewController {
             }
             .store(in: &cancellables)
 
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
+        // 실제 선택이 발생했을 때만 자동 진행 (초기값 무시)
+        viewModel.$selectedPeriod
+            .dropFirst()  // 초기값(nil) 무시
+            .compactMap { $0 }  // nil이 아닐 때만
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
+            .sink { [weak self] _ in
+                self?.autoAdvance()
             }
             .store(in: &cancellables)
 
@@ -91,8 +132,10 @@ extension PeriodSelectionViewController {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isLoading in
-                self?.setNextButtonEnabled(!isLoading)
                 // TODO: 로딩 인디케이터 표시
+                if isLoading {
+                    print("⏳ 취미 생성 중...")
+                }
             }
             .store(in: &cancellables)
 
@@ -137,6 +180,7 @@ extension PeriodSelectionViewController: UICollectionViewDataSource {
 extension PeriodSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectPeriod(at: indexPath.item)
+        periodView.selectedHobbyCard.setSelected(true)
     }
 }
 
@@ -144,9 +188,13 @@ extension PeriodSelectionViewController: UICollectionViewDelegate {
 
 extension PeriodSelectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = collectionView.bounds.width
-        let height: CGFloat = 84
-        
+        // 가로 배치: 셀을 가로로 나란히 배치 (스페이싱 고려)
+        let spacing: CGFloat = 16  // minimumLineSpacing
+        let numberOfItems = CGFloat(viewModel.periods.count)
+        let totalSpacing = spacing * (numberOfItems - 1)
+        let width = (collectionView.bounds.width - totalSpacing) / numberOfItems
+        let height = collectionView.bounds.height
+
         return CGSize(width: width, height: height)
     }
 }

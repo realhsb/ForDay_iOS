@@ -14,4 +14,17 @@ struct AuthToken {
     let isNewUser: Bool
     let socialType: SocialType
     let guestUserId: String?
+    let onboardingCompleted: Bool
+    let nicknameSet: Bool
+    let onboardingData: SavedOnboardingData?
+}
+
+struct SavedOnboardingData {
+    let id: Int
+    let hobbyInfoId: Int
+    let hobbyName: String
+    let hobbyPurpose: String
+    let hobbyTimeMinutes: Int
+    let executionCount: Int
+    let durationSet: Bool
 }
