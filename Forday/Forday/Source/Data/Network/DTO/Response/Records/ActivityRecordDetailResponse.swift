@@ -19,14 +19,22 @@ extension DTO {
         let activityId: Int?
         let activityContent: String
         let activityRecordId: Int
-        let imageUrl: String
+        let imageUrl: String?
         let sticker: String
         let createdAt: String
         let memo: String?
         let recordOwner: Bool
+        let scraped: Bool?
+        let userInfo: UserInfo?        
         let visibility: String
         let newReaction: NewReaction
         let userReaction: UserReaction
+    }
+
+    struct UserInfo: Codable {
+        let userId: Int?
+        let nickname: String?
+        let profileImageUrl: String?
     }
 
     struct NewReaction: Codable {
@@ -53,7 +61,7 @@ extension DTO.ActivityRecordDetailResponse {
             hobbyId: data.hobbyId,
             activityId: data.activityId ?? 0,
             activityContent: data.activityContent,
-            imageUrl: data.imageUrl,
+            imageUrl: data.imageUrl ?? "",  // Handle optional imageUrl with empty string fallback
             sticker: data.sticker,
             createdAt: data.createdAt,
             memo: data.memo ?? "",
