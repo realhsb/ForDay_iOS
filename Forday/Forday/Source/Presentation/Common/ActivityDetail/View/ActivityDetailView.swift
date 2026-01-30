@@ -22,7 +22,7 @@ final class ActivityDetailView: UIView {
     let dateLabel = UILabel()
     let titleLabel = UILabel()
     let contentLabel = UILabel()
-    let reactionPlaceholderView = UIView()
+    let reactionButtonsView = ReactionButtonsView()
 
     // MARK: - Initialization
 
@@ -58,6 +58,9 @@ final class ActivityDetailView: UIView {
             contentLabel.text = detail.memo
             contentLabel.textColor = .label
         }
+
+        // Configure reaction buttons
+        reactionButtonsView.configure(with: detail)
     }
 
     private func loadImage(from urlString: String) {
@@ -123,11 +126,6 @@ extension ActivityDetailView {
             $0.textColor = .label
             $0.numberOfLines = 0
         }
-
-        reactionPlaceholderView.do {
-            $0.backgroundColor = .systemGray6
-            $0.layer.cornerRadius = 8
-        }
     }
 
     private func layout() {
@@ -146,7 +144,7 @@ extension ActivityDetailView {
         // Add views to stack
         contentStackView.addArrangedSubview(imageView)
         contentStackView.addArrangedSubview(createInfoContainer())
-        contentStackView.addArrangedSubview(reactionPlaceholderView)
+        contentStackView.addArrangedSubview(reactionButtonsView)
 
         // Add sticker overlay on image
         imageView.addSubview(stickerImageView)
@@ -159,10 +157,6 @@ extension ActivityDetailView {
             $0.trailing.equalToSuperview().offset(-21)
             $0.bottom.equalToSuperview().offset(-21)
             $0.size.equalTo(80)
-        }
-
-        reactionPlaceholderView.snp.makeConstraints {
-            $0.height.equalTo(80)
         }
     }
 

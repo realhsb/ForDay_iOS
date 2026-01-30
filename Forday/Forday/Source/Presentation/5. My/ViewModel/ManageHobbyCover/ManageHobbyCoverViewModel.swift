@@ -25,18 +25,18 @@ class ManageHobbyCoverViewModel {
 
     // MARK: - Dependencies
 
-    private let myPageRepository: MyPageRepositoryInterface
+    private let usersRepository: UsersRepositoryInterface
     private let hobbyRepository: HobbyRepositoryInterface
     private let uploadImageUseCase: UploadImageUseCase
 
     // MARK: - Initialization
 
     init(
-        myPageRepository: MyPageRepositoryInterface = MyPageRepository(),
+        usersRepository: UsersRepositoryInterface = UsersRepository(),
         hobbyRepository: HobbyRepositoryInterface = HobbyRepository(),
         uploadImageUseCase: UploadImageUseCase = UploadImageUseCase()
     ) {
-        self.myPageRepository = myPageRepository
+        self.usersRepository = usersRepository
         self.hobbyRepository = hobbyRepository
         self.uploadImageUseCase = uploadImageUseCase
     }
@@ -60,10 +60,10 @@ class ManageHobbyCoverViewModel {
         }
 
         do {
-            let result = try await myPageRepository.fetchMyActivities(
+            let result = try await usersRepository.fetchFeeds(
                 hobbyIds: hobbyIds,
                 lastRecordId: nil,
-                size: 100
+                feedSize: 100
             )
 
             await MainActor.run {

@@ -53,8 +53,8 @@ final class UsersService {
     }
     
     /// Users - 사용자 피드 목록 조회
-    func fetchFeeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
-        return try await provider.request(.feeds(hobbyId: hobbyId, lastRecordId: lastRecordId, feedSize: feedSize))
+    func fetchFeeds(hobbyIds: [Int], lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
+        return try await provider.request(.feeds(hobbyIds: hobbyIds, lastRecordId: lastRecordId, feedSize: feedSize))
     }
     
     /// Users - 사용자 정보 조회

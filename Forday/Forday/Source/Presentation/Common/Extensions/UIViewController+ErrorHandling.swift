@@ -150,6 +150,18 @@ extension UIViewController {
         )
     }
 
+    /// 반응 API 에러 처리
+    func handleReactionError(
+        _ error: AppError,
+        customHandler: ((AppError) -> Bool)? = nil
+    ) {
+        handleAppError(
+            error,
+            using: { $0.reactionMetadata },
+            customHandler: customHandler
+        )
+    }
+
     /// 재시도 Alert 표시 (네트워크 에러용)
     private func showRetryAlert(message: String, onRetry: @escaping () -> Void) {
         let alert = UIAlertController(

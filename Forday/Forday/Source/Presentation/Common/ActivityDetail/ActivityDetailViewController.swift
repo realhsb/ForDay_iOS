@@ -99,6 +99,13 @@ extension ActivityDetailViewController {
                 }
             }
             .store(in: &cancellables)
+
+        // Reaction button tapped
+        detailView.reactionButtonsView.reactionTapped
+            .sink { [weak self] reactionType in
+                self?.handleReactionTapped(reactionType)
+            }
+            .store(in: &cancellables)
     }
 
     private func loadData() {
@@ -185,6 +192,14 @@ extension ActivityDetailViewController {
         // TODO: 삭제 API 호출
         // - API가 준비되면 구현
         // - 성공 시 이전 화면으로 이동
+    }
+
+    private func handleReactionTapped(_ reactionType: ReactionType) {
+        print("💡 \(reactionType.displayName) 반응 버튼 탭")
+
+        Task {
+            await viewModel.toggleReaction(reactionType)
+        }
     }
 
 }
