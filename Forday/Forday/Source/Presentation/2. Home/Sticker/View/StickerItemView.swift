@@ -18,16 +18,11 @@ final class StickerItemView: UIView {
         $0.tintColor = .systemGray4
     }
 
-    // MARK: - Properties
-
-    private var onTap: (() -> Void)?
-
     // MARK: - Initialization
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
-        setupGesture()
     }
 
     required init?(coder: NSCoder) {
@@ -44,20 +39,9 @@ final class StickerItemView: UIView {
         }
     }
 
-    private func setupGesture() {
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        addGestureRecognizer(tapGesture)
-        isUserInteractionEnabled = true
-    }
-
-    @objc private func handleTap() {
-        onTap?()
-    }
-
     // MARK: - Configuration
 
-    func configure(with state: StickerState, onTap: @escaping () -> Void) {
-        self.onTap = onTap
+    func configure(with state: StickerState) {
 
         switch state {
         case .empty:

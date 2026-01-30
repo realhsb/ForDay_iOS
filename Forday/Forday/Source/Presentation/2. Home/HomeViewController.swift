@@ -122,6 +122,11 @@ extension HomeViewController {
         stickerBoardViewModel.onNavigateToActivityDetail = { [weak self] activityRecordId in
             self?.coordinator?.showActivityDetail(activityRecordId: activityRecordId)
         }
+
+        // 스티커판에서 활동 기록 화면으로 이동
+        stickerBoardViewModel.onNavigateToActivityRecord = { [weak self] in
+            self?.coordinator?.showActivityRecord()
+        }
     }
     
     private func bind() {

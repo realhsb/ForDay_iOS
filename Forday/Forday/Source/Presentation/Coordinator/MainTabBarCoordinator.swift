@@ -209,4 +209,21 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
             homeNav.pushViewController(detailVC, animated: true)
         }
     }
+
+    func showActivityRecord() {
+        // Get current hobby ID from HomeViewController
+        guard let hobbyId = homeViewController?.getCurrentHobbyId() else {
+            print("❌ 취미 ID 없음 - ActivityRecordViewController를 표시할 수 없습니다")
+            return
+        }
+
+        let recordVC = ActivityRecordViewController(hobbyId: hobbyId)
+        let nav = UINavigationController(rootViewController: recordVC)
+        nav.modalPresentationStyle = .fullScreen
+
+        // Present from Home navigation stack
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.present(nav, animated: true)
+        }
+    }
 }
