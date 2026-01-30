@@ -21,6 +21,10 @@ final class StickerBoardViewModel {
     private let fetchStickerBoardUseCase: FetchStickerBoardUseCase
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - Navigation Callbacks
+
+    var onNavigateToActivityDetail: ((Int) -> Void)? // (activityRecordId)
+
     // MARK: - Initialization
 
     init(fetchStickerBoardUseCase: FetchStickerBoardUseCase = FetchStickerBoardUseCase()) {
@@ -116,8 +120,8 @@ final class StickerBoardViewModel {
     }
 
     private func navigateToActivityDetail(activityRecordId: Int) {
-        // TODO: 활동 기록 상세 화면으로 이동 (API 없음)
         print("🎯 Navigate to Activity Detail: \(activityRecordId)")
+        onNavigateToActivityDetail?(activityRecordId)
     }
 
     // MARK: - View State

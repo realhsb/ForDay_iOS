@@ -36,6 +36,7 @@ class HomeViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupActions()
+        setupStickerBoardCallbacks()
         bind()
 
         // 홈 정보 로드
@@ -114,6 +115,13 @@ extension HomeViewController {
             action: #selector(toastViewTapped)
         )
         homeView.toastView.addGestureRecognizer(toastTapGesture)
+    }
+
+    private func setupStickerBoardCallbacks() {
+        // 스티커판에서 활동 상세 화면으로 이동
+        stickerBoardViewModel.onNavigateToActivityDetail = { [weak self] activityRecordId in
+            self?.coordinator?.showActivityDetail(activityRecordId: activityRecordId)
+        }
     }
     
     private func bind() {
