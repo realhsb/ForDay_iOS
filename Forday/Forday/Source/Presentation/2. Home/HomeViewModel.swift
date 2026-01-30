@@ -53,6 +53,9 @@ class HomeViewModel {
                 if let currentHobby = info?.inProgressHobbies.first(where: { $0.currentHobby }) {
                     self.currentHobbyId = currentHobby.hobbyId
                     print("✅ 홈 정보 로드 성공 - hobbyId: \(currentHobby.hobbyId)")
+                } else {
+                    self.currentHobbyId = nil
+                    print("ℹ️ 홈 정보 로드 완료 - 활성 취미 없음")
                 }
                 self.isLoading = false
             }

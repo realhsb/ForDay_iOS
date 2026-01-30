@@ -339,8 +339,10 @@ extension HomeViewController {
     private func handleNoHobbyState() {
         // Show no hobby UI
         homeView.updateHobbies([])
+        homeView.updateActivityPreview(nil)
         homeView.updateAddActivityButtonTitle(hasHobbies: false)
         homeView.hideToast()
+        homeView.hideFloatingMenu()
 
         // Disable floating button
         updateFloatingButtonState(enabled: false)

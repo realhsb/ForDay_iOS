@@ -51,6 +51,8 @@ extension FloatingActionMenu {
     private func style() {
         alpha = 0
         transform = CGAffineTransform(translationX: 0, y: 20)
+        isHidden = true
+        isUserInteractionEnabled = false
 
         containerView.do {
             $0.backgroundColor = .neutralWhite
@@ -99,6 +101,9 @@ extension FloatingActionMenu {
 
 extension FloatingActionMenu {
     func show(animated: Bool = true) {
+        isHidden = false
+        isUserInteractionEnabled = true
+
         let animations: () -> Void = { [weak self] in
             self?.alpha = 1
             self?.transform = .identity
@@ -124,17 +129,23 @@ extension FloatingActionMenu {
             self?.transform = CGAffineTransform(translationX: 0, y: 20)
         }
 
+        let hideCompletion: (Bool) -> Void = { [weak self] _ in
+            self?.isHidden = true
+            self?.isUserInteractionEnabled = false
+            completion?()
+        }
+
         if animated {
             UIView.animate(
                 withDuration: 0.2,
                 delay: 0,
                 options: .curveEaseIn,
                 animations: animations,
-                completion: { _ in completion?() }
+                completion: hideCompletion
             )
         } else {
             animations()
-            completion?()
+            hideCompletion(true)
         }
     }
 }

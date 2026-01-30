@@ -250,6 +250,8 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
                 Task {
                     await self?.homeViewController?.viewModel.fetchHomeInfo()
                 }
+                // Clean up coordinator reference
+                self?.onboardingCoordinator = nil
             }
         }
 
