@@ -25,6 +25,7 @@ class HomeView: UIView {
     let firstHobbyButton = UIButton()
     private let dividerLabel = UILabel()
     let secondHobbyButton = UIButton()
+    let addHobbyButton = UIButton() // For no-hobby state
     let settingsButton = UIButton()
     let notificationButton = UIButton()
     
@@ -120,6 +121,20 @@ extension HomeView {
                 button.configuration = config
             }
             $0.isHidden = true // 기본적으로 숨김 (취미가 2개일 때만 표시)
+        }
+
+        addHobbyButton.do {
+            var config = UIButton.Configuration.plain()
+            config.baseForegroundColor = .neutral900
+            config.image = .Icon.chevronRight
+            config.imagePlacement = .trailing
+            config.imagePadding = 4
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            config.background.cornerRadius = 0
+            config.background.backgroundColor = .clear
+            $0.configuration = config
+            $0.setTitleWithTypography("취미 추가", style: .header22)
+            $0.isHidden = true // 기본적으로 숨김 (취미가 없을 때만 표시)
         }
 
         settingsButton.do {
@@ -238,6 +253,7 @@ extension HomeView {
         headerView.addSubview(firstHobbyButton)
         headerView.addSubview(dividerLabel)
         headerView.addSubview(secondHobbyButton)
+        headerView.addSubview(addHobbyButton)
         headerView.addSubview(settingsButton)
         headerView.addSubview(notificationButton)
         
@@ -284,6 +300,11 @@ extension HomeView {
         secondHobbyButton.snp.makeConstraints {
             $0.leading.equalTo(dividerLabel.snp.trailing)
             $0.centerY.equalTo(firstHobbyButton)
+        }
+
+        addHobbyButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.bottom.equalToSuperview().offset(-12)
         }
 
         notificationButton.snp.makeConstraints {
@@ -381,7 +402,16 @@ extension HomeView {
 
 extension HomeView {
     func updateHobbies(_ hobbies: [InProgressHobby]) {
-        if hobbies.count == 1 {
+        if hobbies.isEmpty {
+            // 취미가 없는 경우 - "취미 추가" 버튼 표시
+            firstHobbyButton.isHidden = true
+            dividerLabel.isHidden = true
+            secondHobbyButton.isHidden = true
+            addHobbyButton.isHidden = false
+
+            setNeedsLayout()
+            layoutIfNeeded()
+        } else if hobbies.count == 1 {
             // 취미가 1개인 경우
             let hobby = hobbies[0]
             firstHobbyButton.setTitleWithTypography(hobby.hobbyName, style: .header22)
@@ -396,8 +426,10 @@ extension HomeView {
                 button.configuration = config
             }
 
+            firstHobbyButton.isHidden = false
             dividerLabel.isHidden = true
             secondHobbyButton.isHidden = true
+            addHobbyButton.isHidden = true
 
             // 레이아웃 업데이트
             setNeedsLayout()
@@ -453,12 +485,22 @@ extension HomeView {
                 }
             }
 
+            firstHobbyButton.isHidden = false
             dividerLabel.isHidden = false
             secondHobbyButton.isHidden = false
+            addHobbyButton.isHidden = true
 
             // 레이아웃 업데이트
             setNeedsLayout()
             layoutIfNeeded()
+        }
+    }
+
+    func updateAddActivityButtonTitle(hasHobbies: Bool) {
+        if hasHobbies {
+            addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+        } else {
+            addActivityButton.setTitleWithTypography("취미 추가하기", style: .header14)
         }
     }
 

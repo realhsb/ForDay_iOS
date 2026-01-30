@@ -15,7 +15,7 @@ class HomeViewController: UIViewController {
     // Properties
 
     private let homeView = HomeView()
-    private let viewModel = HomeViewModel()
+    let viewModel = HomeViewModel()
     private let stickerBoardViewModel = StickerBoardViewModel()
     private var cancellables = Set<AnyCancellable>()
     
@@ -71,6 +71,13 @@ extension HomeViewController {
         homeView.secondHobbyButton.addTarget(
             self,
             action: #selector(secondHobbyTapped),
+            for: .touchUpInside
+        )
+
+        // 취미 추가 버튼 (No hobby state)
+        homeView.addHobbyButton.addTarget(
+            self,
+            action: #selector(addHobbyButtonTapped),
             for: .touchUpInside
         )
 
@@ -296,8 +303,12 @@ extension HomeViewController {
 
     private func updateUI(with homeInfo: HomeInfo?) {
         guard let homeInfo = homeInfo else {
+            // Handle server error - show no hobby state
+            handleNoHobbyState()
             return
         }
+
+        let hasHobbies = !homeInfo.inProgressHobbies.isEmpty
 
         // 취미 리스트 업데이트
         homeView.updateHobbies(homeInfo.inProgressHobbies)
@@ -305,21 +316,53 @@ extension HomeViewController {
         // 활동 미리보기 업데이트
         homeView.updateActivityPreview(homeInfo.activityPreview)
 
+        // Update add activity button title
+        homeView.updateAddActivityButtonTitle(hasHobbies: hasHobbies)
+
         // 토스트 표시 조건: AI 추천 횟수가 남아있고, 활동이 없을 때
-        if homeInfo.aiCallRemaining {
+        if homeInfo.aiCallRemaining && hasHobbies {
             homeView.showToast()
         } else {
             homeView.hideToast()
         }
 
+        // Update floating button state
+        updateFloatingButtonState(enabled: hasHobbies)
+
+        // Update TabBar recording button state
+        coordinator?.updateTabBarRecordingButtonState(enabled: hasHobbies)
+
         // 스티커 개수 업데이트
 //        homeView.updateStickerCount(homeInfo.totalStickerNum)
+    }
+
+    private func handleNoHobbyState() {
+        // Show no hobby UI
+        homeView.updateHobbies([])
+        homeView.updateAddActivityButtonTitle(hasHobbies: false)
+        homeView.hideToast()
+
+        // Disable floating button
+        updateFloatingButtonState(enabled: false)
+
+        // Disable TabBar recording button
+        coordinator?.updateTabBarRecordingButtonState(enabled: false)
+    }
+
+    private func updateFloatingButtonState(enabled: Bool) {
+        homeView.floatingActionButton.isUserInteractionEnabled = enabled
+        homeView.floatingActionButton.alpha = enabled ? 1.0 : 0.4
     }
 }
 
 // Actions
 
 extension HomeViewController {
+    @objc private func addHobbyButtonTapped() {
+        print("취미 추가 탭")
+        coordinator?.showAddHobbyOnboarding()
+    }
+
     @objc private func firstHobbyTapped() {
         guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
             return
@@ -483,8 +526,16 @@ extension HomeViewController {
     }
 
     @objc private func addActivityButtonTapped() {
+        // Check if user has hobbies
+        guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
+            // No hobbies - show onboarding
+            print("취미 추가하기 탭")
+            coordinator?.showAddHobbyOnboarding()
+            return
+        }
+
         // activityPreview 유무에 따라 다른 동작
-        if viewModel.homeInfo?.activityPreview != nil {
+        if homeInfo.activityPreview != nil {
             // 스티커 붙이기
             print("오늘의 스티커 붙이기 탭")
             // TODO: 스티커 붙이기 API 연동
