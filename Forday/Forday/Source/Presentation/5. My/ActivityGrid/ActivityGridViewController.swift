@@ -242,7 +242,9 @@ extension ActivityGridViewController: UICollectionViewDelegateFlowLayout {
         // Calculate available width
         let availableWidth = collectionView.bounds.width - totalSpacing - totalInsets
         let itemWidth = floor(availableWidth / numberOfColumns)
-        let itemHeight = itemWidth
+
+        // Aspect ratio: 119:128 (slightly taller than square)
+        let itemHeight = floor(itemWidth * 128 / 119)
 
         return CGSize(width: itemWidth, height: itemHeight)
     }

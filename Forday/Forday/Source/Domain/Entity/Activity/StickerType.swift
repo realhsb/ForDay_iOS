@@ -28,6 +28,20 @@ enum StickerType: String, Codable, CaseIterable {
         }
     }
 
+    /// Returns the gradient associated with this sticker type
+    var gradient: AppGradient {
+        switch self {
+        case .smile:
+            return DesignGradient.stickerSmile
+        case .sad:
+            return DesignGradient.stickerSad
+        case .angry:
+            return DesignGradient.stickerAngry
+        case .laugh:
+            return DesignGradient.stickerLaugh
+        }
+    }
+
     /// Initialize from a filename string
     /// - Parameter fileName: The sticker filename (e.g., "smile.jpg")
     /// - Returns: The corresponding StickerType, or nil if not recognized

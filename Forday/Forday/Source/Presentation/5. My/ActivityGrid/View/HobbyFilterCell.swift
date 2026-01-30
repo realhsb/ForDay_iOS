@@ -88,7 +88,7 @@ extension HobbyFilterCell {
         selectionBorderView.do {
             $0.layer.cornerRadius = 28
             $0.layer.borderWidth = 2
-            $0.layer.borderColor = UIColor.label.cgColor
+            $0.layer.borderColor = UIColor(hex: "F4A261").cgColor
             $0.backgroundColor = .clear
             $0.isHidden = true
         }
