@@ -15,6 +15,7 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 
     private let periodView = PeriodSelectionView()
     let viewModel: PeriodSelectionViewModel
+    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -56,14 +57,20 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
             return
         }
 
+        // 이전 자동 진행 작업 취소
+        autoAdvanceWorkItem?.cancel()
+
         let onboardingData = onboardingCoordinator.getOnboardingData()
 
         // 약간의 딜레이 후 취미 생성
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
             Task { [weak self] in
                 await self?.viewModel.createHobby(with: onboardingData)
             }
         }
+        autoAdvanceWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
     }
 }
 

@@ -15,6 +15,7 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
 
     private let frequencyView = FrequencySelectionView()
     let viewModel: FrequencySelectionViewModel
+    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -52,13 +53,19 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     private func autoAdvance() {
         guard let selectedFrequency = viewModel.selectedFrequency else { return }
 
+        // 이전 자동 진행 작업 취소
+        autoAdvanceWorkItem?.cancel()
+
         // Coordinator에게 데이터 전달
         viewModel.onFrequencySelected?(selectedFrequency.count)
 
         // 다음 화면으로 (약간의 딜레이 후)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
             self?.coordinator?.next(from: .frequency)
         }
+        autoAdvanceWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
     }
 }
 
