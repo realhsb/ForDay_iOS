@@ -18,6 +18,7 @@ final class ActivityDetailView: UIView {
     private let contentStackView = UIStackView()
 
     let imageView = UIImageView()
+    let stickerImageView = UIImageView()
     let dateLabel = UILabel()
     let titleLabel = UILabel()
     let contentLabel = UILabel()
@@ -40,6 +41,11 @@ final class ActivityDetailView: UIView {
     func configure(with detail: ActivityDetail) {
         // Load image from URL
         loadImage(from: detail.imageUrl)
+
+        // Load sticker image
+        if let stickerType = StickerType(fileName: detail.sticker) {
+            stickerImageView.image = stickerType.image
+        }
 
         dateLabel.text = detail.createdAt
         titleLabel.text = detail.activityContent
@@ -97,6 +103,10 @@ extension ActivityDetailView {
             $0.backgroundColor = .systemGray5
         }
 
+        stickerImageView.do {
+            $0.contentMode = .scaleAspectFit
+        }
+
         dateLabel.do {
             $0.font = .systemFont(ofSize: 14, weight: .regular)
             $0.textColor = .secondaryLabel
@@ -138,8 +148,17 @@ extension ActivityDetailView {
         contentStackView.addArrangedSubview(createInfoContainer())
         contentStackView.addArrangedSubview(reactionPlaceholderView)
 
+        // Add sticker overlay on image
+        imageView.addSubview(stickerImageView)
+
         imageView.snp.makeConstraints {
             $0.height.equalTo(300)
+        }
+
+        stickerImageView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-21)
+            $0.bottom.equalToSuperview().offset(-21)
+            $0.size.equalTo(80)
         }
 
         reactionPlaceholderView.snp.makeConstraints {
