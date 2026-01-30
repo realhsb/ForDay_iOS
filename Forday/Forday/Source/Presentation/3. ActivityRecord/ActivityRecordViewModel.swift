@@ -171,10 +171,11 @@ class ActivityRecordViewModel {
         let stickerFileName = selectedSticker.type.rawValue
 
         if isEditMode {
-            // TODO: Update existing activity record
-            // - API가 준비되면 UpdateActivityRecordUseCase 호출
-            // - 현재는 임시로 create API 호출
+            // TODO: Update API 구현 필요
+            // - UpdateActivityRecordUseCase를 생성하고 호출해야 함
+            // - activityRecordId를 함께 전달해야 함
             print("⚠️ 수정 API 미구현: activityRecordId = \(activityDetail?.activityRecordId ?? 0)")
+            throw ActivityRecordError.updateNotSupported
         }
 
         return try await createActivityRecordUseCase.execute(
@@ -189,6 +190,7 @@ class ActivityRecordViewModel {
 
 enum ActivityRecordError: Error {
     case missingRequiredFields
+    case updateNotSupported
 }
 
 // Models

@@ -57,7 +57,7 @@ extension ActivityRecordViewController {
     private func setupNavigationBar() {
         title = viewModel.isEditMode ? "내 활동 수정하기" : "내 활동 남기기"
 
-        // X 버튼 (수정 모드) 또는 뒤로 가기 버튼 (생성 모드)
+        // 뒤로 가기 버튼 (수정 모드) 또는 X 버튼 (생성 모드)
         if viewModel.isEditMode {
             let backButton = UIBarButtonItem(
                 image: UIImage(systemName: "chevron.left"),
@@ -161,6 +161,7 @@ extension ActivityRecordViewController {
 
             // 메모 설정
             recordView.memoTextField.text = viewModel.memo
+            recordView.updateMemoCount(viewModel.memo.count)
         }
     }
 
@@ -220,8 +221,10 @@ extension ActivityRecordViewController {
             let limitedText = String(text.prefix(200))
             recordView.memoTextField.text = limitedText
             viewModel.updateMemo(limitedText)
+            recordView.updateMemoCount(200)
         } else {
             viewModel.updateMemo(text)
+            recordView.updateMemoCount(text.count)
         }
     }
 
@@ -237,13 +240,42 @@ extension ActivityRecordViewController {
 
                     dismiss(animated: true)
                 }
+            } catch ActivityRecordError.updateNotSupported {
+                await MainActor.run {
+                    print("⚠️ 수정 기능은 아직 구현되지 않았습니다")
+                    showErrorAlert(
+                        title: "기능 준비 중",
+                        message: "활동 기록 수정 기능은 곧 제공될 예정입니다."
+                    )
+                }
+            } catch ActivityRecordError.missingRequiredFields {
+                await MainActor.run {
+                    print("❌ 필수 항목이 누락되었습니다")
+                    showErrorAlert(
+                        title: "입력 오류",
+                        message: "활동과 스티커를 모두 선택해주세요."
+                    )
+                }
             } catch {
                 await MainActor.run {
                     print("❌ 활동 기록 작성 실패: \(error)")
-                    // TODO: 에러 처리 UI 표시
+                    showErrorAlert(
+                        title: "오류",
+                        message: "활동 기록을 저장하는 중 오류가 발생했습니다.\n다시 시도해주세요."
+                    )
                 }
             }
         }
+    }
+
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 
     private func showActivityDropdown() {

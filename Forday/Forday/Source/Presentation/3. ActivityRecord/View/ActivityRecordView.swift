@@ -126,7 +126,7 @@ extension ActivityRecordView {
         }
         
         memoCountLabel.do {
-            $0.text = "0/100"
+            $0.text = "0/200"
             $0.font = .systemFont(ofSize: 12)
             $0.textColor = .systemGray
         }
@@ -278,6 +278,10 @@ extension ActivityRecordView {
         var config = submitButton.configuration
         config?.title = title
         submitButton.configuration = config
+    }
+
+    func updateMemoCount(_ count: Int) {
+        memoCountLabel.text = "\(count)/200"
     }
 }
 
