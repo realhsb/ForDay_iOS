@@ -98,9 +98,9 @@ extension ActivityGridViewController {
     }
 
     private func setupHobbyFilter() {
-        hobbyFilterView.onHobbySelected = { [weak self] hobbyId in
+        hobbyFilterView.onHobbiesSelected = { [weak self] hobbyIds in
             Task {
-                await self?.viewModel.filterByHobby(hobbyId: hobbyId)
+                await self?.viewModel.filterByHobbies(hobbyIds: hobbyIds)
             }
         }
     }
@@ -120,6 +120,14 @@ extension ActivityGridViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] hobbies in
                 self?.hobbyFilterView.configure(with: hobbies)
+            }
+            .store(in: &cancellables)
+
+        // Selected hobby IDs (sync view with viewModel)
+        viewModel.$selectedHobbyIds
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] selectedIds in
+                self?.hobbyFilterView.selectHobbies(selectedIds)
             }
             .store(in: &cancellables)
 

@@ -12,7 +12,7 @@ import Alamofire
 enum UsersTarget {
     case nicknameAvailability(nickname: String)
     case setNickname(request: DTO.SetNicknameRequest)
-    case feeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int)
+    case feeds(hobbyIds: [Int], lastRecordId: Int?, feedSize: Int)
     case info                   /// 사용자 정보 조회
     case profileImageUpload(profileImageUrl: String)     /// 사용자 프로필 이미지 설정
     case hobbiesInProgress      /// 사용자 취미 진행 상단탭 조회
@@ -68,18 +68,21 @@ extension UsersTarget: BaseTargetType {
         case .setNickname(let request):
             return .requestJSONEncodable(request)
 
-        case .feeds(let hobbyId, let lastRecordId, let feedSize):
+        case .feeds(let hobbyIds, let lastRecordId, let feedSize):
             var parameters: [String: Any] = ["feedSize": feedSize]
 
-            if let hobbyId = hobbyId {
-                parameters["hobbyId"] = hobbyId
+            // hobbyIds 배열을 단일 키로 반복 전달 (hobbyId=116&hobbyId=117)
+            // 빈 배열이면 hobbyId 파라미터를 아예 보내지 않음 (전체 조회)
+            if !hobbyIds.isEmpty {
+                parameters["hobbyId"] = hobbyIds  // 단수형 "hobbyId"로 변경
             }
 
             if let lastRecordId = lastRecordId {
                 parameters["lastRecordId"] = lastRecordId
             }
 
-            return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
+            // ArrayEncoding.noBrackets로 hobbyId=116&hobbyId=117 형식 생성
+            return .requestParameters(parameters: parameters, encoding: URLEncoding(arrayEncoding: .noBrackets))
             
         case .info:
             return .requestPlain

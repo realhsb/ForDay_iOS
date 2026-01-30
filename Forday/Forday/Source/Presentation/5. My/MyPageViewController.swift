@@ -111,13 +111,50 @@ extension MyPageViewController {
             }
             .store(in: &cancellables)
 
-        // Listen to hobby deletion
-        AppEventBus.shared.hobbyDeleted
-            .sink { [weak self] in
-                print("🗑️ 취미 삭제됨! MyPage 새로고침")
+        // Listen to hobby creation
+        AppEventBus.shared.hobbyCreated
+            .sink { [weak self] hobbyId in
                 Task {
                     // Refresh both hobbies and activities
                     await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobby settings updates
+        AppEventBus.shared.hobbySettingsUpdated
+            .sink { [weak self] hobbyId in
+                Task {
+                    await self?.viewModel.refreshHobbies()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobby deletion
+        AppEventBus.shared.hobbyDeleted
+            .sink { [weak self] in
+                Task {
+                    // Refresh both hobbies and activities
+                    await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to activity record creation
+        AppEventBus.shared.activityRecordCreated
+            .sink { [weak self] hobbyId in
+                Task {
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to activity record deletion
+        AppEventBus.shared.activityRecordDeleted
+            .sink { [weak self] in
+                Task {
                     await self?.viewModel.refreshActivities()
                 }
             }

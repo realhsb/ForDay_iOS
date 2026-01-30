@@ -109,9 +109,11 @@ final class MyPageViewModel {
     }
 
     func filterByHobbies(hobbyIds: Set<Int>) async {
-        selectedHobbyIds = hobbyIds
-        lastRecordId = nil
-        hasMoreActivities = true
+        await MainActor.run {
+            selectedHobbyIds = hobbyIds
+            lastRecordId = nil
+            hasMoreActivities = true
+        }
 
         await refreshActivities()
     }
@@ -122,8 +124,10 @@ final class MyPageViewModel {
         }
 
         do {
+            let hobbyIdsArray = Array(selectedHobbyIds)
+
             let result = try await fetchMyActivitiesUseCase.execute(
-                hobbyIds: Array(selectedHobbyIds),
+                hobbyIds: hobbyIdsArray,
                 lastRecordId: nil
             )
 
