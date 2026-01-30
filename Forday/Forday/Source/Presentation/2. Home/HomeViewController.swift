@@ -115,6 +115,23 @@ extension HomeViewController {
             action: #selector(toastViewTapped)
         )
         homeView.toastView.addGestureRecognizer(toastTapGesture)
+
+        // Floating Action Button
+        homeView.floatingActionButton.onTap = { [weak self] in
+            self?.toggleFloatingMenu()
+        }
+
+        // Dim overlay tap to dismiss
+        let dimTapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissFloatingMenu)
+        )
+        homeView.dimOverlayView.addGestureRecognizer(dimTapGesture)
+
+        // Floating Action Menu
+        homeView.floatingActionMenu.onActionSelected = { [weak self] actionType in
+            self?.handleFloatingMenuAction(actionType)
+        }
     }
 
     private func setupStickerBoardCallbacks() {
@@ -521,6 +538,61 @@ extension HomeViewController {
         }
 
         present(containerVC, animated: true)
+    }
+
+    // MARK: - Floating Action Menu
+
+    private func toggleFloatingMenu() {
+        if homeView.floatingActionButton.isExpanded {
+            dismissFloatingMenu()
+        } else {
+            homeView.showFloatingMenu()
+        }
+    }
+
+    @objc private func dismissFloatingMenu() {
+        homeView.hideFloatingMenu()
+    }
+
+    private func handleFloatingMenuAction(_ actionType: FloatingActionMenu.ActionType) {
+        dismissFloatingMenu()
+
+        switch actionType {
+        case .addActivity:
+            showActivityInputFromFloatingButton()
+
+        case .viewActivityList:
+            showActivityListFromFloatingButton()
+        }
+    }
+
+    private func showActivityInputFromFloatingButton() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.onActivityCreated = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+
+    private func showActivityListFromFloatingButton() {
+        guard let hobbyId = viewModel.currentHobbyId else {
+            print("❌ 취미 ID 없음")
+            return
+        }
+
+        let activityListVC = ActivityListViewController(hobbyId: hobbyId)
+        activityListVC.isPresentedModally = true
+        let nav = UINavigationController(rootViewController: activityListVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 
     // Error Handling

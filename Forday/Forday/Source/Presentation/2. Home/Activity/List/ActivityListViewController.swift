@@ -25,7 +25,10 @@ class ActivityListViewController: UIViewController {
     // AI Recommendation Toast
     var shouldShowAIRecommendationToast = false
     private var aiToastView: AIRecommendationToastView?
-    
+
+    // Modal Presentation
+    var isPresentedModally = false
+
     // Initialization
     
     init(hobbyId: Int, viewModel: ActivityListViewModel = ActivityListViewModel()) {
@@ -81,7 +84,19 @@ class ActivityListViewController: UIViewController {
 extension ActivityListViewController {
     private func setupNavigationBar() {
         title = "활동 리스트"
-        
+
+        // Close button (when presented modally)
+        if isPresentedModally {
+            let closeButton = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            closeButton.tintColor = .neutral800
+            navigationItem.leftBarButtonItem = closeButton
+        }
+
         // + 버튼
         let addButton = UIBarButtonItem(
             image: .Icon.plus,
@@ -141,6 +156,10 @@ extension ActivityListViewController {
 // Actions
 
 extension ActivityListViewController {
+    @objc private func closeButtonTapped() {
+        dismiss(animated: true)
+    }
+
     @objc private func addButtonTapped() {
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
         inputVC.onActivityCreated = { [weak self] in

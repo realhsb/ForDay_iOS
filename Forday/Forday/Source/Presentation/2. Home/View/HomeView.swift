@@ -47,7 +47,12 @@ class HomeView: UIView {
     
     // Sticker Collection Section
     let stickerBoardView = StickerBoardView()
-    
+
+    // Floating Action Button
+    let dimOverlayView = UIView()
+    let floatingActionButton = FloatingActionButton()
+    let floatingActionMenu = FloatingActionMenu()
+
     // Initialization
     
     override init(frame: CGRect) {
@@ -202,6 +207,13 @@ extension HomeView {
             $0.backgroundColor = .neutralWhite
             $0.layer.cornerRadius = 20
         }
+
+        // Floating Action Button
+        dimOverlayView.do {
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+            $0.alpha = 0
+            $0.isHidden = true
+        }
     }
     
     private func layout() {
@@ -216,6 +228,11 @@ extension HomeView {
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
         contentView.addSubview(stickerBoardView)
+
+        // Floating elements (added to self, not contentView, to stay above all content)
+        addSubview(dimOverlayView)
+        addSubview(floatingActionMenu)
+        addSubview(floatingActionButton)
         
         // Header
         headerView.addSubview(firstHobbyButton)
@@ -339,6 +356,23 @@ extension HomeView {
             $0.top.equalTo(activityCardView.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
+        }
+
+        // Dim Overlay
+        dimOverlayView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        // Floating Action Button
+        floatingActionButton.snp.makeConstraints {
+            $0.trailing.equalTo(safeAreaLayoutGuide).offset(-20)
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-20)
+        }
+
+        // Floating Action Menu
+        floatingActionMenu.snp.makeConstraints {
+            $0.trailing.equalTo(floatingActionButton)
+            $0.bottom.equalTo(floatingActionButton.snp.top).offset(-16)
         }
     }
 }
@@ -497,6 +531,31 @@ extension HomeView {
         UIView.animate(withDuration: 0.3) {
             self.layoutIfNeeded()
         }
+    }
+
+    func showFloatingMenu() {
+        dimOverlayView.isHidden = false
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.dimOverlayView.alpha = 1
+        }
+
+        floatingActionButton.isExpanded = true
+        floatingActionMenu.show(animated: true)
+    }
+
+    func hideFloatingMenu() {
+        UIView.animate(
+            withDuration: 0.3,
+            animations: { [weak self] in
+                self?.dimOverlayView.alpha = 0
+            },
+            completion: { [weak self] _ in
+                self?.dimOverlayView.isHidden = true
+            }
+        )
+
+        floatingActionButton.isExpanded = false
+        floatingActionMenu.hide(animated: true)
     }
 }
 
