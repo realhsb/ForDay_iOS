@@ -364,6 +364,10 @@ extension HomeView {
 
             dividerLabel.isHidden = true
             secondHobbyButton.isHidden = true
+
+            // 레이아웃 업데이트
+            setNeedsLayout()
+            layoutIfNeeded()
         } else if hobbies.count >= 2 {
             // 취미가 2개 이상인 경우 (최대 2개만 표시)
             let firstHobby = hobbies[0]
@@ -417,6 +421,10 @@ extension HomeView {
 
             dividerLabel.isHidden = false
             secondHobbyButton.isHidden = false
+
+            // 레이아웃 업데이트
+            setNeedsLayout()
+            layoutIfNeeded()
         }
     }
 

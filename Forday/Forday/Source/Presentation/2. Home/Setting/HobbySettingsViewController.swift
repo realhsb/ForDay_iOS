@@ -168,7 +168,7 @@ class HobbySettingsViewController: UIViewController {
 
                 await MainActor.run {
                     // Notify other screens that a hobby was restored
-                    AppEventBus.shared.hobbiesDidUpdate.send()
+                    AppEventBus.shared.hobbyDeleted.send()
                 }
             } catch {
                 // Error already handled via binding
