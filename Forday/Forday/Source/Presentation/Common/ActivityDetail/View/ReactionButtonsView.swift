@@ -15,10 +15,10 @@ final class ReactionButtonsView: UIView {
 
     // MARK: - UI Components
 
-    private let profileImageView = UIImageView()
     private let awesomeButton = ReactionButton(type: .awesome)
     private let greatButton = ReactionButton(type: .great)
     private let amazingButton = ReactionButton(type: .amazing)
+    private let fightingButton = ReactionButton(type: .fighting)
     private let bookmarkButton = UIButton()
 
     private let leftStackView = UIStackView()
@@ -45,20 +45,6 @@ final class ReactionButtonsView: UIView {
     // MARK: - Configuration
 
     func configure(with detail: ActivityDetail) {
-        // Configure profile image
-        if let userInfo = detail.userInfo, let imageUrl = userInfo.profileImageUrl, let url = URL(string: imageUrl) {
-            profileImageView.kf.setImage(
-                with: url,
-                placeholder: UIImage(named: "Icon.profile"),
-                options: [
-                    .transition(.fade(0.2)),
-                    .cacheOriginalImage
-                ]
-            )
-        } else {
-            profileImageView.image = UIImage(named: "Icon.profile")
-        }
-
         // Configure reaction buttons
         awesomeButton.configure(
             isPressed: detail.userReaction.awesome,
@@ -72,9 +58,13 @@ final class ReactionButtonsView: UIView {
             isPressed: detail.userReaction.amazing,
             hasNewReaction: detail.newReaction.amazing
         )
+        fightingButton.configure(
+            isPressed: detail.userReaction.fighting,
+            hasNewReaction: detail.newReaction.fighting
+        )
 
         // Configure bookmark button
-        let bookmarkImage = detail.scraped ? UIImage(named: "Icon.bookmarkOn") : UIImage(named: "Icon.bookmarkOff")
+        let bookmarkImage: UIImage = detail.scraped ? .Icon.bookmarkOn : .Icon.bookmarkOff
         bookmarkButton.setImage(bookmarkImage, for: .normal)
     }
 }
@@ -87,13 +77,6 @@ extension ReactionButtonsView {
 
         topBorder.do {
             $0.backgroundColor = UIColor(red: 229/255, green: 229/255, blue: 229/255, alpha: 1) // #E5E5E5
-        }
-
-        profileImageView.do {
-            $0.contentMode = .scaleAspectFill
-            $0.clipsToBounds = true
-            $0.layer.cornerRadius = 20
-            $0.backgroundColor = UIColor(red: 249/255, green: 249/255, blue: 249/255, alpha: 1) // #F9F9F9
         }
 
         leftStackView.do {
@@ -133,7 +116,7 @@ extension ReactionButtonsView {
         }
 
         // Add components to left stack
-        [profileImageView, awesomeButton, greatButton, amazingButton].forEach {
+        [awesomeButton, greatButton, amazingButton, fightingButton].forEach {
             leftStackView.addArrangedSubview($0)
             $0.snp.makeConstraints { make in
                 make.size.equalTo(40)
@@ -145,6 +128,7 @@ extension ReactionButtonsView {
         setupGestureRecognizers(for: awesomeButton, type: .awesome)
         setupGestureRecognizers(for: greatButton, type: .great)
         setupGestureRecognizers(for: amazingButton, type: .amazing)
+        setupGestureRecognizers(for: fightingButton, type: .fighting)
 
         bookmarkButton.addTarget(self, action: #selector(bookmarkButtonTapped), for: .touchUpInside)
     }
@@ -210,7 +194,7 @@ private final class ReactionButton: UIButton {
 
     private func setup() {
         // Background
-        backgroundColor = UIColor(red: 249/255, green: 249/255, blue: 249/255, alpha: 1) // #F9F9F9
+        backgroundColor = .bg002
         layer.cornerRadius = 20
         clipsToBounds = false
 
@@ -218,7 +202,6 @@ private final class ReactionButton: UIButton {
         iconImageView.do {
             $0.contentMode = .scaleAspectFit
             $0.image = reactionType.icon
-            $0.tintColor = UIColor(red: 255/255, green: 162/255, blue: 74/255, alpha: 1) // #FFA24A
             $0.isUserInteractionEnabled = false
         }
 
@@ -230,15 +213,15 @@ private final class ReactionButton: UIButton {
 
         // New reaction dot
         newReactionDot.do {
-            $0.backgroundColor = UIColor(red: 242/255, green: 95/255, blue: 89/255, alpha: 1) // #F25F59
+            $0.backgroundColor = .secondary003
             $0.layer.cornerRadius = 3
             $0.isHidden = true
         }
 
         addSubview(newReactionDot)
         newReactionDot.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(2)
-            $0.top.equalToSuperview().offset(-2)
+            $0.trailing.equalToSuperview().offset(-2)  // 오른쪽에서 안쪽으로 2pt
+            $0.top.equalToSuperview().offset(2)  // 위에서 아래로 2pt
             $0.size.equalTo(6)
         }
     }
@@ -252,13 +235,8 @@ private final class ReactionButton: UIButton {
 
     private func updateAppearance() {
         // Border style
-        if isPressed {
-            layer.borderWidth = 2
-            layer.borderColor = UIColor(red: 255/255, green: 162/255, blue: 74/255, alpha: 1).cgColor // #FFA24A
-        } else {
-            layer.borderWidth = 0
-            layer.borderColor = nil
-        }
+        layer.borderWidth = isPressed ? 1 : 0
+        layer.borderColor = isPressed ? UIColor.action001.cgColor : nil
 
         // New reaction dot
         newReactionDot.isHidden = !hasNewReaction
@@ -271,13 +249,17 @@ extension ReactionType {
     var icon: UIImage? {
         switch self {
         case .awesome:
-            return UIImage(systemName: "star.fill")
+            return .Reaction.awesome
         case .great:
-            return UIImage(systemName: "hand.thumbsup.fill")
+            return .Reaction.great
         case .amazing:
-            return UIImage(systemName: "hands.clap.fill")
+            return .Reaction.amazing
         case .fighting:
-            return UIImage(systemName: "flame.fill")
+            return .Reaction.fighting
         }
     }
+}
+
+#Preview {
+    ReactionButton(type: .amazing)
 }
