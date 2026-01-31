@@ -13,9 +13,19 @@ extension DTO {
     }
 
     struct UsersScrapsData: Codable {
-        let totalFeedCount: Int
-        let lastRecordId: Int?
-        let feedList: [FeedItem]
+        let totalScrapCount: Int
+        let lastScrapId: Int?
+        let scrapList: [ScrapItem]
+        let hasNext: Bool
+    }
+
+    struct ScrapItem: Codable {
+        let scrapId: Int
+        let recordId: Int
+        let thumbnailImageUrl: String
+        let sticker: String
+        let memo: String?
+        let createdAt: String
     }
 }
 
@@ -23,16 +33,25 @@ extension DTO {
 
 extension DTO.UsersScrapsResponse {
     func toDomain(requestedSize: Int) -> FeedResult {
-        let feeds = data.feedList.map { $0.toDomain() }
-
-        // Calculate hasNext: if received count < requested size, no more data
-        let hasNext = feeds.count >= requestedSize
+        let feeds = data.scrapList.map { $0.toDomain() }
 
         return FeedResult(
-            totalFeedCount: data.totalFeedCount,
-            lastRecordId: data.lastRecordId,
+            totalFeedCount: data.totalScrapCount,
+            lastRecordId: data.lastScrapId,
             feedList: feeds,
-            hasNext: hasNext
+            hasNext: data.hasNext
+        )
+    }
+}
+
+extension DTO.ScrapItem {
+    func toDomain() -> FeedItem {
+        return FeedItem(
+            recordId: recordId,
+            thumbnailImageUrl: thumbnailImageUrl,
+            sticker: sticker,
+            memo: memo,
+            createdAt: createdAt
         )
     }
 }
