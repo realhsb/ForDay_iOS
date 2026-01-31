@@ -14,10 +14,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
 #if DEBUG
-        if ProcessInfo.processInfo.environment["CLEAR_TOKENS_ON_LAUNCH"] == "YES" {
-            try? TokenStorage.shared.deleteAllTokens()
-            print("🔧 [DEBUG] 토큰 삭제됨 - 로그인 화면으로 이동")
-        }
+//        if ProcessInfo.processInfo.environment["CLEAR_TOKENS_ON_LAUNCH"] == "YES" {
+//            try? TokenStorage.shared.deleteAllTokens()
+//            print("🔧 [DEBUG] 토큰 삭제됨 - 로그인 화면으로 이동")
+//        }
 #endif
         
         // Info.plist에서 카카오 앱 키 읽기
