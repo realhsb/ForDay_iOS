@@ -128,12 +128,29 @@ extension ActivityDetailViewController {
         viewModel.$reactionUsers
             .receive(on: DispatchQueue.main)
             .sink { [weak self] users in
+                guard let self = self else { return }
+
                 if users.isEmpty {
-                    self?.detailView.reactionUsersScrollView.isHidden = true
-                    self?.detailView.reactionUsersScrollView.clear()
+                    self.detailView.reactionUsersScrollView.isHidden = true
+                    self.detailView.reactionUsersScrollView.clear()
+
+                    // Collapse height when hidden
+                    self.detailView.reactionUsersScrollView.snp.updateConstraints {
+                        $0.height.equalTo(0)
+                    }
                 } else {
-                    self?.detailView.reactionUsersScrollView.isHidden = false
-                    self?.detailView.reactionUsersScrollView.configure(with: users)
+                    self.detailView.reactionUsersScrollView.isHidden = false
+                    self.detailView.reactionUsersScrollView.configure(with: users)
+
+                    // Expand height when visible
+                    self.detailView.reactionUsersScrollView.snp.updateConstraints {
+                        $0.height.equalTo(60)
+                    }
+                }
+
+                // Animate layout change
+                UIView.animate(withDuration: 0.3) {
+                    self.view.layoutIfNeeded()
                 }
             }
             .store(in: &cancellables)

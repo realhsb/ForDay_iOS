@@ -131,12 +131,19 @@ extension ActivityDetailView {
 
     private func layout() {
         addSubview(scrollView)
+        addSubview(reactionUsersScrollView)
         addSubview(reactionButtonsView)
         scrollView.addSubview(contentStackView)
 
         scrollView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(reactionUsersScrollView.snp.top)
+        }
+
+        reactionUsersScrollView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(reactionButtonsView.snp.top)
+            $0.height.equalTo(60)  // 28 (image) + 4 (spacing) + 12 (label) + 16 (padding)
         }
 
         reactionButtonsView.snp.makeConstraints {
@@ -148,16 +155,12 @@ extension ActivityDetailView {
             $0.width.equalToSuperview()
         }
 
-        // Add views to stack
+        // Add views to stack (without reactionUsersScrollView)
         contentStackView.addArrangedSubview(imageView)
         contentStackView.addArrangedSubview(createInfoContainer())
-        contentStackView.addArrangedSubview(reactionUsersScrollView)
 
         // Initially hide reaction users scroll view
         reactionUsersScrollView.isHidden = true
-        reactionUsersScrollView.snp.makeConstraints {
-            $0.height.equalTo(60)  // 28 (image) + 4 (spacing) + 12 (label) + 16 (padding)
-        }
 
         // Add sticker overlay on image
         imageView.addSubview(stickerImageView)
