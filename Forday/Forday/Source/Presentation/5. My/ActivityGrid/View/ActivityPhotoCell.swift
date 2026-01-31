@@ -120,7 +120,6 @@ final class ActivityPhotoCell: UICollectionViewCell {
 extension ActivityPhotoCell {
     private func style() {
         contentView.backgroundColor = .systemGray6
-        contentView.layer.cornerRadius = 8
         contentView.clipsToBounds = true
 
         imageView.do {
