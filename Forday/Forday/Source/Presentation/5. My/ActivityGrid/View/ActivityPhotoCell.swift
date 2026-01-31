@@ -149,7 +149,6 @@ extension ActivityPhotoCell {
 
         stickerBackgroundView.do {
             $0.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-            $0.layer.cornerRadius = 15
             $0.clipsToBounds = true
         }
 
