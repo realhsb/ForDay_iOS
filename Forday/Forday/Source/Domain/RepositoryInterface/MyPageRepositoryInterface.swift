@@ -14,4 +14,5 @@ protocol MyPageRepositoryInterface {
     func updateProfile(nickname: String, profileImageUrl: String) async throws -> UserInfo
     func addReaction(recordId: Int, reactionType: ReactionType) async throws -> AddReactionResult
     func deleteReaction(recordId: Int, reactionType: ReactionType) async throws -> DeleteReactionResult
+    func fetchReactionUsers(recordId: Int, reactionType: ReactionType, lastUserId: String?, size: Int) async throws -> FetchReactionUsersResult
 }

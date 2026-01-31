@@ -61,4 +61,31 @@ final class RecordsService {
     func deleteReaction(recordId: Int, reactionType: ReactionType) async throws -> DTO.DeleteReactionResponse {
         return try await provider.request(.deleteReaction(recordId: recordId, reactionType: reactionType))
     }
+
+    // MARK: - 활동 기록 반응 사용자 목록 조회
+
+    /// 특정 반응을 남긴 사용자 목록을 조회합니다.
+    ///
+    /// - Parameters:
+    ///   - recordId: 활동 기록 ID
+    ///   - reactionType: 조회할 반응 타입 (AWESOME, GREAT, AMAZING, FIGHTING)
+    ///   - lastUserId: 무한 스크롤용 마지막 사용자 ID (첫 조회 시 nil)
+    ///   - size: 조회할 사용자 수 (기본값: 10)
+    /// - Returns: 반응 사용자 목록 및 페이지네이션 정보
+    /// - Throws:
+    ///   - `ACTIVITY_RECORD_NOT_FOUND` (404): 존재하지 않는 활동 기록
+    ///   - `NOT_ACTIVITY_OWNER` (403): 활동 소유자가 아닌 경우
+    func fetchReactionUsers(
+        recordId: Int,
+        reactionType: ReactionType,
+        lastUserId: String?,
+        size: Int = 10
+    ) async throws -> DTO.FetchReactionUsersResponse {
+        return try await provider.request(.fetchReactionUsers(
+            recordId: recordId,
+            reactionType: reactionType,
+            lastUserId: lastUserId,
+            size: size
+        ))
+    }
 }

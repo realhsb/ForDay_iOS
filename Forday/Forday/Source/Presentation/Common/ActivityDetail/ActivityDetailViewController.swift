@@ -100,10 +100,31 @@ extension ActivityDetailViewController {
             }
             .store(in: &cancellables)
 
-        // Reaction button tapped
-        detailView.reactionButtonsView.reactionTapped
+        // Reaction button single tapped (show users)
+        detailView.reactionButtonsView.reactionSingleTapped
             .sink { [weak self] reactionType in
-                self?.handleReactionTapped(reactionType)
+                self?.handleReactionSingleTapped(reactionType)
+            }
+            .store(in: &cancellables)
+
+        // Reaction button double tapped (toggle reaction)
+        detailView.reactionButtonsView.reactionDoubleTapped
+            .sink { [weak self] reactionType in
+                self?.handleReactionDoubleTapped(reactionType)
+            }
+            .store(in: &cancellables)
+
+        // Reaction users
+        viewModel.$reactionUsers
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] users in
+                if users.isEmpty {
+                    self?.detailView.reactionUsersScrollView.isHidden = true
+                    self?.detailView.reactionUsersScrollView.clear()
+                } else {
+                    self?.detailView.reactionUsersScrollView.isHidden = false
+                    self?.detailView.reactionUsersScrollView.configure(with: users)
+                }
             }
             .store(in: &cancellables)
     }
@@ -194,8 +215,16 @@ extension ActivityDetailViewController {
         // - 성공 시 이전 화면으로 이동
     }
 
-    private func handleReactionTapped(_ reactionType: ReactionType) {
-        print("💡 \(reactionType.displayName) 반응 버튼 탭")
+    private func handleReactionSingleTapped(_ reactionType: ReactionType) {
+        print("👆 \(reactionType.displayName) 반응 버튼 단일 탭 - 유저 목록 표시")
+
+        Task {
+            await viewModel.fetchReactionUsers(for: reactionType)
+        }
+    }
+
+    private func handleReactionDoubleTapped(_ reactionType: ReactionType) {
+        print("👆👆 \(reactionType.displayName) 반응 버튼 더블 탭 - 반응 추가/삭제")
 
         Task {
             await viewModel.toggleReaction(reactionType)

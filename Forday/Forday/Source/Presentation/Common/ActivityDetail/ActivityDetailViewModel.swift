@@ -15,6 +15,8 @@ final class ActivityDetailViewModel {
     @Published var activityDetail: ActivityDetail?
     @Published var isLoading: Bool = false
     @Published var error: AppError?
+    @Published var reactionUsers: [ReactionUser] = []
+    @Published var selectedReactionType: ReactionType?
 
     // MARK: - Private Properties
 
@@ -22,6 +24,10 @@ final class ActivityDetailViewModel {
     private let fetchActivityDetailUseCase: FetchActivityDetailUseCase
     private let addReactionUseCase: AddReactionUseCase
     private let deleteReactionUseCase: DeleteReactionUseCase
+    private let fetchReactionUsersUseCase: FetchReactionUsersUseCase
+
+    private var lastUserId: String? = nil
+    private var hasMoreUsers: Bool = true
 
     // MARK: - Public Properties
 
@@ -35,12 +41,14 @@ final class ActivityDetailViewModel {
         activityRecordId: Int,
         fetchActivityDetailUseCase: FetchActivityDetailUseCase = FetchActivityDetailUseCase(),
         addReactionUseCase: AddReactionUseCase = AddReactionUseCase(),
-        deleteReactionUseCase: DeleteReactionUseCase = DeleteReactionUseCase()
+        deleteReactionUseCase: DeleteReactionUseCase = DeleteReactionUseCase(),
+        fetchReactionUsersUseCase: FetchReactionUsersUseCase = FetchReactionUsersUseCase()
     ) {
         self.activityRecordId = activityRecordId
         self.fetchActivityDetailUseCase = fetchActivityDetailUseCase
         self.addReactionUseCase = addReactionUseCase
         self.deleteReactionUseCase = deleteReactionUseCase
+        self.fetchReactionUsersUseCase = fetchReactionUsersUseCase
     }
 
     // MARK: - Public Methods
@@ -116,6 +124,52 @@ final class ActivityDetailViewModel {
         case .great: return reaction.great
         case .amazing: return reaction.amazing
         case .fighting: return reaction.fighting
+        }
+    }
+
+    // MARK: - Reaction Users Methods
+
+    /// 특정 반응을 남긴 사용자 목록을 조회합니다.
+    func fetchReactionUsers(for reactionType: ReactionType) async {
+        // 같은 반응을 다시 탭하면 닫기
+        if selectedReactionType == reactionType {
+            await closeReactionUsers()
+            return
+        }
+
+        do {
+            let result = try await fetchReactionUsersUseCase.execute(
+                recordId: activityRecordId,
+                reactionType: reactionType,
+                lastUserId: nil,
+                size: 10
+            )
+
+            await MainActor.run {
+                self.reactionUsers = result.reactionUsers
+                self.selectedReactionType = reactionType
+                self.lastUserId = result.lastUserId
+                self.hasMoreUsers = result.hasNext
+            }
+
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+            }
+        } catch {
+            await MainActor.run {
+                self.error = .unknown(error)
+            }
+        }
+    }
+
+    /// 반응 사용자 목록을 닫습니다.
+    func closeReactionUsers() async {
+        await MainActor.run {
+            self.reactionUsers = []
+            self.selectedReactionType = nil
+            self.lastUserId = nil
+            self.hasMoreUsers = true
         }
     }
 }

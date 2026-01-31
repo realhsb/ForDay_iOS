@@ -23,7 +23,8 @@ final class ReactionButtonsView: UIView {
     private let topBorder = UIView()
 
     // Tap events
-    let reactionTapped = PassthroughSubject<ReactionType, Never>()
+    let reactionSingleTapped = PassthroughSubject<ReactionType, Never>()
+    let reactionDoubleTapped = PassthroughSubject<ReactionType, Never>()
 
     // MARK: - Initialization
 
@@ -105,26 +106,43 @@ extension ReactionButtonsView {
     }
 
     private func setupActions() {
-        awesomeButton.addTarget(self, action: #selector(awesomeTapped), for: .touchUpInside)
-        greatButton.addTarget(self, action: #selector(greatTapped), for: .touchUpInside)
-        amazingButton.addTarget(self, action: #selector(amazingTapped), for: .touchUpInside)
-        fightingButton.addTarget(self, action: #selector(fightingTapped), for: .touchUpInside)
+        setupGestureRecognizers(for: awesomeButton, type: .awesome)
+        setupGestureRecognizers(for: greatButton, type: .great)
+        setupGestureRecognizers(for: amazingButton, type: .amazing)
+        setupGestureRecognizers(for: fightingButton, type: .fighting)
     }
 
-    @objc private func awesomeTapped() {
-        reactionTapped.send(.awesome)
+    private func setupGestureRecognizers(for button: UIButton, type: ReactionType) {
+        // Single tap
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(_:)))
+        singleTap.numberOfTapsRequired = 1
+
+        // Double tap
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+        doubleTap.numberOfTapsRequired = 2
+
+        // Single tap should wait for double tap to fail
+        singleTap.require(toFail: doubleTap)
+
+        // Store reaction type in gesture recognizer
+        singleTap.name = type.rawValue
+        doubleTap.name = type.rawValue
+
+        button.addGestureRecognizer(singleTap)
+        button.addGestureRecognizer(doubleTap)
+        button.isUserInteractionEnabled = true
     }
 
-    @objc private func greatTapped() {
-        reactionTapped.send(.great)
+    @objc private func handleSingleTap(_ gesture: UITapGestureRecognizer) {
+        guard let typeName = gesture.name,
+              let type = ReactionType(rawValue: typeName) else { return }
+        reactionSingleTapped.send(type)
     }
 
-    @objc private func amazingTapped() {
-        reactionTapped.send(.amazing)
-    }
-
-    @objc private func fightingTapped() {
-        reactionTapped.send(.fighting)
+    @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        guard let typeName = gesture.name,
+              let type = ReactionType(rawValue: typeName) else { return }
+        reactionDoubleTapped.send(type)
     }
 }
 

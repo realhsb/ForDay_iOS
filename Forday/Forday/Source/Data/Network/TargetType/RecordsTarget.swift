@@ -13,6 +13,7 @@ enum RecordsTarget {
     case fetchRecordDetail(recordId: Int)
     case addReaction(recordId: Int, reactionType: ReactionType)
     case deleteReaction(recordId: Int, reactionType: ReactionType)
+    case fetchReactionUsers(recordId: Int, reactionType: ReactionType, lastUserId: String?, size: Int)
 }
 
 extension RecordsTarget: BaseTargetType {
@@ -25,6 +26,8 @@ extension RecordsTarget: BaseTargetType {
             return RecordsAPI.addReaction(recordId: recordId).endpoint
         case .deleteReaction(let recordId, _):
             return RecordsAPI.deleteReaction(recordId: recordId).endpoint
+        case .fetchReactionUsers(let recordId, _, _, _):
+            return RecordsAPI.fetchReactionUsers(recordId: recordId).endpoint
         }
     }
 
@@ -36,6 +39,8 @@ extension RecordsTarget: BaseTargetType {
             return .post
         case .deleteReaction:
             return .delete
+        case .fetchReactionUsers:
+            return .get
         }
     }
 
@@ -49,6 +54,20 @@ extension RecordsTarget: BaseTargetType {
         case .deleteReaction(_, let reactionType):
             return .requestParameters(
                 parameters: ["reactionType": reactionType.rawValue],
+                encoding: URLEncoding.queryString
+            )
+        case .fetchReactionUsers(_, let reactionType, let lastUserId, let size):
+            var parameters: [String: Any] = [
+                "reactionType": reactionType.rawValue,
+                "size": size
+            ]
+
+            if let lastUserId = lastUserId {
+                parameters["lastUserId"] = lastUserId
+            }
+
+            return .requestParameters(
+                parameters: parameters,
                 encoding: URLEncoding.queryString
             )
         }

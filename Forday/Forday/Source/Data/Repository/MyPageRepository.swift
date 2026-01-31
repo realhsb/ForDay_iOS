@@ -53,6 +53,16 @@ final class MyPageRepository: MyPageRepositoryInterface {
         let response = try await recordsService.deleteReaction(recordId: recordId, reactionType: reactionType)
         return response.toDomain()
     }
+
+    func fetchReactionUsers(recordId: Int, reactionType: ReactionType, lastUserId: String?, size: Int) async throws -> FetchReactionUsersResult {
+        let response = try await recordsService.fetchReactionUsers(
+            recordId: recordId,
+            reactionType: reactionType,
+            lastUserId: lastUserId,
+            size: size
+        )
+        return response.toDomain()
+    }
 }
 
 // MARK: - Mock Data

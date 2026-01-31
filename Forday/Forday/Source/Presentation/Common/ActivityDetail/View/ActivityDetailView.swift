@@ -22,6 +22,7 @@ final class ActivityDetailView: UIView {
     let dateLabel = UILabel()
     let titleLabel = UILabel()
     let contentLabel = UILabel()
+    let reactionUsersScrollView = ReactionUsersScrollView()
     let reactionButtonsView = ReactionButtonsView()
 
     // MARK: - Initialization
@@ -144,7 +145,14 @@ extension ActivityDetailView {
         // Add views to stack
         contentStackView.addArrangedSubview(imageView)
         contentStackView.addArrangedSubview(createInfoContainer())
+        contentStackView.addArrangedSubview(reactionUsersScrollView)
         contentStackView.addArrangedSubview(reactionButtonsView)
+
+        // Initially hide reaction users scroll view
+        reactionUsersScrollView.isHidden = true
+        reactionUsersScrollView.snp.makeConstraints {
+            $0.height.equalTo(60)  // 28 (image) + 4 (spacing) + 12 (label) + 16 (padding)
+        }
 
         // Add sticker overlay on image
         imageView.addSubview(stickerImageView)
