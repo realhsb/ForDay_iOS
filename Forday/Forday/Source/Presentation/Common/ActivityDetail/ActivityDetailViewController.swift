@@ -361,6 +361,36 @@ extension ActivityDetailViewController {
 
 }
 
-#Preview {
-    ActivityDetailViewController(viewModel: .init(activityRecordId: 1))
+#Preview("ActivityDetailViewController - Basic") {
+    let viewModel = ActivityDetailViewModel(activityRecordId: 1)
+    let vc = ActivityDetailViewController(viewModel: viewModel)
+
+    // Manually configure view with mock data (bypass network call)
+    vc.loadViewIfNeeded()
+    (vc.view as? ActivityDetailView)?.configure(with: .preview)
+
+    let nav = UINavigationController(rootViewController: vc)
+    return nav
+}
+
+#Preview("ActivityDetailViewController - Scraped") {
+    let viewModel = ActivityDetailViewModel(activityRecordId: 2)
+    let vc = ActivityDetailViewController(viewModel: viewModel)
+
+    vc.loadViewIfNeeded()
+    (vc.view as? ActivityDetailView)?.configure(with: .previewScraped)
+
+    let nav = UINavigationController(rootViewController: vc)
+    return nav
+}
+
+#Preview("ActivityDetailViewController - All Reactions") {
+    let viewModel = ActivityDetailViewModel(activityRecordId: 3)
+    let vc = ActivityDetailViewController(viewModel: viewModel)
+
+    vc.loadViewIfNeeded()
+    (vc.view as? ActivityDetailView)?.configure(with: .previewWithAllReactions)
+
+    let nav = UINavigationController(rootViewController: vc)
+    return nav
 }

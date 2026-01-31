@@ -220,9 +220,9 @@ private final class ReactionButton: UIButton {
 
         addSubview(newReactionDot)
         newReactionDot.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-2)  // 오른쪽에서 안쪽으로 2pt
-            $0.top.equalToSuperview().offset(2)  // 위에서 아래로 2pt
-            $0.size.equalTo(6)
+            $0.trailing.equalToSuperview().offset(-10)  // 오른쪽에서 안쪽으로 2pt
+            $0.top.equalToSuperview().offset(10)  // 위에서 아래로 2pt
+            $0.size.equalTo(4)
         }
     }
 
@@ -260,6 +260,24 @@ extension ReactionType {
     }
 }
 
-#Preview {
+#Preview("ReactionButton - Amazing") {
     ReactionButton(type: .amazing)
+}
+
+#Preview("ReactionButtonsView") {
+    let view = ReactionButtonsView()
+    view.configure(with: .preview)
+    return view
+}
+
+#Preview("ReactionButtonsView - Scraped") {
+    let view = ReactionButtonsView()
+    view.configure(with: .previewScraped)
+    return view
+}
+
+#Preview("ReactionButtonsView - All Reactions") {
+    let view = ReactionButtonsView()
+    view.configure(with: .previewWithAllReactions)
+    return view
 }

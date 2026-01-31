@@ -205,3 +205,21 @@ extension ActivityDetailView {
         return container
     }
 }
+
+#Preview("ActivityDetailView - Basic") {
+    let view = ActivityDetailView()
+    view.configure(with: .preview)
+    return view
+}
+
+#Preview("ActivityDetailView - Scraped") {
+    let view = ActivityDetailView()
+    view.configure(with: .previewScraped)
+    return view
+}
+
+#Preview("ActivityDetailView - All Reactions") {
+    let view = ActivityDetailView()
+    view.configure(with: .previewWithAllReactions)
+    return view
+}

@@ -93,3 +93,16 @@ extension ReactionUsersScrollView {
         }
     }
 }
+
+#Preview("ReactionUsersScrollView - Empty") {
+    let view = ReactionUsersScrollView()
+    view.frame = CGRect(x: 0, y: 0, width: 375, height: 60)
+    return view
+}
+
+#Preview("ReactionUsersScrollView - With Users") {
+    let view = ReactionUsersScrollView()
+    view.configure(with: ReactionUser.previewList)
+    view.frame = CGRect(x: 0, y: 0, width: 375, height: 60)
+    return view
+}
