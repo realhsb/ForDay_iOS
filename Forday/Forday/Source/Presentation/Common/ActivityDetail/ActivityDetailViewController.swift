@@ -137,6 +137,13 @@ extension ActivityDetailViewController {
                 }
             }
             .store(in: &cancellables)
+
+        // Bookmark button tapped
+        detailView.reactionButtonsView.bookmarkTapped
+            .sink { [weak self] in
+                self?.handleBookmarkTapped()
+            }
+            .store(in: &cancellables)
     }
 
     private func loadData() {
@@ -324,6 +331,14 @@ extension ActivityDetailViewController {
 
         Task {
             await viewModel.toggleReaction(reactionType)
+        }
+    }
+
+    private func handleBookmarkTapped() {
+        print("🔖 북마크 버튼 탭 - 스크랩 추가/삭제")
+
+        Task {
+            await viewModel.toggleScrap()
         }
     }
 

@@ -17,7 +17,15 @@ struct ActivityDetail {
     let createdAt: String
     let memo: String
     let recordOwner: Bool
+    let scraped: Bool
+    let userInfo: ActivityDetailUserInfo?
     let visibility: String
     let newReaction: ReactionStatus
     let userReaction: ReactionStatus
+}
+
+struct ActivityDetailUserInfo {
+    let userId: Int
+    let nickname: String
+    let profileImageUrl: String?
 }

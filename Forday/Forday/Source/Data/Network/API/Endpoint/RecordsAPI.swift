@@ -14,6 +14,8 @@ enum RecordsAPI {
     case addReaction(recordId: Int)  /// 활동 기록에 반응 추가
     case deleteReaction(recordId: Int)  /// 활동 기록 반응 삭제
     case fetchReactionUsers(recordId: Int)  /// 활동 기록에 새로 반응한 사용자 목록 조회
+    case addScrap(recordId: Int)  /// 활동 기록 스크랩 추가
+    case deleteScrap(recordId: Int)  /// 활동 기록 스크랩 취소
 
     var endpoint: String {
         switch self {
@@ -29,6 +31,10 @@ enum RecordsAPI {
             return "/records/\(recordId)/reaction"
         case .fetchReactionUsers(let recordId):
             return "/records/\(recordId)/reaction-users"
+        case .addScrap(let recordId):
+            return "/records/\(recordId)/scrap"
+        case .deleteScrap(let recordId):
+            return "/records/\(recordId)/scrap"
         }
     }
 }

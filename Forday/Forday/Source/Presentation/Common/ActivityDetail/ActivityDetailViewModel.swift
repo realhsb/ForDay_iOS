@@ -27,6 +27,8 @@ final class ActivityDetailViewModel {
     private let fetchReactionUsersUseCase: FetchReactionUsersUseCase
     private let deleteActivityRecordUseCase: DeleteActivityRecordUseCase
     private let updateHobbyCoverUseCase: UpdateHobbyCoverUseCase
+    private let addScrapUseCase: AddScrapUseCase
+    private let deleteScrapUseCase: DeleteScrapUseCase
 
     private var lastUserId: String? = nil
     private var hasMoreUsers: Bool = true
@@ -46,7 +48,9 @@ final class ActivityDetailViewModel {
         deleteReactionUseCase: DeleteReactionUseCase = DeleteReactionUseCase(),
         fetchReactionUsersUseCase: FetchReactionUsersUseCase = FetchReactionUsersUseCase(),
         deleteActivityRecordUseCase: DeleteActivityRecordUseCase = DeleteActivityRecordUseCase(),
-        updateHobbyCoverUseCase: UpdateHobbyCoverUseCase = UpdateHobbyCoverUseCase()
+        updateHobbyCoverUseCase: UpdateHobbyCoverUseCase = UpdateHobbyCoverUseCase(),
+        addScrapUseCase: AddScrapUseCase = AddScrapUseCase(),
+        deleteScrapUseCase: DeleteScrapUseCase = DeleteScrapUseCase()
     ) {
         self.activityRecordId = activityRecordId
         self.fetchActivityDetailUseCase = fetchActivityDetailUseCase
@@ -55,6 +59,8 @@ final class ActivityDetailViewModel {
         self.fetchReactionUsersUseCase = fetchReactionUsersUseCase
         self.deleteActivityRecordUseCase = deleteActivityRecordUseCase
         self.updateHobbyCoverUseCase = updateHobbyCoverUseCase
+        self.addScrapUseCase = addScrapUseCase
+        self.deleteScrapUseCase = deleteScrapUseCase
     }
 
     // MARK: - Public Methods
@@ -189,5 +195,35 @@ final class ActivityDetailViewModel {
     /// 이 활동 기록의 이미지를 취미 대표사진으로 설정합니다.
     func setCoverImage() async throws {
         _ = try await updateHobbyCoverUseCase.executeWithRecord(recordId: activityRecordId)
+    }
+
+    // MARK: - Scrap Methods
+
+    /// 스크랩을 추가하거나 삭제합니다.
+    /// 이미 스크랩된 상태면 삭제, 아니면 추가합니다.
+    func toggleScrap() async {
+        guard let detail = activityDetail else { return }
+
+        do {
+            if detail.scraped {
+                // 스크랩 삭제
+                _ = try await deleteScrapUseCase.execute(recordId: activityRecordId)
+            } else {
+                // 스크랩 추가
+                _ = try await addScrapUseCase.execute(recordId: activityRecordId)
+            }
+
+            // 성공 시 상세 정보 다시 불러오기
+            await fetchDetail()
+
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+            }
+        } catch {
+            await MainActor.run {
+                self.error = .unknown(error)
+            }
+        }
     }
 }

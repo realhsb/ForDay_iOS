@@ -9,22 +9,25 @@ import UIKit
 import SnapKit
 import Then
 import Combine
+import Kingfisher
 
 final class ReactionButtonsView: UIView {
 
-    // MARK: - Properties
+    // MARK: - UI Components
 
+    private let profileImageView = UIImageView()
     private let awesomeButton = ReactionButton(type: .awesome)
     private let greatButton = ReactionButton(type: .great)
     private let amazingButton = ReactionButton(type: .amazing)
-    private let fightingButton = ReactionButton(type: .fighting)
+    private let bookmarkButton = UIButton()
 
-    private let stackView = UIStackView()
+    private let leftStackView = UIStackView()
     private let topBorder = UIView()
 
     // Tap events
     let reactionSingleTapped = PassthroughSubject<ReactionType, Never>()
     let reactionDoubleTapped = PassthroughSubject<ReactionType, Never>()
+    let bookmarkTapped = PassthroughSubject<Void, Never>()
 
     // MARK: - Initialization
 
@@ -42,6 +45,21 @@ final class ReactionButtonsView: UIView {
     // MARK: - Configuration
 
     func configure(with detail: ActivityDetail) {
+        // Configure profile image
+        if let userInfo = detail.userInfo, let imageUrl = userInfo.profileImageUrl, let url = URL(string: imageUrl) {
+            profileImageView.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "Icon.profile"),
+                options: [
+                    .transition(.fade(0.2)),
+                    .cacheOriginalImage
+                ]
+            )
+        } else {
+            profileImageView.image = UIImage(named: "Icon.profile")
+        }
+
+        // Configure reaction buttons
         awesomeButton.configure(
             isPressed: detail.userReaction.awesome,
             hasNewReaction: detail.newReaction.awesome
@@ -54,10 +72,10 @@ final class ReactionButtonsView: UIView {
             isPressed: detail.userReaction.amazing,
             hasNewReaction: detail.newReaction.amazing
         )
-        fightingButton.configure(
-            isPressed: detail.userReaction.fighting,
-            hasNewReaction: detail.newReaction.fighting
-        )
+
+        // Configure bookmark button
+        let bookmarkImage = detail.scraped ? UIImage(named: "Icon.bookmarkOn") : UIImage(named: "Icon.bookmarkOff")
+        bookmarkButton.setImage(bookmarkImage, for: .normal)
     }
 }
 
@@ -71,34 +89,52 @@ extension ReactionButtonsView {
             $0.backgroundColor = UIColor(red: 229/255, green: 229/255, blue: 229/255, alpha: 1) // #E5E5E5
         }
 
-        stackView.do {
+        profileImageView.do {
+            $0.contentMode = .scaleAspectFill
+            $0.clipsToBounds = true
+            $0.layer.cornerRadius = 20
+            $0.backgroundColor = UIColor(red: 249/255, green: 249/255, blue: 249/255, alpha: 1) // #F9F9F9
+        }
+
+        leftStackView.do {
             $0.axis = .horizontal
-            $0.spacing = 14
+            $0.spacing = 16
             $0.alignment = .center
             $0.distribution = .equalSpacing
+        }
+
+        bookmarkButton.do {
+            $0.contentMode = .scaleAspectFit
+            $0.tintColor = .label
         }
     }
 
     private func layout() {
         addSubview(topBorder)
-        addSubview(stackView)
+        addSubview(leftStackView)
+        addSubview(bookmarkButton)
 
         topBorder.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
             $0.height.equalTo(1)
         }
 
-        stackView.snp.makeConstraints {
+        leftStackView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(16)
             $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalToSuperview().offset(-16)
             $0.height.equalTo(40)
         }
 
-        // Add buttons
-        [awesomeButton, greatButton, amazingButton, fightingButton].forEach {
-            stackView.addArrangedSubview($0)
+        bookmarkButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.centerY.equalTo(leftStackView)
+            $0.size.equalTo(24)
+        }
+
+        // Add components to left stack
+        [profileImageView, awesomeButton, greatButton, amazingButton].forEach {
+            leftStackView.addArrangedSubview($0)
             $0.snp.makeConstraints { make in
                 make.size.equalTo(40)
             }
@@ -109,7 +145,8 @@ extension ReactionButtonsView {
         setupGestureRecognizers(for: awesomeButton, type: .awesome)
         setupGestureRecognizers(for: greatButton, type: .great)
         setupGestureRecognizers(for: amazingButton, type: .amazing)
-        setupGestureRecognizers(for: fightingButton, type: .fighting)
+
+        bookmarkButton.addTarget(self, action: #selector(bookmarkButtonTapped), for: .touchUpInside)
     }
 
     private func setupGestureRecognizers(for button: UIButton, type: ReactionType) {
@@ -143,6 +180,10 @@ extension ReactionButtonsView {
         guard let typeName = gesture.name,
               let type = ReactionType(rawValue: typeName) else { return }
         reactionDoubleTapped.send(type)
+    }
+
+    @objc private func bookmarkButtonTapped() {
+        bookmarkTapped.send()
     }
 }
 

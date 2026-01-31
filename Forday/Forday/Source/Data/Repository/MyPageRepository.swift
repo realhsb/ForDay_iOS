@@ -63,6 +63,16 @@ final class MyPageRepository: MyPageRepositoryInterface {
         )
         return response.toDomain()
     }
+
+    func addScrap(recordId: Int) async throws -> ScrapResult {
+        let response = try await recordsService.addScrap(recordId: recordId)
+        return response.toDomain()
+    }
+
+    func deleteScrap(recordId: Int) async throws -> ScrapResult {
+        let response = try await recordsService.deleteScrap(recordId: recordId)
+        return response.toDomain()
+    }
 }
 
 // MARK: - Mock Data

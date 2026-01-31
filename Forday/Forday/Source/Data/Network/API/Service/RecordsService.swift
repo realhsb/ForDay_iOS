@@ -116,4 +116,29 @@ final class RecordsService {
             size: size
         ))
     }
+
+    // MARK: - 활동 기록 스크랩 추가
+
+    /// 활동 기록을 스크랩합니다.
+    ///
+    /// - Parameter recordId: 스크랩할 활동 기록 ID
+    /// - Returns: 스크랩 결과
+    /// - Throws:
+    ///   - `ACTIVITY_RECORD_NOT_FOUND` (404): 존재하지 않는 활동 기록
+    ///   - `FRIEND_ONLY_ACCESS` (403): 친구 공개 글, 친구가 아닌 사용자 조회 시
+    ///   - `PRIVATE_RECORD` (403): 나만보기 글, 작성자가 아닌 사용자 조회 시
+    ///   - `DUPLICATE_SCRAP` (400): 이미 스크랩한 경우
+    func addScrap(recordId: Int) async throws -> DTO.ScrapResponse {
+        return try await provider.request(.addScrap(recordId: recordId))
+    }
+
+    // MARK: - 활동 기록 스크랩 취소
+
+    /// 활동 기록의 스크랩을 취소합니다.
+    ///
+    /// - Parameter recordId: 스크랩을 취소할 활동 기록 ID
+    /// - Returns: 스크랩 취소 결과
+    func deleteScrap(recordId: Int) async throws -> DTO.ScrapResponse {
+        return try await provider.request(.deleteScrap(recordId: recordId))
+    }
 }

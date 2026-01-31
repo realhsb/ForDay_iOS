@@ -76,6 +76,13 @@ enum ServerErrorCode {
     /// - Status: 404
     static let reactionNotFound = "REACTION_NOT_FOUND"
 
+    // MARK: - Scrap Errors (스크랩 추가/삭제)
+
+    /// 이미 스크랩한 경우
+    /// - API: POST /records/{recordId}/scrap
+    /// - Status: 400
+    static let duplicateScrap = "DUPLICATE_SCRAP"
+
     // MARK: - Token/Auth Errors
 
     /// 토큰 만료 (자동 갱신됨)
@@ -229,6 +236,32 @@ enum ReactionAPIError {
     ]
 }
 
+/// 스크랩 API 에러 매핑
+enum ScrapAPIError {
+    static let metadata: [String: APIErrorMetadata] = [
+        ServerErrorCode.activityRecordNotFound: APIErrorMetadata(
+            code: ServerErrorCode.activityRecordNotFound,
+            title: "활동 기록을 찾을 수 없음",
+            action: .none
+        ),
+        ServerErrorCode.duplicateScrap: APIErrorMetadata(
+            code: ServerErrorCode.duplicateScrap,
+            title: "이미 스크랩함",
+            action: .none
+        ),
+        ServerErrorCode.friendOnlyAccess: APIErrorMetadata(
+            code: ServerErrorCode.friendOnlyAccess,
+            title: "접근 권한 없음",
+            action: .none
+        ),
+        ServerErrorCode.privateRecord: APIErrorMetadata(
+            code: ServerErrorCode.privateRecord,
+            title: "접근 권한 없음",
+            action: .none
+        )
+    ]
+}
+
 /// 사용자 API 에러 매핑
 enum UserAPIError {
     static let metadata: [String: APIErrorMetadata] = [
@@ -297,5 +330,10 @@ extension ServerError {
     /// 반응 API 메타데이터
     var reactionMetadata: APIErrorMetadata? {
         return ReactionAPIError.metadata[errorClassName]
+    }
+
+    /// 스크랩 API 메타데이터
+    var scrapMetadata: APIErrorMetadata? {
+        return ScrapAPIError.metadata[errorClassName]
     }
 }

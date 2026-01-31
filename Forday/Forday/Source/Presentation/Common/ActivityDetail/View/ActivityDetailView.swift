@@ -131,10 +131,16 @@ extension ActivityDetailView {
 
     private func layout() {
         addSubview(scrollView)
+        addSubview(reactionButtonsView)
         scrollView.addSubview(contentStackView)
 
         scrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(reactionButtonsView.snp.top)
+        }
+
+        reactionButtonsView.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
         }
 
         contentStackView.snp.makeConstraints {
@@ -146,7 +152,6 @@ extension ActivityDetailView {
         contentStackView.addArrangedSubview(imageView)
         contentStackView.addArrangedSubview(createInfoContainer())
         contentStackView.addArrangedSubview(reactionUsersScrollView)
-        contentStackView.addArrangedSubview(reactionButtonsView)
 
         // Initially hide reaction users scroll view
         reactionUsersScrollView.isHidden = true
