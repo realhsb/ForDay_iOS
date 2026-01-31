@@ -38,7 +38,7 @@ final class HobbyFilterCell: UICollectionViewCell {
     func configure(with hobby: MyPageHobby, isSelected: Bool) {
         // TODO: Load image from thumbnailImageUrl using Kingfisher
         // For now, use placeholder
-        
+
         if let thumbnailImageUrl = hobby.thumbnailImageUrl {
             iconImageView.kf.setImage(
                   with: URL(string: thumbnailImageUrl),
@@ -47,9 +47,7 @@ final class HobbyFilterCell: UICollectionViewCell {
         } else {
             iconImageView.image = UIImage(systemName: "photo")
         }
-        
-        
-        iconImageView.tintColor = .label
+
         nameLabel.text = hobby.hobbyName
 
         // Apply dim for archived hobbies
@@ -58,17 +56,6 @@ final class HobbyFilterCell: UICollectionViewCell {
         nameLabel.alpha = alpha
 
         // Show selection border
-        selectionBorderView.isHidden = !isSelected
-    }
-
-    func configureAsAll(isSelected: Bool) {
-        iconImageView.image = UIImage(systemName: "square.grid.2x2")
-        iconImageView.tintColor = .label
-        nameLabel.text = "전체"
-
-        iconImageView.alpha = 1.0
-        nameLabel.alpha = 1.0
-
         selectionBorderView.isHidden = !isSelected
     }
 }
@@ -86,7 +73,8 @@ extension HobbyFilterCell {
         }
 
         iconImageView.do {
-            $0.contentMode = .scaleAspectFit
+            $0.contentMode = .scaleAspectFill
+            $0.clipsToBounds = true
             $0.tintColor = .label
         }
 
@@ -99,7 +87,7 @@ extension HobbyFilterCell {
         selectionBorderView.do {
             $0.layer.cornerRadius = 28
             $0.layer.borderWidth = 2
-            $0.layer.borderColor = UIColor.label.cgColor
+            $0.layer.borderColor = UIColor(hex: "F4A261").cgColor
             $0.backgroundColor = .clear
             $0.isHidden = true
         }
@@ -118,8 +106,7 @@ extension HobbyFilterCell {
         }
 
         iconImageView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.width.height.equalTo(32)
+            $0.edges.equalToSuperview()
         }
 
         selectionBorderView.snp.makeConstraints {

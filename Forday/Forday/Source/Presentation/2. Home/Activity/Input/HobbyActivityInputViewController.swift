@@ -161,6 +161,8 @@ extension HobbyActivityInputViewController {
                 try await viewModel.createActivities(hobbyId: hobbyId, activities: activities)
 
                 await MainActor.run {
+                    print("✅ 활동 생성 완료! hobbyId: \(hobbyId)")
+
                     // Call callback without dismissing
                     // Parent view controller will handle dismiss and navigation
                     onActivityCreated?()

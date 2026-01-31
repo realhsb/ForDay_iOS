@@ -22,7 +22,8 @@ final class ActivityDetailView: UIView {
     let dateLabel = UILabel()
     let titleLabel = UILabel()
     let contentLabel = UILabel()
-    let reactionPlaceholderView = UIView()
+    let reactionUsersScrollView = ReactionUsersScrollView()
+    let reactionButtonsView = ReactionButtonsView()
 
     // MARK: - Initialization
 
@@ -58,6 +59,9 @@ final class ActivityDetailView: UIView {
             contentLabel.text = detail.memo
             contentLabel.textColor = .label
         }
+
+        // Configure reaction buttons
+        reactionButtonsView.configure(with: detail)
     }
 
     private func loadImage(from urlString: String) {
@@ -123,19 +127,27 @@ extension ActivityDetailView {
             $0.textColor = .label
             $0.numberOfLines = 0
         }
-
-        reactionPlaceholderView.do {
-            $0.backgroundColor = .systemGray6
-            $0.layer.cornerRadius = 8
-        }
     }
 
     private func layout() {
         addSubview(scrollView)
+        addSubview(reactionUsersScrollView)
+        addSubview(reactionButtonsView)
         scrollView.addSubview(contentStackView)
 
         scrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(reactionUsersScrollView.snp.top)
+        }
+
+        reactionUsersScrollView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(reactionButtonsView.snp.top)
+            $0.height.equalTo(60)  // 28 (image) + 4 (spacing) + 12 (label) + 16 (padding)
+        }
+
+        reactionButtonsView.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
         }
 
         contentStackView.snp.makeConstraints {
@@ -143,10 +155,12 @@ extension ActivityDetailView {
             $0.width.equalToSuperview()
         }
 
-        // Add views to stack
+        // Add views to stack (without reactionUsersScrollView)
         contentStackView.addArrangedSubview(imageView)
         contentStackView.addArrangedSubview(createInfoContainer())
-        contentStackView.addArrangedSubview(reactionPlaceholderView)
+
+        // Initially hide reaction users scroll view
+        reactionUsersScrollView.isHidden = true
 
         // Add sticker overlay on image
         imageView.addSubview(stickerImageView)
@@ -159,10 +173,6 @@ extension ActivityDetailView {
             $0.trailing.equalToSuperview().offset(-21)
             $0.bottom.equalToSuperview().offset(-21)
             $0.size.equalTo(80)
-        }
-
-        reactionPlaceholderView.snp.makeConstraints {
-            $0.height.equalTo(80)
         }
     }
 
@@ -194,4 +204,22 @@ extension ActivityDetailView {
 
         return container
     }
+}
+
+#Preview("ActivityDetailView - Basic") {
+    let view = ActivityDetailView()
+    view.configure(with: .preview)
+    return view
+}
+
+#Preview("ActivityDetailView - Scraped") {
+    let view = ActivityDetailView()
+    view.configure(with: .previewScraped)
+    return view
+}
+
+#Preview("ActivityDetailView - All Reactions") {
+    let view = ActivityDetailView()
+    view.configure(with: .previewWithAllReactions)
+    return view
 }

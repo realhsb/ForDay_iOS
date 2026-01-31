@@ -66,9 +66,24 @@ extension DTO.ActivityRecordDetailResponse {
             createdAt: data.createdAt,
             memo: data.memo ?? "",
             recordOwner: data.recordOwner,
+            scraped: data.scraped ?? false,
+            userInfo: data.userInfo?.toDomain(),
             visibility: data.visibility,
             newReaction: data.newReaction.toDomain(),
             userReaction: data.userReaction.toDomain()
+        )
+    }
+}
+
+extension DTO.UserInfo {
+    func toDomain() -> ActivityDetailUserInfo? {
+        guard let userId = userId, let nickname = nickname else {
+            return nil
+        }
+        return ActivityDetailUserInfo(
+            userId: userId,
+            nickname: nickname,
+            profileImageUrl: profileImageUrl
         )
     }
 }

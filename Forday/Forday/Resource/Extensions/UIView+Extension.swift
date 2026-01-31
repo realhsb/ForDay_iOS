@@ -152,7 +152,7 @@ enum DesignGradient {
         start: .top,
         end: .bottom
     )
-    
+
     static let gradient004 = AppGradient(
         colors: [
             UIColor(hex: "FFE6D1"),
@@ -160,6 +160,52 @@ enum DesignGradient {
         ],
         start: .top,
         end: .bottom
+    )
+
+    // MARK: - Sticker Gradients
+
+    /// Smile sticker gradient (Orange)
+    static let stickerSmile = AppGradient(
+        colors: [
+            UIColor(hex: "FFE6D1"),
+            UIColor(hex: "F4A261"),
+            UIColor(hex: "FFE6D1")
+        ],
+        start: .topLeading,
+        end: .bottomTrailing
+    )
+
+    /// Sad sticker gradient (Green)
+    static let stickerSad = AppGradient(
+        colors: [
+            UIColor(hex: "DDF2D8"),
+            UIColor(hex: "A8D8A2"),
+            UIColor(hex: "DDF2D8")
+        ],
+        start: .topLeading,
+        end: .bottomTrailing
+    )
+
+    /// Angry sticker gradient (Yellow)
+    static let stickerAngry = AppGradient(
+        colors: [
+            UIColor(hex: "FFE7A8"),
+            UIColor(hex: "FFD56A"),
+            UIColor(hex: "FFE7A8")
+        ],
+        start: .topLeading,
+        end: .bottomTrailing
+    )
+
+    /// Laugh sticker gradient (Blue)
+    static let stickerLaugh = AppGradient(
+        colors: [
+            UIColor(hex: "C9DBFF"),
+            UIColor(hex: "8FB3FF"),
+            UIColor(hex: "C9DBFF")
+        ],
+        start: .topLeading,
+        end: .bottomTrailing
     )
 }
 

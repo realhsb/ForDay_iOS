@@ -19,18 +19,8 @@ final class MyPageRepository: MyPageRepositoryInterface {
 
     func fetchUserInfo() async throws -> UserInfo {
         let response = try await usersService.fetchUserInfo()
-        
+
         return response.toDomain()
-    }
-
-    func fetchMyActivities(hobbyId: Int?, lastRecordId: Int?, size: Int) async throws -> FeedResult {
-        let response = try await usersService.fetchFeeds(
-            hobbyId: hobbyId,
-            lastRecordId: lastRecordId,
-            feedSize: size
-        )
-
-        return response.toDomain(requestedSize: size)
     }
 
     func fetchMyHobbies() async throws -> MyHobbiesResult {
@@ -52,6 +42,36 @@ final class MyPageRepository: MyPageRepositoryInterface {
         // TODO: Implement API call when ready
         fatalError("API not implemented")
         #endif
+    }
+
+    func addReaction(recordId: Int, reactionType: ReactionType) async throws -> AddReactionResult {
+        let response = try await recordsService.addReaction(recordId: recordId, reactionType: reactionType)
+        return response.toDomain()
+    }
+
+    func deleteReaction(recordId: Int, reactionType: ReactionType) async throws -> DeleteReactionResult {
+        let response = try await recordsService.deleteReaction(recordId: recordId, reactionType: reactionType)
+        return response.toDomain()
+    }
+
+    func fetchReactionUsers(recordId: Int, reactionType: ReactionType, lastUserId: String?, size: Int) async throws -> FetchReactionUsersResult {
+        let response = try await recordsService.fetchReactionUsers(
+            recordId: recordId,
+            reactionType: reactionType,
+            lastUserId: lastUserId,
+            size: size
+        )
+        return response.toDomain()
+    }
+
+    func addScrap(recordId: Int) async throws -> ScrapResult {
+        let response = try await recordsService.addScrap(recordId: recordId)
+        return response.toDomain()
+    }
+
+    func deleteScrap(recordId: Int) async throws -> ScrapResult {
+        let response = try await recordsService.deleteScrap(recordId: recordId)
+        return response.toDomain()
     }
 }
 

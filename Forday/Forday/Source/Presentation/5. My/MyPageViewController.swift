@@ -27,6 +27,7 @@ final class MyPageViewController: UIViewController {
     // Child ViewControllers for tab content
     private var activityGridVC: ActivityGridViewController?
     private var hobbyCardStackVC: HobbyCardStackViewController?
+    private var scrapGridVC: ScrapGridViewController?
 
     // Settings dropdown
     private var settingsDropdownBackgroundView: UIView?
@@ -111,13 +112,50 @@ extension MyPageViewController {
             }
             .store(in: &cancellables)
 
-        // Listen to hobby deletion
-        AppEventBus.shared.hobbyDeleted
-            .sink { [weak self] in
-                print("🗑️ 취미 삭제됨! MyPage 새로고침")
+        // Listen to hobby creation
+        AppEventBus.shared.hobbyCreated
+            .sink { [weak self] hobbyId in
                 Task {
                     // Refresh both hobbies and activities
                     await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobby settings updates
+        AppEventBus.shared.hobbySettingsUpdated
+            .sink { [weak self] hobbyId in
+                Task {
+                    await self?.viewModel.refreshHobbies()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to hobby deletion
+        AppEventBus.shared.hobbyDeleted
+            .sink { [weak self] in
+                Task {
+                    // Refresh both hobbies and activities
+                    await self?.viewModel.refreshHobbies()
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to activity record creation
+        AppEventBus.shared.activityRecordCreated
+            .sink { [weak self] hobbyId in
+                Task {
+                    await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to activity record deletion
+        AppEventBus.shared.activityRecordDeleted
+            .sink { [weak self] in
+                Task {
                     await self?.viewModel.refreshActivities()
                 }
             }
@@ -213,6 +251,12 @@ extension MyPageViewController {
         let hobbyCardStackVC = HobbyCardStackViewController(viewModel: viewModel)
         addChild(hobbyCardStackVC)
         self.hobbyCardStackVC = hobbyCardStackVC
+
+        // Scrap Grid ViewController
+        let scrapGridVC = ScrapGridViewController(viewModel: viewModel)
+        scrapGridVC.coordinator = coordinator
+        addChild(scrapGridVC)
+        self.scrapGridVC = scrapGridVC
     }
 
     private func switchToTab(_ tab: MyPageTab) {
@@ -238,6 +282,23 @@ extension MyPageViewController {
                     $0.edges.equalToSuperview()
                 }
                 hobbyCardStackVC.didMove(toParent: self)
+            }
+
+        case .scraps:
+            if let scrapGridVC = scrapGridVC {
+                scrapGridVC.view.frame = myPageView.contentContainerView.bounds
+                myPageView.contentContainerView.addSubview(scrapGridVC.view)
+                scrapGridVC.view.snp.makeConstraints {
+                    $0.edges.equalToSuperview()
+                }
+                scrapGridVC.didMove(toParent: self)
+
+                // Load scraps when first switched to scraps tab
+                if viewModel.scraps.isEmpty {
+                    Task {
+                        await viewModel.refreshScraps()
+                    }
+                }
             }
         }
     }

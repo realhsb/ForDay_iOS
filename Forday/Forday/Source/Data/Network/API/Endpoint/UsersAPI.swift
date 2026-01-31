@@ -13,6 +13,7 @@ enum UsersAPI {
     case hobbiesInProgress      /// 사용자 취미 진행 상단탭 조회
     case feeds                  /// 사용자 피드 목록 조회
     case hobbyCards             /// 사용자 취미 카드 리스트 조회
+    case scraps                 /// 사용자 스크랩 목록 조회
     
     
     var endpoint: String {
@@ -31,6 +32,8 @@ enum UsersAPI {
             return "/users/feeds"
         case .hobbyCards:
             return "/users/hobby-cards"
+        case .scraps:
+            return "/users/scraps"
         }
     }
 }

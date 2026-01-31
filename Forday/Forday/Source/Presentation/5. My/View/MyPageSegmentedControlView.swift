@@ -15,6 +15,7 @@ final class MyPageSegmentedControlView: UIView {
 
     private let activitiesButton = UIButton()
     private let hobbyCardsButton = UIButton()
+    private let scrapsButton = UIButton()
     private let underlineView = UIView()
 
     var onSegmentChanged: ((MyPageTab) -> Void)?
@@ -35,9 +36,10 @@ final class MyPageSegmentedControlView: UIView {
 
     // MARK: - Configuration
 
-    func updateCounts(inProgressCount: Int, hobbyCardsCount: Int) {
+    func updateCounts(inProgressCount: Int, hobbyCardsCount: Int, scrapsCount: Int = 0) {
         activitiesButton.setTitle("진행중 \(inProgressCount)", for: .normal)
         hobbyCardsButton.setTitle("취미카드 \(hobbyCardsCount)", for: .normal)
+        scrapsButton.setTitle("스크랩", for: .normal)
     }
 
     func selectSegment(_ segment: MyPageTab, animated: Bool = false) {
@@ -51,10 +53,12 @@ final class MyPageSegmentedControlView: UIView {
     private func updateSegmentAppearance(animated: Bool) {
         let activitiesSelected = selectedSegment == .activities
         let hobbyCardsSelected = selectedSegment == .hobbyCards
+        let scrapsSelected = selectedSegment == .scraps
 
         // Update button states
         activitiesButton.isSelected = activitiesSelected
         hobbyCardsButton.isSelected = hobbyCardsSelected
+        scrapsButton.isSelected = scrapsSelected
 
         // Update colors
         activitiesButton.setTitleColor(
@@ -65,9 +69,13 @@ final class MyPageSegmentedControlView: UIView {
             hobbyCardsSelected ? .label : .secondaryLabel,
             for: .normal
         )
+        scrapsButton.setTitleColor(
+            scrapsSelected ? .label : .secondaryLabel,
+            for: .normal
+        )
 
         // Update underline position
-        let targetButton = activitiesSelected ? activitiesButton : hobbyCardsButton
+        let targetButton = activitiesSelected ? activitiesButton : (hobbyCardsSelected ? hobbyCardsButton : scrapsButton)
 
         if animated {
             UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut) {
@@ -109,6 +117,12 @@ extension MyPageSegmentedControlView {
             $0.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         }
 
+        scrapsButton.do {
+            $0.setTitle("스크랩", for: .normal)
+            $0.setTitleColor(.secondaryLabel, for: .normal)
+            $0.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        }
+
         underlineView.do {
             $0.backgroundColor = .label
         }
@@ -117,6 +131,7 @@ extension MyPageSegmentedControlView {
     private func layout() {
         addSubview(activitiesButton)
         addSubview(hobbyCardsButton)
+        addSubview(scrapsButton)
         addSubview(underlineView)
 
         activitiesButton.snp.makeConstraints {
@@ -127,6 +142,12 @@ extension MyPageSegmentedControlView {
 
         hobbyCardsButton.snp.makeConstraints {
             $0.leading.equalTo(activitiesButton.snp.trailing).offset(20)
+            $0.top.bottom.equalToSuperview()
+            $0.width.equalTo(scrapsButton)
+        }
+
+        scrapsButton.snp.makeConstraints {
+            $0.leading.equalTo(hobbyCardsButton.snp.trailing).offset(20)
             $0.top.bottom.equalToSuperview()
             $0.trailing.lessThanOrEqualToSuperview().offset(-20)
         }
@@ -151,6 +172,12 @@ extension MyPageSegmentedControlView {
             action: #selector(hobbyCardsButtonTapped),
             for: .touchUpInside
         )
+
+        scrapsButton.addTarget(
+            self,
+            action: #selector(scrapsButtonTapped),
+            for: .touchUpInside
+        )
     }
 }
 
@@ -167,5 +194,11 @@ extension MyPageSegmentedControlView {
         guard selectedSegment != .hobbyCards else { return }
         selectSegment(.hobbyCards, animated: true)
         onSegmentChanged?(.hobbyCards)
+    }
+
+    @objc private func scrapsButtonTapped() {
+        guard selectedSegment != .scraps else { return }
+        selectSegment(.scraps, animated: true)
+        onSegmentChanged?(.scraps)
     }
 }

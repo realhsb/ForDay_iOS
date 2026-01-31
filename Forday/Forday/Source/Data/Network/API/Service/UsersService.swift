@@ -53,8 +53,8 @@ final class UsersService {
     }
     
     /// Users - 사용자 피드 목록 조회
-    func fetchFeeds(hobbyId: Int?, lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
-        return try await provider.request(.feeds(hobbyId: hobbyId, lastRecordId: lastRecordId, feedSize: feedSize))
+    func fetchFeeds(hobbyIds: [Int], lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersFeedsResponse {
+        return try await provider.request(.feeds(hobbyIds: hobbyIds, lastRecordId: lastRecordId, feedSize: feedSize))
     }
     
     /// Users - 사용자 정보 조회
@@ -75,5 +75,10 @@ final class UsersService {
     /// Users - 사용자 취미 카드 리스트 조회
     func fetchHobbyCards(lastHobbyCardId: Int?, size: Int = 20) async throws -> DTO.UsersHobbyCardResponse {
         return try await provider.request(.hobbyCards(lastHobbyCardId: lastHobbyCardId, size: size))
+    }
+
+    /// Users - 사용자 스크랩 목록 조회
+    func fetchScraps(lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersScrapsResponse {
+        return try await provider.request(.scraps(lastRecordId: lastRecordId, feedSize: feedSize))
     }
 }
