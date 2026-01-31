@@ -13,3 +13,21 @@ struct ReactionStatus {
     let amazing: Bool
     let fighting: Bool
 }
+
+// MARK: - Preview
+
+#if DEBUG
+extension ReactionStatus {
+    static var preview: ReactionStatus {
+        ReactionStatus(awesome: true, great: false, amazing: false, fighting: false)
+    }
+
+    static var previewAll: ReactionStatus {
+        ReactionStatus(awesome: true, great: true, amazing: true, fighting: true)
+    }
+
+    static var previewNone: ReactionStatus {
+        ReactionStatus(awesome: false, great: false, amazing: false, fighting: false)
+    }
+}
+#endif

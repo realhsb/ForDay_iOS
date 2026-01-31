@@ -29,3 +29,103 @@ struct ActivityDetailUserInfo {
     let nickname: String
     let profileImageUrl: String?
 }
+
+// MARK: - Preview
+
+#if DEBUG
+extension ActivityDetailUserInfo {
+    static var preview: ActivityDetailUserInfo {
+        ActivityDetailUserInfo(
+            userId: 1,
+            nickname: "러너",
+            profileImageUrl: nil
+        )
+    }
+
+    static var previewWithImage: ActivityDetailUserInfo {
+        ActivityDetailUserInfo(
+            userId: 2,
+            nickname: "달리기",
+            profileImageUrl: "https://picsum.photos/200/200"
+        )
+    }
+}
+
+extension ActivityDetail {
+    static var preview: ActivityDetail {
+        ActivityDetail(
+            activityRecordId: 1,
+            hobbyId: 1,
+            activityId: 1,
+            activityContent: "아침 러닝 10km",
+            imageUrl: "https://picsum.photos/300/300",
+            sticker: "sticker_awesome_big",
+            createdAt: "2026.01.15",
+            memo: "오늘은 날씨가 좋아서 기분 좋게 달렸어요!",
+            recordOwner: true,
+            scraped: false,
+            userInfo: .preview,
+            visibility: "PUBLIC",
+            newReaction: .previewNone,
+            userReaction: .preview
+        )
+    }
+
+    static var previewScraped: ActivityDetail {
+        ActivityDetail(
+            activityRecordId: 2,
+            hobbyId: 1,
+            activityId: 2,
+            activityContent: "저녁 요가 60분",
+            imageUrl: "https://picsum.photos/300/300",
+            sticker: "sticker_great_big",
+            createdAt: "2026.01.20",
+            memo: "스트레칭 위주로 진행했습니다.",
+            recordOwner: true,
+            scraped: true,
+            userInfo: .previewWithImage,
+            visibility: "FRIENDS_ONLY",
+            newReaction: .preview,
+            userReaction: .previewNone
+        )
+    }
+
+    static var previewWithAllReactions: ActivityDetail {
+        ActivityDetail(
+            activityRecordId: 3,
+            hobbyId: 2,
+            activityId: 3,
+            activityContent: "기타 연습 2시간",
+            imageUrl: "https://picsum.photos/300/300",
+            sticker: "sticker_amazing_big",
+            createdAt: "2026.01.25",
+            memo: "새로운 곡을 배웠어요. 어려웠지만 재미있었습니다!",
+            recordOwner: false,
+            scraped: false,
+            userInfo: .preview,
+            visibility: "PUBLIC",
+            newReaction: .previewAll,
+            userReaction: .previewAll
+        )
+    }
+
+    static var previewOthersActivity: ActivityDetail {
+        ActivityDetail(
+            activityRecordId: 4,
+            hobbyId: 3,
+            activityId: 4,
+            activityContent: "독서 1시간",
+            imageUrl: "https://picsum.photos/300/300",
+            sticker: "sticker_fighting_big",
+            createdAt: "2026.01.28",
+            memo: "",
+            recordOwner: false,
+            scraped: true,
+            userInfo: .previewWithImage,
+            visibility: "PRIVATE",
+            newReaction: .preview,
+            userReaction: .previewNone
+        )
+    }
+}
+#endif
