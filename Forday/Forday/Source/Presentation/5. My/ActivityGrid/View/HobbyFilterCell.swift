@@ -48,8 +48,6 @@ final class HobbyFilterCell: UICollectionViewCell {
             iconImageView.image = UIImage(systemName: "photo")
         }
 
-
-        iconImageView.tintColor = .label
         nameLabel.text = hobby.hobbyName
 
         // Apply dim for archived hobbies
@@ -75,7 +73,8 @@ extension HobbyFilterCell {
         }
 
         iconImageView.do {
-            $0.contentMode = .scaleAspectFit
+            $0.contentMode = .scaleAspectFill
+            $0.clipsToBounds = true
             $0.tintColor = .label
         }
 
@@ -107,8 +106,7 @@ extension HobbyFilterCell {
         }
 
         iconImageView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.width.height.equalTo(32)
+            $0.edges.equalToSuperview()
         }
 
         selectionBorderView.snp.makeConstraints {

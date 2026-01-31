@@ -30,6 +30,34 @@ final class RecordsService {
         return try await provider.request(.fetchRecordDetail(recordId: recordId))
     }
 
+    // MARK: - 활동 기록 수정
+
+    /// 활동 기록을 수정합니다.
+    ///
+    /// - Parameters:
+    ///   - recordId: 수정할 활동 기록 ID
+    ///   - request: 수정할 활동 기록 정보
+    /// - Returns: 수정된 활동 기록 정보
+    /// - Throws:
+    ///   - `ACTIVITY_RECORD_NOT_FOUND` (404): 존재하지 않는 활동 기록
+    ///   - `ACTIVITY_NOT_FOUND` (404): 존재하지 않는 활동
+    ///   - `S3_IMAGE_NOT_FOUND` (404): S3에 이미지가 존재하지 않음
+    func updateRecord(recordId: Int, request: DTO.UpdateRecordRequest) async throws -> DTO.UpdateRecordResponse {
+        return try await provider.request(.updateRecord(recordId: recordId, request: request))
+    }
+
+    // MARK: - 활동 기록 삭제
+
+    /// 활동 기록을 삭제합니다.
+    ///
+    /// - Parameter recordId: 삭제할 활동 기록 ID
+    /// - Returns: 삭제 결과
+    /// - Throws:
+    ///   - `ACTIVITY_RECORD_NOT_FOUND` (404): 존재하지 않는 활동 기록
+    func deleteRecord(recordId: Int) async throws -> DTO.DeleteRecordResponse {
+        return try await provider.request(.deleteRecord(recordId: recordId))
+    }
+
     // MARK: - 활동 기록 반응 추가
 
     /// 활동 기록에 반응을 추가합니다.

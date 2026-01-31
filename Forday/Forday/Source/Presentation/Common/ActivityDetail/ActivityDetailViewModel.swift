@@ -25,6 +25,8 @@ final class ActivityDetailViewModel {
     private let addReactionUseCase: AddReactionUseCase
     private let deleteReactionUseCase: DeleteReactionUseCase
     private let fetchReactionUsersUseCase: FetchReactionUsersUseCase
+    private let deleteActivityRecordUseCase: DeleteActivityRecordUseCase
+    private let updateHobbyCoverUseCase: UpdateHobbyCoverUseCase
 
     private var lastUserId: String? = nil
     private var hasMoreUsers: Bool = true
@@ -42,13 +44,17 @@ final class ActivityDetailViewModel {
         fetchActivityDetailUseCase: FetchActivityDetailUseCase = FetchActivityDetailUseCase(),
         addReactionUseCase: AddReactionUseCase = AddReactionUseCase(),
         deleteReactionUseCase: DeleteReactionUseCase = DeleteReactionUseCase(),
-        fetchReactionUsersUseCase: FetchReactionUsersUseCase = FetchReactionUsersUseCase()
+        fetchReactionUsersUseCase: FetchReactionUsersUseCase = FetchReactionUsersUseCase(),
+        deleteActivityRecordUseCase: DeleteActivityRecordUseCase = DeleteActivityRecordUseCase(),
+        updateHobbyCoverUseCase: UpdateHobbyCoverUseCase = UpdateHobbyCoverUseCase()
     ) {
         self.activityRecordId = activityRecordId
         self.fetchActivityDetailUseCase = fetchActivityDetailUseCase
         self.addReactionUseCase = addReactionUseCase
         self.deleteReactionUseCase = deleteReactionUseCase
         self.fetchReactionUsersUseCase = fetchReactionUsersUseCase
+        self.deleteActivityRecordUseCase = deleteActivityRecordUseCase
+        self.updateHobbyCoverUseCase = updateHobbyCoverUseCase
     }
 
     // MARK: - Public Methods
@@ -171,5 +177,17 @@ final class ActivityDetailViewModel {
             self.lastUserId = nil
             self.hasMoreUsers = true
         }
+    }
+
+    // MARK: - Activity Record Actions
+
+    /// 활동 기록을 삭제합니다.
+    func deleteRecord() async throws {
+        _ = try await deleteActivityRecordUseCase.execute(recordId: activityRecordId)
+    }
+
+    /// 이 활동 기록의 이미지를 취미 대표사진으로 설정합니다.
+    func setCoverImage() async throws {
+        _ = try await updateHobbyCoverUseCase.executeWithRecord(recordId: activityRecordId)
     }
 }

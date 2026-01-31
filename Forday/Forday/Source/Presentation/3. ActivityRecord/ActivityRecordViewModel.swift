@@ -38,6 +38,7 @@ class ActivityRecordViewModel {
     private let uploadImageUseCase: UploadImageUseCase
     private let deleteImageUseCase: DeleteImageUseCase
     private let createActivityRecordUseCase: CreateActivityRecordUseCase
+    private let updateActivityRecordUseCase: UpdateActivityRecordUseCase
 
     private let hobbyId: Int
     private let activityDetail: ActivityDetail?
@@ -62,7 +63,8 @@ class ActivityRecordViewModel {
         fetchActivityListUseCase: FetchActivityDropdownListUseCase = FetchActivityDropdownListUseCase(),
         uploadImageUseCase: UploadImageUseCase = UploadImageUseCase(),
         deleteImageUseCase: DeleteImageUseCase = DeleteImageUseCase(),
-        createActivityRecordUseCase: CreateActivityRecordUseCase = CreateActivityRecordUseCase()
+        createActivityRecordUseCase: CreateActivityRecordUseCase = CreateActivityRecordUseCase(),
+        updateActivityRecordUseCase: UpdateActivityRecordUseCase = UpdateActivityRecordUseCase()
     ) {
         self.hobbyId = hobbyId
         self.activityDetail = activityDetail
@@ -70,6 +72,7 @@ class ActivityRecordViewModel {
         self.uploadImageUseCase = uploadImageUseCase
         self.deleteImageUseCase = deleteImageUseCase
         self.createActivityRecordUseCase = createActivityRecordUseCase
+        self.updateActivityRecordUseCase = updateActivityRecordUseCase
         bind()
         loadExistingData()
     }
@@ -171,11 +174,31 @@ class ActivityRecordViewModel {
         let stickerFileName = selectedSticker.type.rawValue
 
         if isEditMode {
-            // TODO: Update API 구현 필요
-            // - UpdateActivityRecordUseCase를 생성하고 호출해야 함
-            // - activityRecordId를 함께 전달해야 함
-            print("⚠️ 수정 API 미구현: activityRecordId = \(activityDetail?.activityRecordId ?? 0)")
-            throw ActivityRecordError.updateNotSupported
+            guard let recordId = activityDetail?.activityRecordId else {
+                throw ActivityRecordError.missingRequiredFields
+            }
+
+            // Call update API
+            let updateResult = try await updateActivityRecordUseCase.execute(
+                recordId: recordId,
+                activityId: activityId,
+                sticker: stickerFileName,
+                memo: memo.isEmpty ? nil : memo,
+                imageUrl: uploadedImageUrl,
+                visibility: privacy
+            )
+
+            // Convert UpdateRecordResult to ActivityRecord for compatibility
+            return ActivityRecord(
+                message: updateResult.message,
+                hobbyId: hobbyId,
+                activityRecordId: recordId,
+                activityContent: updateResult.activityContent,
+                imageUrl: updateResult.imageUrl,
+                sticker: updateResult.sticker,
+                memo: updateResult.memo,
+                extensionCheckRequired: false  // Not applicable for updates
+            )
         }
 
         return try await createActivityRecordUseCase.execute(
@@ -190,7 +213,6 @@ class ActivityRecordViewModel {
 
 enum ActivityRecordError: Error {
     case missingRequiredFields
-    case updateNotSupported
 }
 
 // Models

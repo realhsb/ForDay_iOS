@@ -20,6 +20,7 @@ final class ActivityDetailViewController: UIViewController {
 
     private let viewModel: ActivityDetailViewModel
     private var cancellables = Set<AnyCancellable>()
+    private var dropdownView: ActivityDetailDropdownView?
 
     weak var coordinator: MainTabBarCoordinator?
 
@@ -43,6 +44,7 @@ final class ActivityDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
+        setupGestures()
         bind()
         loadData()
     }
@@ -64,6 +66,13 @@ extension ActivityDetailViewController {
         moreButton.tintColor = .label
 
         navigationItem.rightBarButtonItem = moreButton
+    }
+
+    private func setupGestures() {
+        // Background tap to dismiss dropdown
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
 
     private func bind() {
@@ -142,27 +151,51 @@ extension ActivityDetailViewController {
     @objc private func moreButtonTapped() {
         print("⋯ More button tapped")
 
-        let alert = UIAlertController(
-            title: nil,
-            message: nil,
-            preferredStyle: .actionSheet
-        )
+        // Dismiss dropdown if already showing
+        if dropdownView != nil {
+            dismissDropdown()
+            return
+        }
 
-        alert.addAction(UIAlertAction(title: "대표사진 설정", style: .default) { [weak self] _ in
-            self?.setAsProfileImage()
-        })
+        // Show custom dropdown
+        showDropdown()
+    }
 
-        alert.addAction(UIAlertAction(title: "수정하기", style: .default) { [weak self] _ in
-            self?.editActivity()
-        })
+    @objc private func backgroundTapped() {
+        dismissDropdown()
+    }
 
-        alert.addAction(UIAlertAction(title: "삭제하기", style: .destructive) { [weak self] _ in
-            self?.showDeleteConfirmation()
-        })
+    private func showDropdown() {
+        guard dropdownView == nil,
+              let moreButton = navigationItem.rightBarButtonItem,
+              let barButtonView = moreButton.value(forKey: "view") as? UIView else {
+            return
+        }
 
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        let dropdown = ActivityDetailDropdownView()
+        dropdown.onOptionSelected = { [weak self] option in
+            self?.handleDropdownOption(option)
+            self?.dismissDropdown()
+        }
 
-        present(alert, animated: true)
+        dropdown.show(in: view, below: barButtonView)
+        dropdownView = dropdown
+    }
+
+    private func dismissDropdown() {
+        dropdownView?.dismiss()
+        dropdownView = nil
+    }
+
+    private func handleDropdownOption(_ option: ActivityDetailDropdownOption) {
+        switch option {
+        case .setCoverImage:
+            setAsProfileImage()
+        case .edit:
+            editActivity()
+        case .delete:
+            showDeleteConfirmation()
+        }
     }
 
     private func setAsProfileImage() {
@@ -170,9 +203,28 @@ extension ActivityDetailViewController {
 
         print("📸 대표사진 설정: \(detail.imageUrl)")
 
-        // TODO: UpdateProfileUseCase 호출
-        // - 이미지 URL을 프로필 이미지로 설정
-        // - API가 준비되면 구현
+        Task {
+            do {
+                try await viewModel.setCoverImage()
+                await MainActor.run {
+                    print("✅ 대표사진 설정 성공")
+                    showSuccessAlert(
+                        title: "완료",
+                        message: "대표사진이 설정되었습니다."
+                    )
+                }
+            } catch let appError as AppError {
+                await MainActor.run {
+                    print("❌ 대표사진 설정 실패: \(appError)")
+                    handleError(appError)
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ 대표사진 설정 실패: \(error)")
+                    handleError(.unknown(error))
+                }
+            }
+        }
     }
 
     private func editActivity() {
@@ -210,9 +262,52 @@ extension ActivityDetailViewController {
     private func deleteActivity() {
         print("🗑️ 활동 기록 삭제")
 
-        // TODO: 삭제 API 호출
-        // - API가 준비되면 구현
-        // - 성공 시 이전 화면으로 이동
+        Task {
+            do {
+                try await viewModel.deleteRecord()
+                await MainActor.run {
+                    print("✅ 활동 기록 삭제 성공")
+
+                    // Notify observers that a record was deleted
+                    if let detail = viewModel.activityDetail {
+                        AppEventBus.shared.activityRecordCreated.send(detail.hobbyId)
+                    }
+
+                    // Navigate back
+                    navigationController?.popViewController(animated: true)
+                }
+            } catch let appError as AppError {
+                await MainActor.run {
+                    print("❌ 활동 기록 삭제 실패: \(appError)")
+                    handleError(appError)
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ 활동 기록 삭제 실패: \(error)")
+                    handleError(.unknown(error))
+                }
+            }
+        }
+    }
+
+    private func handleError(_ error: AppError) {
+        let alert = UIAlertController(
+            title: "오류",
+            message: error.userMessage,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func showSuccessAlert(title: String, message: String) {
+        let alert = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 
     private func handleReactionSingleTapped(_ reactionType: ReactionType) {

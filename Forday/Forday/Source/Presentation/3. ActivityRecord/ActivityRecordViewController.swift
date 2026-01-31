@@ -233,20 +233,13 @@ extension ActivityRecordViewController {
             do {
                 let result = try await viewModel.submitActivityRecord()
                 await MainActor.run {
-                    print("✅ 활동 기록 작성 성공: \(result.message)")
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("✅ 활동 기록 \(actionType) 성공: \(result.message)")
 
                     // Notify HomeViewController to refresh sticker board
                     AppEventBus.shared.activityRecordCreated.send(viewModel.currentHobbyId)
 
                     dismiss(animated: true)
-                }
-            } catch ActivityRecordError.updateNotSupported {
-                await MainActor.run {
-                    print("⚠️ 수정 기능은 아직 구현되지 않았습니다")
-                    showErrorAlert(
-                        title: "기능 준비 중",
-                        message: "활동 기록 수정 기능은 곧 제공될 예정입니다."
-                    )
                 }
             } catch ActivityRecordError.missingRequiredFields {
                 await MainActor.run {
@@ -258,13 +251,15 @@ extension ActivityRecordViewController {
                 }
             } catch let appError as AppError {
                 await MainActor.run {
-                    print("❌ 활동 기록 작성 실패: \(appError)")
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("❌ 활동 기록 \(actionType) 실패: \(appError)")
                     // Use common error handler
                     self.handleActivityRecordError(appError)
                 }
             } catch {
                 await MainActor.run {
-                    print("❌ 활동 기록 작성 실패: \(error)")
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("❌ 활동 기록 \(actionType) 실패: \(error)")
                     self.handleActivityRecordError(.unknown(error))
                 }
             }

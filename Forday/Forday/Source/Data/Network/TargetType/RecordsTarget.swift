@@ -11,6 +11,8 @@ import Alamofire
 
 enum RecordsTarget {
     case fetchRecordDetail(recordId: Int)
+    case updateRecord(recordId: Int, request: DTO.UpdateRecordRequest)
+    case deleteRecord(recordId: Int)
     case addReaction(recordId: Int, reactionType: ReactionType)
     case deleteReaction(recordId: Int, reactionType: ReactionType)
     case fetchReactionUsers(recordId: Int, reactionType: ReactionType, lastUserId: String?, size: Int)
@@ -22,6 +24,10 @@ extension RecordsTarget: BaseTargetType {
         switch self {
         case .fetchRecordDetail(let recordId):
             return RecordsAPI.fetchRecordDetail(recordId).endpoint
+        case .updateRecord(let recordId, _):
+            return RecordsAPI.updateRecord(recordId: recordId).endpoint
+        case .deleteRecord(let recordId):
+            return RecordsAPI.deleteRecord(recordId).endpoint
         case .addReaction(let recordId, _):
             return RecordsAPI.addReaction(recordId: recordId).endpoint
         case .deleteReaction(let recordId, _):
@@ -35,6 +41,10 @@ extension RecordsTarget: BaseTargetType {
         switch self {
         case .fetchRecordDetail:
             return .get
+        case .updateRecord:
+            return .put
+        case .deleteRecord:
+            return .delete
         case .addReaction:
             return .post
         case .deleteReaction:
@@ -47,6 +57,10 @@ extension RecordsTarget: BaseTargetType {
     var task: Moya.Task {
         switch self {
         case .fetchRecordDetail:
+            return .requestPlain
+        case .updateRecord(_, let request):
+            return .requestJSONEncodable(request)
+        case .deleteRecord:
             return .requestPlain
         case .addReaction(_, let reactionType):
             let request = DTO.AddReactionRequest(reactionType: reactionType.rawValue)
