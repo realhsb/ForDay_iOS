@@ -11,6 +11,7 @@ import Combine
 enum MyPageTab {
     case activities
     case hobbyCards
+    case scraps
 }
 
 final class MyPageViewModel {
@@ -24,6 +25,7 @@ final class MyPageViewModel {
     @Published var hobbyCardCount: Int = 0        // Segment "취미 카드(n)" 표시용
     @Published var activities: [FeedItem] = []
     @Published var hobbyCards: [CompletedHobbyCard] = []
+    @Published var scraps: [FeedItem] = []
     @Published var selectedHobbyIds: Set<Int> = [] // Empty = all hobbies
     @Published var isLoading: Bool = false
     @Published var isLoadingMore: Bool = false
@@ -35,12 +37,15 @@ final class MyPageViewModel {
     private var hasMoreActivities: Bool = true
     private var lastHobbyCardId: Int? = nil
     private var hasMoreHobbyCards: Bool = true
+    private var lastScrapRecordId: Int? = nil
+    private var hasMoreScraps: Bool = true
 
     // Use Cases
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let fetchMyActivitiesUseCase: FetchMyActivitiesUseCase
     private let fetchMyHobbiesUseCase: FetchMyHobbiesUseCase
     private let fetchHobbyCardsUseCase: FetchHobbyCardsUseCase
+    private let fetchScrapsUseCase: FetchScrapsUseCase
 
     // MARK: - Initialization
 
@@ -48,12 +53,14 @@ final class MyPageViewModel {
         fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(),
         fetchMyActivitiesUseCase: FetchMyActivitiesUseCase = FetchMyActivitiesUseCase(),
         fetchMyHobbiesUseCase: FetchMyHobbiesUseCase = FetchMyHobbiesUseCase(),
-        fetchHobbyCardsUseCase: FetchHobbyCardsUseCase = FetchHobbyCardsUseCase()
+        fetchHobbyCardsUseCase: FetchHobbyCardsUseCase = FetchHobbyCardsUseCase(),
+        fetchScrapsUseCase: FetchScrapsUseCase = FetchScrapsUseCase()
     ) {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchMyActivitiesUseCase = fetchMyActivitiesUseCase
         self.fetchMyHobbiesUseCase = fetchMyHobbiesUseCase
         self.fetchHobbyCardsUseCase = fetchHobbyCardsUseCase
+        self.fetchScrapsUseCase = fetchScrapsUseCase
     }
 
     // MARK: - Public Methods
@@ -209,6 +216,64 @@ final class MyPageViewModel {
         } catch {
             // Silently fail - user can refresh manually if needed
             print("❌ Failed to refresh hobbies: \(error)")
+        }
+    }
+
+    func refreshScraps() async {
+        await MainActor.run {
+            isLoading = true
+        }
+
+        do {
+            let result = try await fetchScrapsUseCase.execute(lastRecordId: nil)
+
+            await MainActor.run {
+                self.scraps = result.feedList
+                self.hasMoreScraps = result.hasNext
+                self.lastScrapRecordId = result.lastRecordId
+                self.isLoading = false
+            }
+
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.error = .unknown(error)
+                self.isLoading = false
+            }
+        }
+    }
+
+    func loadMoreScraps() async {
+        guard !isLoadingMore && hasMoreScraps else { return }
+
+        await MainActor.run {
+            isLoadingMore = true
+        }
+
+        do {
+            let result = try await fetchScrapsUseCase.execute(lastRecordId: lastScrapRecordId)
+
+            await MainActor.run {
+                self.scraps.append(contentsOf: result.feedList)
+                self.hasMoreScraps = result.hasNext
+                self.lastScrapRecordId = result.lastRecordId
+                self.isLoadingMore = false
+            }
+
+        } catch let appError as AppError {
+            await MainActor.run {
+                self.error = appError
+                self.isLoadingMore = false
+            }
+        } catch {
+            await MainActor.run {
+                self.error = .unknown(error)
+                self.isLoadingMore = false
+            }
         }
     }
 }
