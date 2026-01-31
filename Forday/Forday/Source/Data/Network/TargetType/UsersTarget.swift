@@ -17,6 +17,7 @@ enum UsersTarget {
     case profileImageUpload(profileImageUrl: String)     /// 사용자 프로필 이미지 설정
     case hobbiesInProgress      /// 사용자 취미 진행 상단탭 조회
     case hobbyCards(lastHobbyCardId: Int?, size: Int)    /// 사용자 취미 카드 리스트 조회
+    case scraps(lastRecordId: Int?, feedSize: Int)       /// 사용자 스크랩 목록 조회
 }
 
 extension UsersTarget: BaseTargetType {
@@ -37,6 +38,8 @@ extension UsersTarget: BaseTargetType {
             return UsersAPI.hobbiesInProgress.endpoint
         case .hobbyCards:
             return UsersAPI.hobbyCards.endpoint
+        case .scraps:
+            return UsersAPI.scraps.endpoint
         }
     }
     
@@ -55,6 +58,8 @@ extension UsersTarget: BaseTargetType {
         case .hobbiesInProgress:
             return .get
         case .hobbyCards:
+            return .get
+        case .scraps:
             return .get
         }
     }
@@ -99,6 +104,15 @@ extension UsersTarget: BaseTargetType {
 
             if let lastHobbyCardId = lastHobbyCardId {
                 parameters["lastHobbyCardId"] = lastHobbyCardId
+            }
+
+            return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
+
+        case .scraps(let lastRecordId, let feedSize):
+            var parameters: [String: Any] = ["feedSize": feedSize]
+
+            if let lastRecordId = lastRecordId {
+                parameters["lastRecordId"] = lastRecordId
             }
 
             return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
