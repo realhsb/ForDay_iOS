@@ -76,4 +76,9 @@ final class UsersService {
     func fetchHobbyCards(lastHobbyCardId: Int?, size: Int = 20) async throws -> DTO.UsersHobbyCardResponse {
         return try await provider.request(.hobbyCards(lastHobbyCardId: lastHobbyCardId, size: size))
     }
+
+    /// Users - 사용자 스크랩 목록 조회
+    func fetchScraps(lastRecordId: Int?, feedSize: Int = 24) async throws -> DTO.UsersScrapsResponse {
+        return try await provider.request(.scraps(lastRecordId: lastRecordId, feedSize: feedSize))
+    }
 }
