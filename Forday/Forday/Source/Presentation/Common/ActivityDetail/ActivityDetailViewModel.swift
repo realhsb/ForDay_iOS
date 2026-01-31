@@ -101,6 +101,9 @@ final class ActivityDetailViewModel {
         // 현재 반응 상태 확인
         let isCurrentlyPressed = isReactionPressed(reactionType, in: detail.userReaction)
 
+        // 현재 열려있는 유저 목록의 반응 타입 저장
+        let wasShowingUsers = selectedReactionType
+
         do {
             if isCurrentlyPressed {
                 // 반응 삭제
@@ -118,6 +121,11 @@ final class ActivityDetailViewModel {
 
             // 성공 시 상세 정보 다시 불러오기
             await fetchDetail()
+
+            // 유저 목록이 열려있었다면 다시 불러오기 (forceRefresh로 무조건 갱신)
+            if let showingType = wasShowingUsers {
+                await fetchReactionUsers(for: showingType, forceRefresh: true)
+            }
 
         } catch let appError as AppError {
             await MainActor.run {
@@ -142,9 +150,12 @@ final class ActivityDetailViewModel {
     // MARK: - Reaction Users Methods
 
     /// 특정 반응을 남긴 사용자 목록을 조회합니다.
-    func fetchReactionUsers(for reactionType: ReactionType) async {
-        // 같은 반응을 다시 탭하면 닫기
-        if selectedReactionType == reactionType {
+    /// - Parameters:
+    ///   - reactionType: 조회할 반응 타입
+    ///   - forceRefresh: true이면 같은 타입이어도 무조건 새로 조회 (기본값: false)
+    func fetchReactionUsers(for reactionType: ReactionType, forceRefresh: Bool = false) async {
+        // 같은 반응을 다시 탭하면 닫기 (forceRefresh가 아닐 때만)
+        if !forceRefresh && selectedReactionType == reactionType {
             await closeReactionUsers()
             return
         }
@@ -204,6 +215,9 @@ final class ActivityDetailViewModel {
     func toggleScrap() async {
         guard let detail = activityDetail else { return }
 
+        // 현재 열려있는 유저 목록의 반응 타입 저장
+        let wasShowingUsers = selectedReactionType
+
         do {
             if detail.scraped {
                 // 스크랩 삭제
@@ -215,6 +229,11 @@ final class ActivityDetailViewModel {
 
             // 성공 시 상세 정보 다시 불러오기
             await fetchDetail()
+
+            // 유저 목록이 열려있었다면 다시 불러오기 (forceRefresh로 무조건 갱신)
+            if let showingType = wasShowingUsers {
+                await fetchReactionUsers(for: showingType, forceRefresh: true)
+            }
 
         } catch let appError as AppError {
             await MainActor.run {
