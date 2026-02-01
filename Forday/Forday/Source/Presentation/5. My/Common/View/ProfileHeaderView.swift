@@ -1,5 +1,5 @@
 //
-//  MyPageHeaderView.swift
+//  ProfileHeaderView.swift
 //  Forday
 //
 //  Created by Subeen on 1/23/26.
@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-final class MyPageHeaderView: UIView {
+final class ProfileHeaderView: UIView {
 
     // MARK: - Properties
 
@@ -48,7 +48,7 @@ final class MyPageHeaderView: UIView {
 
 // MARK: - Setup
 
-extension MyPageHeaderView {
+extension ProfileHeaderView {
     private func style() {
         backgroundColor = .systemBackground
 

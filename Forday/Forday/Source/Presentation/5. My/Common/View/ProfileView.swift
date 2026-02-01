@@ -1,5 +1,5 @@
 //
-//  MyPageView.swift
+//  ProfileView.swift
 //  Forday
 //
 //  Created by Subeen on 1/23/26.
@@ -9,12 +9,12 @@ import UIKit
 import SnapKit
 import Then
 
-final class MyPageView: UIView {
+final class ProfileView: UIView {
 
     // MARK: - Properties
 
-    let headerView = MyPageHeaderView()
-    let segmentedControlView = MyPageSegmentedControlView()
+    let headerView = ProfileHeaderView()
+    let segmentedControlView = ProfileSegmentedControlView()
     let contentContainerView = UIView()
 
     // MARK: - Initialization
@@ -32,7 +32,7 @@ final class MyPageView: UIView {
 
 // MARK: - Setup
 
-extension MyPageView {
+extension ProfileView {
     private func style() {
         backgroundColor = .systemBackground
 
@@ -67,5 +67,5 @@ extension MyPageView {
 }
 
 #Preview {
-    MyPageView()
+    ProfileView()
 }

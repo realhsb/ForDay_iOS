@@ -14,8 +14,8 @@ final class MyPageViewController: UIViewController {
 
     // MARK: - Properties
 
-    private var myPageView: MyPageView {
-        return view as! MyPageView
+    private var myPageView: ProfileView {
+        return view as! ProfileView
     }
 
     private let viewModel: MyPageViewModel
@@ -47,7 +47,7 @@ final class MyPageViewController: UIViewController {
     // MARK: - Lifecycle
 
     override func loadView() {
-        view = MyPageView()
+        view = ProfileView()
     }
 
     override func viewDidLoad() {
