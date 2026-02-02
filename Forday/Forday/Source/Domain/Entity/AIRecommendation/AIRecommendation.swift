@@ -10,6 +10,7 @@ import Foundation
 
 struct AIRecommendationResult {
     let message: String
+    let recommendedText: String
     let aiCallCount: Int
     let aiCallLimit: Int
     let activities: [AIRecommendation]
@@ -23,7 +24,7 @@ struct AIRecommendation {
 }
 
 extension AIRecommendationResult {
-    static var stub01: AIRecommendationResult = .init(message: "test01", aiCallCount: 1, aiCallLimit: 3, activities: [.stub01, .stub02, .stub03])
+    static var stub01: AIRecommendationResult = .init(message: "test01", recommendedText: "추천 텍스트", aiCallCount: 1, aiCallLimit: 3, activities: [.stub01, .stub02, .stub03])
 }
 
 extension AIRecommendation {

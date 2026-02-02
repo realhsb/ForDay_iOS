@@ -601,8 +601,9 @@ extension HomeView {
 
     // MARK: - AI Toast
 
-    func configureToast(with greetingMessage: String) {
+    func configureToast(with greetingMessage: String, aiCallRemaining: Bool) {
         toastView.configure(with: greetingMessage)
+        toastView.setInteractionEnabled(aiCallRemaining)
         toastView.isHidden = false
     }
 

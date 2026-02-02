@@ -20,6 +20,9 @@ class HobbyActivityInputViewController: UIViewController {
     
     // Callbacks
     var onActivityCreated: (() -> Void)?
+
+    // AI Recommendation
+    var aiCallRemaining = true  // AI 호출 가능 여부
     
     // Initialization
     
@@ -55,7 +58,7 @@ class HobbyActivityInputViewController: UIViewController {
         super.viewDidAppear(animated)
 
         // Show AI recommendation toast
-        activityInputView.showAIRecommendationToast()
+        activityInputView.showAIRecommendationToast(aiCallRemaining: aiCallRemaining)
     }
 }
 

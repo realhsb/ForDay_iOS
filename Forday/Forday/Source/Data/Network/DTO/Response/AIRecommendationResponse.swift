@@ -18,6 +18,7 @@ extension DTO {
         
         struct AIRecommendationData: Codable {
             let message: String
+            let recommendedText: String
             let aiCallCount: Int
             let aiCallLimit: Int
             let activities: [ActivityData]
@@ -33,6 +34,7 @@ extension DTO {
         func toDomain() -> AIRecommendationResult {
             return AIRecommendationResult(
                 message: data.message,
+                recommendedText: data.recommendedText,
                 aiCallCount: data.aiCallCount,
                 aiCallLimit: data.aiCallLimit,
                 activities: data.activities.map { activity in

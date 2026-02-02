@@ -354,7 +354,7 @@ extension HomeViewController {
 
         // AI 추천 토스트 설정 및 펼치기 애니메이션
         if hasHobbies {
-            homeView.configureToast(with: homeInfo.greetingMessage)
+            homeView.configureToast(with: homeInfo.greetingMessage, aiCallRemaining: homeInfo.aiCallRemaining)
             // 약간의 딜레이 후 펼치기 애니메이션
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.homeView.expandToast(animated: true)
@@ -593,6 +593,7 @@ extension HomeViewController {
         }
 
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         inputVC.onActivityCreated = { [weak self] in
             // Dismiss modal first, then push ActivityListViewController
             self?.dismiss(animated: true) {
@@ -613,6 +614,7 @@ extension HomeViewController {
 
         let activityListVC = ActivityListViewController(hobbyId: hobbyId)
         activityListVC.shouldShowAIRecommendationToast = true
+        activityListVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         navigationController?.pushViewController(activityListVC, animated: true)
     }
 
@@ -661,6 +663,7 @@ extension HomeViewController {
         }
 
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         inputVC.onActivityCreated = { [weak self] in
             self?.dismiss(animated: true)
         }

@@ -24,7 +24,7 @@ class HobbyActivityInputView: UIView {
     private let recommendationLabel = UILabel()
     private let flowLayoutView = FlowLayoutView()
     private let saveButton = UIButton()
-    private var aiToastView: AIRecommendationToastView?
+    private var aiToastView: AIRecommendationInputToastView?
 
     private var activityFields: [ActivityInputField] = []
     private let maxFields = 3
@@ -100,7 +100,7 @@ extension HobbyActivityInputView {
         saveButton.do {
             var config = UIButton.Configuration.filled()
             config.title = "저장"
-            config.baseBackgroundColor = .systemGray4
+            config.baseBackgroundColor = .action003
             config.baseForegroundColor = .white
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
@@ -278,12 +278,15 @@ extension HobbyActivityInputView {
         }
     }
 
-    func showAIRecommendationToast() {
+    func showAIRecommendationToast(aiCallRemaining: Bool = true) {
         // 이미 토스트가 있으면 제거
         aiToastView?.removeFromSuperview()
 
-        let toast = AIRecommendationToastView()
-        toast.configure(with: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+        let toast = AIRecommendationInputToastView()
+        toast.configure(with: "포데이 AI 추천 활동 보기")
+
+        // Set interaction based on aiCallRemaining (no dim effect)
+        toast.setInteractionEnabled(aiCallRemaining)
 
         // Set tap callback
         toast.onTap = { [weak self] in
@@ -293,23 +296,19 @@ extension HobbyActivityInputView {
         // Add to view
         addSubview(toast)
         toast.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
             $0.bottom.equalTo(saveButton.snp.top).offset(-30)
-        }
-
-        // Expand animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            toast.expand(animated: true)
         }
 
         aiToastView = toast
     }
 
     func hideAIRecommendationToast() {
-        aiToastView?.collapse(animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.aiToastView?.removeFromSuperview()
-            self?.aiToastView = nil
+        UIView.animate(withDuration: 0.2) {
+            self.aiToastView?.alpha = 0
+        } completion: { _ in
+            self.aiToastView?.removeFromSuperview()
+            self.aiToastView = nil
         }
     }
 }

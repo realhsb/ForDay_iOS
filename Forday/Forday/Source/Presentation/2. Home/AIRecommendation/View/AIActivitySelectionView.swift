@@ -85,22 +85,23 @@ extension AIActivitySelectionView {
             $0.distribution = .fill
         }
         
-        // Refresh Button
+        // Refresh Button (56x56)
         refreshButton.do {
             var config = UIButton.Configuration.plain()
-            config.image = UIImage(systemName: "arrow.clockwise")
-            config.imagePadding = 8
-            config.baseForegroundColor = .label
-            
+            config.image = .Icon.reload
+            config.baseForegroundColor = .neutral800
+
             $0.configuration = config
-            $0.layer.cornerRadius = 20
+            $0.backgroundColor = .bg001
+            $0.layer.cornerRadius = 28 // 56/2
             $0.layer.borderWidth = 1
-            $0.layer.borderColor = UIColor.systemGray4.cgColor
+            $0.layer.borderColor = UIColor.neutral200.cgColor
         }
-        
+
         refreshCountLabel.do {
-            $0.font = .systemFont(ofSize: 14, weight: .medium)
-            $0.textColor = .label
+            $0.applyTypography(.label12)
+            $0.textColor = .neutral500
+            $0.textAlignment = .center
         }
         
         // Next Button
@@ -161,24 +162,24 @@ extension AIActivitySelectionView {
             $0.bottom.equalToSuperview().offset(-20)
         }
         
-        // Refresh Button
+        // Refresh Button (56x56)
         refreshButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-24)
-            $0.width.height.equalTo(40)
+            $0.width.height.equalTo(56)
         }
-        
-        // Refresh Count
+
+        // Refresh Count (아래에 위치)
         refreshCountLabel.snp.makeConstraints {
-            $0.leading.equalTo(refreshButton.snp.trailing).offset(8)
-            $0.centerY.equalTo(refreshButton)
+            $0.centerX.equalTo(refreshButton)
+            $0.top.equalTo(refreshButton.snp.bottom).offset(4)
         }
-        
+
         // Next Button
         nextButton.snp.makeConstraints {
-            $0.leading.equalTo(refreshCountLabel.snp.trailing).offset(16)
+            $0.leading.equalTo(refreshButton.snp.trailing).offset(16)
             $0.trailing.equalToSuperview().offset(-20)
-            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-24)
+            $0.centerY.equalTo(refreshButton)
         }
     }
     
@@ -214,12 +215,18 @@ extension AIActivitySelectionView {
     private func updateRefreshButton() {
         let count = result.aiCallCount
         let limit = result.aiCallLimit
-        
+
         refreshCountLabel.text = "\(count)/\(limit)"
-        refreshButton.isEnabled = count < limit
-        
-        if count >= limit {
-            refreshButton.alpha = 0.3
+
+        let isEnabled = count < limit
+        refreshButton.isEnabled = isEnabled
+
+        if isEnabled {
+            refreshButton.alpha = 1.0
+            refreshButton.layer.borderColor = UIColor.neutral200.cgColor
+        } else {
+            refreshButton.alpha = 0.5
+            refreshButton.layer.borderColor = UIColor.neutral300.cgColor
         }
     }
 }

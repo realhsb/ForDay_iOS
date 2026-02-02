@@ -24,6 +24,7 @@ class ActivityListViewController: UIViewController {
 
     // AI Recommendation Toast
     var shouldShowAIRecommendationToast = false
+    var aiCallRemaining = true  // AI 호출 가능 여부
     private var aiToastView: AIRecommendationToastView?
 
     // Modal Presentation
@@ -162,6 +163,7 @@ extension ActivityListViewController {
 
     @objc private func addButtonTapped() {
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = aiCallRemaining
         inputVC.onActivityCreated = { [weak self] in
             // Dismiss modal first, then pop to HomeViewController
             self?.dismiss(animated: true) {
@@ -285,6 +287,9 @@ extension ActivityListViewController {
     private func showAIRecommendationToast() {
         let toast = AIRecommendationToastView()
         toast.configure(with: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+
+        // Set interaction based on aiCallRemaining
+        toast.setInteractionEnabled(aiCallRemaining)
 
         // Set tap callback
         toast.onTap = { [weak self] in

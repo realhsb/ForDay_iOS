@@ -180,6 +180,11 @@ extension AIRecommendationToastView {
     var isExpandedState: Bool {
         return isExpanded
     }
+
+    func setInteractionEnabled(_ enabled: Bool) {
+        containerView.isUserInteractionEnabled = enabled
+        containerView.alpha = enabled ? 1.0 : 0.5
+    }
 }
 
 #Preview {
