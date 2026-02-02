@@ -54,6 +54,9 @@ class HomeView: UIView {
     let floatingActionButton = FloatingActionButton()
     let floatingActionMenu = FloatingActionMenu()
 
+    // Gradient Layer for addActivityButton
+    private var addActivityButtonGradientLayer: CAGradientLayer?
+
     // Initialization
     
     override init(frame: CGRect) {
@@ -64,6 +67,13 @@ class HomeView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // 그라데이션 레이어 프레임 업데이트
+        addActivityButtonGradientLayer?.frame = addActivityButton.bounds
     }
 }
 
@@ -515,8 +525,9 @@ extension HomeView {
             config?.title = preview.content
             activityDropdownButton.configuration = config
 
-            // 버튼 텍스트 변경
+            // 버튼 텍스트 변경 및 그라데이션 적용
             addActivityButton.setTitleWithTypography("오늘의 스티커 붙이기", style: .header14)
+            applyGradientToAddActivityButton()
 
             // addActivityButton 제약 조건 업데이트 (activityDropdownButton 기준)
             addActivityButton.snp.remakeConstraints {
@@ -530,8 +541,9 @@ extension HomeView {
             emptyActivityLabel.isHidden = false
             activityDropdownButton.isHidden = true
 
-            // 버튼 텍스트 복원
+            // 버튼 텍스트 복원 및 그라데이션 제거
             addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+            removeGradientFromAddActivityButton()
 
             // addActivityButton 제약 조건 복원 (emptyActivityLabel 기준)
             addActivityButton.snp.remakeConstraints {
@@ -541,6 +553,41 @@ extension HomeView {
                 $0.bottom.equalToSuperview().offset(-24)
             }
         }
+    }
+
+    private func applyGradientToAddActivityButton() {
+        // 기존 그라데이션 제거
+        addActivityButtonGradientLayer?.removeFromSuperlayer()
+
+        // 버튼 배경색 투명으로 변경
+        var config = addActivityButton.configuration
+        config?.baseBackgroundColor = .clear
+        config?.baseForegroundColor = .neutralWhite
+        addActivityButton.configuration = config
+
+        // 그라데이션 레이어 생성 (gradient002: F4A261 → F77F78)
+        let gradientLayer = DesignGradient.gradient002.makeLayer()
+        gradientLayer.cornerRadius = 12
+
+        // 레이아웃 후 프레임 설정을 위해 지연 실행
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            gradientLayer.frame = self.addActivityButton.bounds
+            self.addActivityButton.layer.insertSublayer(gradientLayer, at: 0)
+            self.addActivityButtonGradientLayer = gradientLayer
+        }
+    }
+
+    private func removeGradientFromAddActivityButton() {
+        // 그라데이션 레이어 제거
+        addActivityButtonGradientLayer?.removeFromSuperlayer()
+        addActivityButtonGradientLayer = nil
+
+        // 버튼 배경색 복원
+        var config = addActivityButton.configuration
+        config?.baseBackgroundColor = .primary003
+        config?.baseForegroundColor = .action001
+        addActivityButton.configuration = config
     }
 
     func showToast() {
