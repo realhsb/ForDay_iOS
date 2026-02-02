@@ -123,6 +123,7 @@ extension ScrapGridViewController {
         if hasScraps {
             emptyStateView.removeFromSuperview()
         } else {
+            guard emptyStateView.superview == nil else { return }
             view.addSubview(emptyStateView)
             emptyStateView.snp.makeConstraints {
                 $0.edges.equalToSuperview()
