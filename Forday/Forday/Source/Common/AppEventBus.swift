@@ -45,4 +45,14 @@ final class AppEventBus {
 
     /// Published when an activity record is deleted
     let activityRecordDeleted = PassthroughSubject<Void, Never>()
+
+    // MARK: - Activity Events
+
+    /// Published when an activity is updated
+    /// Payload: hobbyId that the activity belongs to
+    let activityUpdated = PassthroughSubject<Int, Never>()
+
+    /// Published when an activity is deleted
+    /// Payload: hobbyId that the activity belongs to
+    let activityDeleted = PassthroughSubject<Int, Never>()
 }

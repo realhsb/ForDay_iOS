@@ -212,6 +212,11 @@ extension ActivityListViewController {
             do {
                 try await viewModel.updateActivity(activityId: activityId, content: content)
                 await viewModel.fetchActivities(hobbyId: hobbyId)  // 새로고침
+
+                // 홈 화면 업데이트를 위한 이벤트 발생
+                await MainActor.run {
+                    AppEventBus.shared.activityUpdated.send(hobbyId)
+                }
             } catch {
                 await MainActor.run {
                     showError(error.localizedDescription)
@@ -219,11 +224,16 @@ extension ActivityListViewController {
             }
         }
     }
-    
+
     private func deleteActivity(activityId: Int) {
         Task {
             do {
                 try await viewModel.deleteActivity(activityId: activityId)
+
+                // 홈 화면 업데이트를 위한 이벤트 발생
+                await MainActor.run {
+                    AppEventBus.shared.activityDeleted.send(hobbyId)
+                }
             } catch {
                 await MainActor.run {
                     showError(error.localizedDescription)

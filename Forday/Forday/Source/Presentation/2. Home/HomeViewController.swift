@@ -194,6 +194,8 @@ extension HomeViewController {
     // - hobbySettingsUpdated: 취미 설정 변경 시 홈 정보 새로고침
     // - hobbyCreated: 새 취미 생성 시 홈 정보 및 스티커 보드 새로고침
     // - hobbyDeleted: 취미 삭제 시 홈 정보 및 스티커 보드 새로고침
+    // - activityUpdated: 활동 수정 시 홈 정보 새로고침
+    // - activityDeleted: 활동 삭제 시 홈 정보 새로고침
 
     private func setupEventBus() {
         // 활동 기록 생성 이벤트 구독
@@ -201,6 +203,8 @@ extension HomeViewController {
             .sink { [weak self] hobbyId in
                 print("🎉 활동 기록 생성됨! hobbyId: \(hobbyId)")
                 Task {
+                    // 홈 정보 새로고침 (ActivityPreview 포함)
+                    await self?.viewModel.fetchHomeInfo()
                     // 스티커 보드 새로고침
                     await self?.stickerBoardViewModel.loadInitialStickerBoard()
                 }
@@ -238,6 +242,28 @@ extension HomeViewController {
                     // 홈 정보 및 스티커 보드 새로고침
                     await self?.viewModel.fetchHomeInfo()
                     await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 활동 수정 이벤트 구독
+        AppEventBus.shared.activityUpdated
+            .sink { [weak self] hobbyId in
+                print("✏️ 활동 수정됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 새로고침 (드롭다운 미리보기 업데이트)
+                    await self?.viewModel.fetchHomeInfo()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 활동 삭제 이벤트 구독
+        AppEventBus.shared.activityDeleted
+            .sink { [weak self] hobbyId in
+                print("🗑️ 활동 삭제됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 새로고침 (드롭다운 미리보기 업데이트)
+                    await self?.viewModel.fetchHomeInfo()
                 }
             }
             .store(in: &cancellables)
@@ -313,11 +339,13 @@ extension HomeViewController {
         // 취미 리스트 업데이트
         homeView.updateHobbies(homeInfo.inProgressHobbies)
 
-        // 활동 미리보기 업데이트
+        // 활동 미리보기 업데이트 (버튼 텍스트도 함께 업데이트됨)
         homeView.updateActivityPreview(homeInfo.activityPreview)
 
-        // Update add activity button title
-        homeView.updateAddActivityButtonTitle(hasHobbies: hasHobbies)
+        // 취미가 없을 때만 버튼 텍스트를 "취미 추가하기"로 변경
+        if !hasHobbies {
+            homeView.updateAddActivityButtonTitle(hasHobbies: false)
+        }
 
         // 토스트 표시 조건: AI 추천 횟수가 남아있고, 활동이 없을 때
         if homeInfo.aiCallRemaining && hasHobbies {
@@ -538,11 +566,11 @@ extension HomeViewController {
 
         // activityPreview 유무에 따라 다른 동작
         if homeInfo.activityPreview != nil {
-            // 스티커 붙이기
+            // 오늘의 스티커 붙이기 → ActivityRecord 화면으로 이동
             print("오늘의 스티커 붙이기 탭")
-            // TODO: 스티커 붙이기 API 연동
+            coordinator?.showActivityRecord()
         } else {
-            // 취미활동 추가하기
+            // 취미활동 추가하기 → Activity 입력 화면으로 이동
             print("취미활동 추가하기 탭")
             showActivityInput()
         }
