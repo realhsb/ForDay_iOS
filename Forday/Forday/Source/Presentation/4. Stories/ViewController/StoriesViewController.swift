@@ -224,7 +224,7 @@ extension StoriesViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         // Pagination: Load more when approaching the end
-        let threshold = viewModel.stories.count - 5
+        let threshold = max(0, viewModel.stories.count - 5)
         if indexPath.item >= threshold {
             Task {
                 await viewModel.loadMore()
