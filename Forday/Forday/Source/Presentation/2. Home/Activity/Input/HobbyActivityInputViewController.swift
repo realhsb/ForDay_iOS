@@ -96,6 +96,10 @@ extension HobbyActivityInputViewController {
         activityInputView.onAIToastTapped = { [weak self] in
             self?.handleAIToastTapped()
         }
+
+        activityInputView.onActivitiesChanged = { [weak self] in
+            self?.validateActivities()
+        }
     }
     
     private func bind() {
@@ -249,8 +253,8 @@ extension HobbyActivityInputViewController {
     private func fillLastFieldWithAIActivity(_ activity: AIRecommendation) {
         // Dismiss AI selection view
         dismiss(animated: true) {
-            // Fill last field with selected activity content
-            self.activityInputView.fillLastFieldWithText(activity.content)
+            // Fill last field with selected AI activity content (type: .aiRecommended)
+            self.activityInputView.fillLastFieldWithAIRecommendation(activity.content)
             self.validateActivities()
         }
     }

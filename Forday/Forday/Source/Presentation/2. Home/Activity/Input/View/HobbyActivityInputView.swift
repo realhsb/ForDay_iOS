@@ -35,6 +35,7 @@ class HobbyActivityInputView: UIView {
     var onDeleteButtonTapped: ((Int) -> Void)?
     var onRecommendationButtonTapped: ((String) -> Void)?
     var onAIToastTapped: (() -> Void)?
+    var onActivitiesChanged: (() -> Void)?
     
     // Initialization
     
@@ -206,6 +207,7 @@ extension HobbyActivityInputView {
 
         field.onTextChanged = { [weak self] _ in
             self?.updateAddButtonVisibility()
+            self?.onActivitiesChanged?()
         }
 
         activityFields.append(field)
@@ -226,10 +228,11 @@ extension HobbyActivityInputView {
     }
 
     func getActivities() -> [(content: String, aiRecommended: Bool)] {
-        return activityFields.compactMap {
-            let content = $0.getText()
+        return activityFields.compactMap { field in
+            let content = field.getText()
             guard !content.isEmpty else { return nil }
-            return (content, false)
+            let isAIRecommended = field.type == .aiRecommended
+            return (content, isAIRecommended)
         }
     }
 
@@ -250,6 +253,14 @@ extension HobbyActivityInputView {
         guard let lastField = activityFields.last else { return }
         lastField.setText(text)
         updateAddButtonVisibility()
+        onActivitiesChanged?()
+    }
+
+    func fillLastFieldWithAIRecommendation(_ text: String) {
+        guard let lastField = activityFields.last else { return }
+        lastField.configure(type: .aiRecommended, text: text)
+        updateAddButtonVisibility()
+        onActivitiesChanged?()
     }
 
     private func updateAddButtonVisibility() {
