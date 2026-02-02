@@ -166,8 +166,8 @@ extension HomeView {
         }
         
         myActivityChevronButton.do {
-            $0.setImage(UIImage(systemName: "chevron.right"), for: .normal)
-            $0.tintColor = .systemGray2
+            $0.setImage(.Icon.chevronRight, for: .normal)
+            $0.tintColor = .neutral500
         }
         
         // Activity Card - Empty State
@@ -191,7 +191,7 @@ extension HomeView {
 
         activityDropdownButton.do {
             var config = UIButton.Configuration.plain()
-            config.image = UIImage(systemName: "chevron.down")
+            config.image = .Icon.chevronDown
             config.imagePlacement = .trailing
             config.imagePadding = 8
             config.baseForegroundColor = .label
@@ -336,10 +336,11 @@ extension HomeView {
         myActivityTitleLabel.snp.makeConstraints {
             $0.leading.centerY.equalToSuperview()
         }
-        
+
         myActivityChevronButton.snp.makeConstraints {
-            $0.trailing.centerY.equalToSuperview()
-            $0.width.height.equalTo(24)
+            $0.leading.equalTo(myActivityTitleLabel.snp.trailing).offset(4)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(16)
         }
         
         // Activity Card
@@ -350,16 +351,16 @@ extension HomeView {
         
         emptyActivityLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
         }
 
         activityDropdownButton.snp.makeConstraints {
             $0.top.equalToSuperview().offset(20)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
         }
 
         addActivityButton.snp.makeConstraints {
-            $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
+            $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalToSuperview().offset(-24)
