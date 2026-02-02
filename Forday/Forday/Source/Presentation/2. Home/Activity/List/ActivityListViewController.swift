@@ -163,9 +163,12 @@ extension ActivityListViewController {
     @objc private func addButtonTapped() {
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
         inputVC.onActivityCreated = { [weak self] in
-            self?.loadActivities()  // 목록 새로고침
+            // Dismiss modal first, then pop to HomeViewController
+            self?.dismiss(animated: true) {
+                self?.navigationController?.popToRootViewController(animated: true)
+            }
         }
-        
+
         let nav = UINavigationController(rootViewController: inputVC)
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
