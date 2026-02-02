@@ -239,7 +239,7 @@ extension StoriesViewController: StoriesPinterestLayoutDelegate {
     func collectionView(_ collectionView: UICollectionView, heightForItemAt indexPath: IndexPath) -> CGFloat {
         // Calculate cell height based on aspect ratio
         // Cell width = (screen width - padding) / 2
-        let screenWidth: CGFloat = 360 // Based on design
+        let screenWidth: CGFloat = collectionView.bounds.width
         let padding: CGFloat = 12 * 2 + 8 * 2 // left/right + column spacing
         let cellWidth: CGFloat = (screenWidth - padding) / 2
 
