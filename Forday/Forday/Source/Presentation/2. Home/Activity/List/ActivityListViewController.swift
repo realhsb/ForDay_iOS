@@ -383,7 +383,7 @@ extension ActivityListViewController {
     private func openActivityInputWithAIContent(_ content: String) {
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
         inputVC.aiCallRemaining = aiCallRemaining
-        inputVC.prefillContent = content  // AI 추천 활동 내용 전달
+        inputVC.aiRecommendedContent = content  // AI 추천 활동 내용 전달 (aiRecommended: true)
 
         inputVC.onActivityCreated = { [weak self] in
             // Dismiss modal first, then pop to HomeViewController

@@ -23,7 +23,7 @@ class HobbyActivityInputViewController: UIViewController {
 
     // AI Recommendation
     var aiCallRemaining = true  // AI 호출 가능 여부
-    var prefillContent: String?  // AI 추천 활동 내용 (select 모드에서 전달받음)
+    var aiRecommendedContent: String?  // AI 추천 활동 내용 (select 모드에서 전달받음, aiRecommended: true)
     
     // Initialization
     
@@ -58,11 +58,11 @@ class HobbyActivityInputViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        // AI 추천 활동 내용이 있으면 마지막 텍스트필드에 채우기
-        if let content = prefillContent {
-            activityInputView.fillLastFieldWithText(content)
+        // AI 추천 활동 내용이 있으면 마지막 텍스트필드에 채우기 (aiRecommended: true)
+        if let content = aiRecommendedContent {
+            activityInputView.fillLastFieldWithAIRecommendation(content)
             validateActivities()
-            prefillContent = nil  // 한 번만 적용
+            aiRecommendedContent = nil  // 한 번만 적용
         } else {
             // Show AI recommendation toast (prefill이 없을 때만)
             activityInputView.showAIRecommendationToast(aiCallRemaining: aiCallRemaining)
@@ -245,8 +245,8 @@ extension HobbyActivityInputViewController {
 
             // Dismiss AI selection view
             self.dismiss(animated: true) {
-                // Fill the last text field with AI content
-                self.activityInputView.fillLastFieldWithText(content)
+                // Fill the last text field with AI content (aiRecommended: true)
+                self.activityInputView.fillLastFieldWithAIRecommendation(content)
                 self.validateActivities()
             }
         }
