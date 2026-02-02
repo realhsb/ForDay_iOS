@@ -56,7 +56,7 @@ class AIActivitySelectionView: UIView {
 
 extension AIActivitySelectionView {
     private func configure() {
-        titleLabel.text = "\(result.message)"
+        titleLabel.text = "\(result.recommendedText)"
     }
     
     private func style() {
@@ -85,7 +85,6 @@ extension AIActivitySelectionView {
             $0.distribution = .fill
         }
         
-        // Refresh Button (56x56)
         refreshButton.do {
             var config = UIButton.Configuration.plain()
             config.image = .Icon.reload
@@ -162,14 +161,13 @@ extension AIActivitySelectionView {
             $0.bottom.equalToSuperview().offset(-20)
         }
         
-        // Refresh Button (56x56)
         refreshButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-24)
             $0.width.height.equalTo(56)
         }
 
-        // Refresh Count (아래에 위치)
+        // Refresh Count
         refreshCountLabel.snp.makeConstraints {
             $0.centerX.equalTo(refreshButton)
             $0.top.equalTo(refreshButton.snp.bottom).offset(4)
@@ -251,7 +249,7 @@ extension AIActivitySelectionView {
     
     private func handleActivityEdit(_ activity: AIRecommendation) {
         // TODO: 수정 모드 구현
-        print("편집: \(activity.topic)")
+        print("편집: \(activity.content)")
     }
     
     @objc private func refreshButtonTapped() {

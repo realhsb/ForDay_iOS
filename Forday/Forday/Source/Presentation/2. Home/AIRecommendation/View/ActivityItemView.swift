@@ -18,7 +18,7 @@ class ActivityItemView: UIView {
     
     private let containerView = UIView()
     private let checkboxButton = UIButton()
-    private let topicLabel = UILabel()
+    private let contentLabel = UILabel()
     private let editButton = UIButton()
     private let descriptionLabel = UILabel()
     
@@ -56,8 +56,8 @@ extension ActivityItemView {
             $0.tintColor = .systemGray4
         }
         
-        topicLabel.do {
-            $0.text = activity.topic
+        contentLabel.do {
+            $0.text = activity.content
             $0.font = .systemFont(ofSize: 16, weight: .bold)
             $0.textColor = .label
         }
@@ -79,7 +79,7 @@ extension ActivityItemView {
         addSubview(containerView)
         
         containerView.addSubview(checkboxButton)
-        containerView.addSubview(topicLabel)
+        containerView.addSubview(contentLabel)
         containerView.addSubview(editButton)
         containerView.addSubview(descriptionLabel)
         
@@ -95,8 +95,8 @@ extension ActivityItemView {
             $0.width.height.equalTo(24)
         }
         
-        // Topic
-        topicLabel.snp.makeConstraints {
+        // Content
+        contentLabel.snp.makeConstraints {
             $0.leading.equalTo(checkboxButton.snp.trailing).offset(12)
             $0.trailing.equalTo(editButton.snp.leading).offset(-8)
             $0.centerY.equalTo(checkboxButton)
@@ -111,8 +111,8 @@ extension ActivityItemView {
         
         // Description
         descriptionLabel.snp.makeConstraints {
-            $0.top.equalTo(topicLabel.snp.bottom).offset(8)
-            $0.leading.equalTo(topicLabel)
+            $0.top.equalTo(contentLabel.snp.bottom).offset(8)
+            $0.leading.equalTo(contentLabel)
             $0.trailing.equalToSuperview().offset(-16)
             $0.bottom.equalToSuperview().offset(-16)
         }
