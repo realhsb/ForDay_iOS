@@ -125,8 +125,8 @@ extension AIRecommendationInputToastView {
     }
 
     func setInteractionEnabled(_ enabled: Bool) {
+        isUserInteractionEnabled = enabled
         containerView.isUserInteractionEnabled = enabled
-        // No dim effect - just disable touch
     }
 }
 

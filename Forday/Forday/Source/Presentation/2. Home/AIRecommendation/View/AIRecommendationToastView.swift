@@ -182,8 +182,8 @@ extension AIRecommendationToastView {
     }
 
     func setInteractionEnabled(_ enabled: Bool) {
+        isUserInteractionEnabled = enabled
         containerView.isUserInteractionEnabled = enabled
-        containerView.alpha = enabled ? 1.0 : 0.5
     }
 }
 
