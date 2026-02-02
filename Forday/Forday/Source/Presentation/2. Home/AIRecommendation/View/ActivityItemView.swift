@@ -205,6 +205,10 @@ extension ActivityItemView {
         containerView.layer.borderColor = isSelected ? UIColor.systemOrange.cgColor : UIColor.clear.cgColor
     }
 
+    func setEditEnabled(_ isEnabled: Bool) {
+        editButton.isHidden = !isEnabled
+    }
+
     func dismissKeyboard() {
         contentTextField.resignFirstResponder()
     }

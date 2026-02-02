@@ -213,10 +213,18 @@ extension AIActivitySelectionView {
     }
 
     private func setupActivities() {
+        // Selection mode: hobbyId가 nil이면 edit 버튼 숨김
+        let isSelectionMode = (hobbyId == nil)
+
         result.activities.forEach { activity in
             let activityView = ActivityItemView(activity: activity)
             activityView.onSelected = { [weak self] _ in
                 self?.handleActivitySelection(activityView)
+            }
+
+            // Selection mode에서는 edit 버튼 숨김
+            if isSelectionMode {
+                activityView.setEditEnabled(false)
             }
 
             activityStackView.addArrangedSubview(activityView)
@@ -322,6 +330,8 @@ extension AIActivitySelectionView {
                 )
 
                 await MainActor.run {
+                    // 홈 화면 업데이트를 위한 이벤트 발생
+                    AppEventBus.shared.activityRecordCreated.send(hobbyId)
                     onActivitySaved?()
                 }
             } catch {
