@@ -11,33 +11,47 @@ import SnapKit
 import Then
 
 class AIActivitySelectionView: UIView {
-    
+
     // Properties
-    
+
     private let scrollView = UIScrollView()
     private let contentView = UIView()
-    
+
     private let iconImageView = UIImageView()
     private let titleLabel = UILabel()
-    
+
     private let activityStackView = UIStackView()
-    
+
     private let refreshButton = UIButton()
     private let refreshCountLabel = UILabel()
     private let nextButton = UIButton()
-    
+
     private let result: AIRecommendationResult
+    private let hobbyId: Int?
+    private let createActivitiesUseCase: CreateActivitiesUseCase?
+
     private var activityViews: [ActivityItemView] = []
-    private var selectedActivity: AIRecommendation?
-    
+    private var selectedActivityView: ActivityItemView?
+
     // Callbacks
-    var onActivitySelected: ((AIRecommendation) -> Void)?
+    /// 저장 모드: hobbyId가 있을 때 CreateActivitiesUseCase로 저장 후 호출
+    var onActivitySaved: (() -> Void)?
+    /// 선택 모드: 선택된 활동 content를 반환 (저장하지 않음)
+    var onActivitySelected: ((String) -> Void)?
     var onRefreshTapped: (() -> Void)?
-    
+    var onError: ((String) -> Void)?
+
     // Initialization
-    
-    init(result: AIRecommendationResult) {
+
+    /// 저장 모드: hobbyId를 전달하면 다음 버튼 클릭 시 바로 저장
+    init(
+        result: AIRecommendationResult,
+        hobbyId: Int,
+        createActivitiesUseCase: CreateActivitiesUseCase = CreateActivitiesUseCase()
+    ) {
         self.result = result
+        self.hobbyId = hobbyId
+        self.createActivitiesUseCase = createActivitiesUseCase
         super.init(frame: .zero)
         style()
         layout()
@@ -45,8 +59,24 @@ class AIActivitySelectionView: UIView {
         setupActivities()
         setupActions()
         updateRefreshButton()
+        setupKeyboardDismissal()
     }
-    
+
+    /// 선택 모드: hobbyId 없이 생성하면 다음 버튼 클릭 시 onActivitySelected 콜백으로 content 반환
+    init(result: AIRecommendationResult) {
+        self.result = result
+        self.hobbyId = nil
+        self.createActivitiesUseCase = nil
+        super.init(frame: .zero)
+        style()
+        layout()
+        configure()
+        setupActivities()
+        setupActions()
+        updateRefreshButton()
+        setupKeyboardDismissal()
+    }
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -58,33 +88,34 @@ extension AIActivitySelectionView {
     private func configure() {
         titleLabel.text = "\(result.recommendedText)"
     }
-    
+
     private func style() {
         backgroundColor = .systemBackground
-        
+
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
+            $0.keyboardDismissMode = .onDrag
         }
-        
+
         iconImageView.do {
-            $0.image = UIImage(systemName: "sparkles")
+            $0.image = .Ai.default
             $0.tintColor = .systemOrange
             $0.contentMode = .scaleAspectFit
         }
-        
+
         titleLabel.do {
             $0.applyTypography(.header18)
             $0.textColor = .neutral900
             $0.numberOfLines = 0
             $0.textAlignment = .center
         }
-        
+
         activityStackView.do {
             $0.axis = .vertical
             $0.spacing = 12
             $0.distribution = .fill
         }
-        
+
         refreshButton.do {
             var config = UIButton.Configuration.plain()
             config.image = .Icon.reload
@@ -102,7 +133,7 @@ extension AIActivitySelectionView {
             $0.textColor = .neutral500
             $0.textAlignment = .center
         }
-        
+
         // Next Button
         nextButton.do {
             var config = UIButton.Configuration.filled()
@@ -111,56 +142,56 @@ extension AIActivitySelectionView {
             config.baseForegroundColor = .white
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
-            
+
             $0.configuration = config
             $0.isEnabled = false
         }
     }
-    
+
     private func layout() {
         addSubview(scrollView)
         scrollView.addSubview(contentView)
-        
+
         contentView.addSubview(iconImageView)
         contentView.addSubview(titleLabel)
         contentView.addSubview(activityStackView)
-        
+
         addSubview(refreshButton)
         addSubview(refreshCountLabel)
         addSubview(nextButton)
-        
+
         // ScrollView
         scrollView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(refreshButton.snp.top).offset(-16)
         }
-        
+
         // ContentView
         contentView.snp.makeConstraints {
             $0.edges.equalTo(scrollView)
             $0.width.equalTo(scrollView)
         }
-        
+
         // Icon
         iconImageView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(24)
             $0.centerX.equalToSuperview()
             $0.width.height.equalTo(60)
         }
-        
+
         // Title
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(iconImageView.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
         // Activity Stack
         activityStackView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(24)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-20)
         }
-        
+
         refreshButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-24)
@@ -180,36 +211,39 @@ extension AIActivitySelectionView {
             $0.centerY.equalTo(refreshButton)
         }
     }
-    
+
     private func setupActivities() {
         result.activities.forEach { activity in
             let activityView = ActivityItemView(activity: activity)
-            activityView.onSelected = { [weak self] selectedActivity in
-                self?.handleActivitySelection(selectedActivity)
+            activityView.onSelected = { [weak self] _ in
+                self?.handleActivitySelection(activityView)
             }
-            activityView.onEditTapped = { [weak self] activity in
-                self?.handleActivityEdit(activity)
-            }
-            
+
             activityStackView.addArrangedSubview(activityView)
             activityViews.append(activityView)
         }
     }
-    
+
     private func setupActions() {
         refreshButton.addTarget(
             self,
             action: #selector(refreshButtonTapped),
             for: .touchUpInside
         )
-        
+
         nextButton.addTarget(
             self,
             action: #selector(nextButtonTapped),
             for: .touchUpInside
         )
     }
-    
+
+    private func setupKeyboardDismissal() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        addGestureRecognizer(tapGesture)
+    }
+
     private func updateRefreshButton() {
         let count = result.aiCallCount
         let limit = result.aiCallLimit
@@ -232,44 +266,86 @@ extension AIActivitySelectionView {
 // Actions
 
 extension AIActivitySelectionView {
-    private func handleActivitySelection(_ activity: AIRecommendation) {
-        selectedActivity = activity
-        
-        // 모든 ActivityView 선택 해제
+    private func handleActivitySelection(_ activityView: ActivityItemView) {
+        // Dismiss keyboard first
+        dismissKeyboard()
+
+        // Deselect all
         activityViews.forEach { $0.setSelected(false) }
-        
-        // 선택된 ActivityView만 선택 상태로
-        if let selectedView = activityViews.first(where: { $0.activity.activityId == activity.activityId }) {
-            selectedView.setSelected(true)
-        }
-        
-        // 다음 버튼 활성화
+
+        // Select the tapped view
+        activityView.setSelected(true)
+        selectedActivityView = activityView
+
+        // Enable next button
         setNextButtonEnabled(true)
     }
-    
-    private func handleActivityEdit(_ activity: AIRecommendation) {
-        // TODO: 수정 모드 구현
-        print("편집: \(activity.content)")
+
+    @objc private func dismissKeyboard() {
+        activityViews.forEach { $0.dismissKeyboard() }
     }
-    
+
     @objc private func refreshButtonTapped() {
         onRefreshTapped?()
     }
-    
+
     @objc private func nextButtonTapped() {
-        guard let selected = selectedActivity else { return }
-        onActivitySelected?(selected)
+        guard let selectedView = selectedActivityView else { return }
+
+        // Get the (possibly edited) content from the selected view
+        let content = selectedView.getContent()
+
+        // 선택 모드: onActivitySelected가 설정되어 있으면 content만 반환 (저장 안함)
+        if let onActivitySelected = onActivitySelected {
+            onActivitySelected(content)
+            return
+        }
+
+        // 저장 모드: hobbyId와 createActivitiesUseCase가 있어야 함
+        guard let hobbyId = hobbyId,
+              let createActivitiesUseCase = createActivitiesUseCase else {
+            return
+        }
+
+        // Create activity input
+        let activityInput = ActivityInput(aiRecommended: true, content: content)
+
+        // Disable button during save
+        nextButton.isEnabled = false
+
+        // Save using use case
+        Task {
+            do {
+                _ = try await createActivitiesUseCase.execute(
+                    hobbyId: hobbyId,
+                    activities: [activityInput]
+                )
+
+                await MainActor.run {
+                    onActivitySaved?()
+                }
+            } catch {
+                await MainActor.run {
+                    setNextButtonEnabled(true)
+                    onError?(error.localizedDescription)
+                }
+            }
+        }
     }
-    
+
     private func setNextButtonEnabled(_ isEnabled: Bool) {
         nextButton.isEnabled = isEnabled
-        
+
         var config = nextButton.configuration
         config?.baseBackgroundColor = isEnabled ? .systemOrange : .systemGray4
         nextButton.configuration = config
     }
 }
 
-#Preview {
+#Preview("Save Mode") {
+    AIActivitySelectionView(result: .stub01, hobbyId: 1)
+}
+
+#Preview("Select Mode") {
     AIActivitySelectionView(result: .stub01)
 }

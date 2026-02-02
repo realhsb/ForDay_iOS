@@ -344,15 +344,27 @@ extension ActivityListViewController {
     }
 
     private func showAISelectionView(with result: AIRecommendationResult) {
+        // Select 모드: AI 추천 활동 선택 후 HobbyActivityInputView로 이동
         let selectionView = AIActivitySelectionView(result: result)
-        selectionView.onActivitySelected = { [weak self] activity in
-            self?.saveAIRecommendedActivity(activity)
+
+        selectionView.onActivitySelected = { [weak self] content in
+            guard let self = self else { return }
+
+            // Dismiss AI selection view
+            self.dismiss(animated: true) {
+                // Open HobbyActivityInputViewController with AI content
+                self.openActivityInputWithAIContent(content)
+            }
         }
 
         selectionView.onRefreshTapped = { [weak self] in
             self?.dismiss(animated: true) {
                 self?.showAIRecommendationFlow()
             }
+        }
+
+        selectionView.onError = { [weak self] errorMessage in
+            self?.showError(errorMessage)
         }
 
         // Show as modal
@@ -368,25 +380,21 @@ extension ActivityListViewController {
         present(containerVC, animated: true)
     }
 
-    private func saveAIRecommendedActivity(_ activity: AIRecommendation) {
-        Task {
-            do {
-                let activityInputs = [ActivityInput(aiRecommended: true, content: activity.content)]
-                try await viewModel.createActivities(hobbyId: hobbyId, activities: activityInputs)
+    private func openActivityInputWithAIContent(_ content: String) {
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = aiCallRemaining
+        inputVC.prefillContent = content  // AI 추천 활동 내용 전달
 
-                await MainActor.run {
-                    // Dismiss AI selection view
-                    self.dismiss(animated: true)
-
-                    // Refresh activity list
-                    self.loadActivities()
-                }
-            } catch {
-                await MainActor.run {
-                    self.showError(error.localizedDescription)
-                }
+        inputVC.onActivityCreated = { [weak self] in
+            // Dismiss modal first, then pop to HomeViewController
+            self?.dismiss(animated: true) {
+                self?.navigationController?.popToRootViewController(animated: true)
             }
         }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 }
 

@@ -23,6 +23,7 @@ class HobbyActivityInputViewController: UIViewController {
 
     // AI Recommendation
     var aiCallRemaining = true  // AI 호출 가능 여부
+    var prefillContent: String?  // AI 추천 활동 내용 (select 모드에서 전달받음)
     
     // Initialization
     
@@ -57,8 +58,15 @@ class HobbyActivityInputViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        // Show AI recommendation toast
-        activityInputView.showAIRecommendationToast(aiCallRemaining: aiCallRemaining)
+        // AI 추천 활동 내용이 있으면 마지막 텍스트필드에 채우기
+        if let content = prefillContent {
+            activityInputView.fillLastFieldWithText(content)
+            validateActivities()
+            prefillContent = nil  // 한 번만 적용
+        } else {
+            // Show AI recommendation toast (prefill이 없을 때만)
+            activityInputView.showAIRecommendationToast(aiCallRemaining: aiCallRemaining)
+        }
     }
 }
 
@@ -229,15 +237,28 @@ extension HobbyActivityInputViewController {
     }
 
     private func showAISelectionView(with result: AIRecommendationResult) {
+        // Select 모드: AI 추천 활동 선택 후 텍스트필드에 채우기
         let selectionView = AIActivitySelectionView(result: result)
-        selectionView.onActivitySelected = { [weak self] activity in
-            self?.fillLastFieldWithAIActivity(activity)
+
+        selectionView.onActivitySelected = { [weak self] content in
+            guard let self = self else { return }
+
+            // Dismiss AI selection view
+            self.dismiss(animated: true) {
+                // Fill the last text field with AI content
+                self.activityInputView.fillLastFieldWithText(content)
+                self.validateActivities()
+            }
         }
 
         selectionView.onRefreshTapped = { [weak self] in
             self?.dismiss(animated: true) {
                 self?.showAIRecommendationFlow()
             }
+        }
+
+        selectionView.onError = { [weak self] errorMessage in
+            self?.showError(errorMessage)
         }
 
         // Show as modal
@@ -251,15 +272,6 @@ extension HobbyActivityInputViewController {
         }
 
         present(containerVC, animated: true)
-    }
-
-    private func fillLastFieldWithAIActivity(_ activity: AIRecommendation) {
-        // Dismiss AI selection view
-        dismiss(animated: true) {
-            // Fill last field with selected AI activity content (type: .aiRecommended)
-            self.activityInputView.fillLastFieldWithAIRecommendation(activity.content)
-            self.validateActivities()
-        }
     }
 }
 
