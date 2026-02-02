@@ -59,15 +59,14 @@ class MainTabBarCoordinator: NSObject, Coordinator {
         )
 
         // 소식 탭
-        let storyVC = UIViewController()
-        storyVC.view.backgroundColor = .systemBackground
-        storyVC.title = "소식"
-        storyVC.tabBarItem = UITabBarItem(
+        let storiesVC = StoriesViewController()
+        storiesVC.coordinator = self
+        storiesVC.tabBarItem = UITabBarItem(
             title: "소식",
             image: .Gnb.story,
             selectedImage: .Gnb.storyFill
         )
-        let storyNav = createNavigationController(rootViewController: storyVC)
+        let storyNav = createNavigationController(rootViewController: storiesVC)
 
         // 프로필 탭
         let profileVC = MyPageViewController()
@@ -266,5 +265,17 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         // Get recording tab (index 2)
         guard let recordVC = tabBarController.viewControllers?[2] else { return }
         recordVC.tabBarItem.isEnabled = enabled
+    }
+
+    func showUserProfile(userId: String) {
+        // TODO: Implement user profile screen navigation
+        // For now, just print
+        print("Navigate to user profile: \(userId)")
+
+        // When UserProfileViewController is ready:
+        // let profileVC = UserProfileViewController(userId: userId)
+        // if let storiesNav = tabBarController.viewControllers?[3] as? UINavigationController {
+        //     storiesNav.pushViewController(profileVC, animated: true)
+        // }
     }
 }

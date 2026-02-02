@@ -1,5 +1,5 @@
 //
-//  MyPageSegmentedControlView.swift
+//  ProfileSegmentedControlView.swift
 //  Forday
 //
 //  Created by Subeen on 1/23/26.
@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-final class MyPageSegmentedControlView: UIView {
+final class ProfileSegmentedControlView: UIView {
 
     // MARK: - Properties
 
@@ -100,7 +100,7 @@ final class MyPageSegmentedControlView: UIView {
 
 // MARK: - Setup
 
-extension MyPageSegmentedControlView {
+extension ProfileSegmentedControlView {
     private func style() {
         backgroundColor = .systemBackground
 
@@ -183,7 +183,7 @@ extension MyPageSegmentedControlView {
 
 // MARK: - Actions
 
-extension MyPageSegmentedControlView {
+extension ProfileSegmentedControlView {
     @objc private func activitiesButtonTapped() {
         guard selectedSegment != .activities else { return }
         selectSegment(.activities, animated: true)

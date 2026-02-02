@@ -31,6 +31,13 @@ final class UsersRepository: UsersRepositoryInterface {
         return response.toDomain()
     }
 
+    // MARK: - Fetch User Info
+
+    func fetchUserInfo() async throws -> UserInfo {
+        let response = try await usersService.fetchUserInfo()
+        return response.toDomain()
+    }
+
     // MARK: - Fetch Hobby Cards
 
     func fetchHobbyCards(lastHobbyCardId: Int?, size: Int = 20) async throws -> HobbyCardsResult {

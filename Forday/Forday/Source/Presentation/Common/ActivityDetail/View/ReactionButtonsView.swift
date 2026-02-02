@@ -9,7 +9,6 @@ import UIKit
 import SnapKit
 import Then
 import Combine
-import Kingfisher
 
 final class ReactionButtonsView: UIView {
 
