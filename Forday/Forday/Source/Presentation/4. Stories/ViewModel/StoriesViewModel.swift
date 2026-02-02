@@ -56,6 +56,7 @@ final class StoriesViewModel {
 
             await MainActor.run {
                 self.tabs = loadedTabs
+                self.error = nil
                 self.isLoading = false
 
                 // Auto-select first tab if available
@@ -134,6 +135,7 @@ final class StoriesViewModel {
                     self.hasNext = false
                     self.lastRecordId = nil
                 }
+                self.error = nil
                 self.isLoading = false
             }
         } catch let appError as AppError {
@@ -170,6 +172,7 @@ final class StoriesViewModel {
                     self.hasNext = result.hasNext
                     self.lastRecordId = result.lastRecordId
                 }
+                self.error = nil
                 self.isLoadingMore = false
             }
         } catch let appError as AppError {
