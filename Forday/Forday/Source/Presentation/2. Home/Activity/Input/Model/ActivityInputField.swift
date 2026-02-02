@@ -17,8 +17,7 @@ class ActivityInputField: UIView {
     private(set) var type: ActivityInputType = .userInput
     
     private let containerView = UIView()
-    let aiLabelView = UIView()
-    let aiLabel = UILabel()
+    private let aiImageView = UIImageView()
     let textField = UITextField()
     let deleteButton = UIButton()
     private let characterCountLabel = UILabel()
@@ -54,14 +53,9 @@ extension ActivityInputField {
             $0.layer.cornerRadius = 12
         }
         
-//        aiLabelView.do {
-//            $0.layer.cornerRadius = 20
-//            $0.backgroundColor = .action001
-//        }
-        
-        aiLabel.do {
-            $0.setTextWithTypography("AI 추천 루틴", style: .label10)
-            $0.textColor = .primary001
+        aiImageView.do {
+            $0.image = .Ai.aiRecommeded
+            $0.contentMode = .scaleAspectFit
             $0.isHidden = type == .userInput
         }
         
@@ -89,34 +83,28 @@ extension ActivityInputField {
     
     private func layout() {
         addSubview(containerView)
-        
-        aiLabelView.addSubview(aiLabel)
-        containerView.addSubview(aiLabelView)
+
+        containerView.addSubview(aiImageView)
         containerView.addSubview(textField)
         containerView.addSubview(deleteButton)
         containerView.addSubview(characterCountLabel)
-        
+
         // Container
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
-        // AI Label
-        aiLabelView.snp.makeConstraints {
+
+        // AI Image
+        aiImageView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(12)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
+            $0.height.equalTo(20)
         }
-        
-        aiLabel.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().offset(4)
-            $0.leading.trailing.equalToSuperview().offset(6)
-        }
-        
+
         // TextField
         textField.snp.makeConstraints {
             if type == .aiRecommended {
-                $0.top.equalTo(aiLabel.snp.bottom).offset(4)
+                $0.top.equalTo(aiImageView.snp.bottom).offset(4)
             } else {
                 $0.top.equalToSuperview().offset(12)
             }
@@ -174,15 +162,15 @@ extension ActivityInputField {
 extension ActivityInputField {
     func configure(type: ActivityInputType, text: String = "") {
         self.type = type
-        
-        aiLabel.isHidden = (type == .userInput)
+
+        aiImageView.isHidden = (type == .userInput)
         textField.text = text
         updateCharacterCount()
-        
+
         // Layout 다시
         textField.snp.remakeConstraints {
             if type == .aiRecommended {
-                $0.top.equalTo(aiLabel.snp.bottom).offset(4)
+                $0.top.equalTo(aiImageView.snp.bottom).offset(4)
             } else {
                 $0.top.equalToSuperview().offset(12)
             }
