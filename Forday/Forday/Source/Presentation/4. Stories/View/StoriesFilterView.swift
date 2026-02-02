@@ -11,7 +11,7 @@ import Then
 
 enum StoriesFilter: String, CaseIterable {
     case all = "전체"
-    case funded = "자금 활한"
+    case funded = "자금 활용"
     case friend = "친구"
 }
 
