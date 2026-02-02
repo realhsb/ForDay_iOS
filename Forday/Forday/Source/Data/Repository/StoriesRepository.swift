@@ -180,18 +180,30 @@ extension StoriesRepository {
             )
         ]
 
-        // Pagination simulation
-        let startIndex = lastRecordId ?? 0
-        let endIndex = min(startIndex + size, mockStories.count)
-        let paginatedStories = Array(mockStories[startIndex..<endIndex])
+        // Pagination simulation based on recordId
+        let filteredStories: [Story]
+        if let lastRecordId = lastRecordId {
+            // Find stories with recordId > lastRecordId
+            filteredStories = mockStories.filter { $0.recordId > lastRecordId }
+        } else {
+            // First page, return all stories
+            filteredStories = mockStories
+        }
+
+        // Take only 'size' items
+        let paginatedStories = Array(filteredStories.prefix(size))
+
+        // Determine if there are more items
+        let hasNext = filteredStories.count > size
+        let nextLastRecordId = hasNext ? paginatedStories.last?.recordId : nil
 
         return StoriesResult(
             hobbyInfoId: 1,
             hobbyId: hobbyId ?? 1,
             hobbyName: "독서",
             stories: paginatedStories,
-            lastRecordId: endIndex < mockStories.count ? endIndex : nil,
-            hasNext: endIndex < mockStories.count
+            lastRecordId: nextLastRecordId,
+            hasNext: hasNext
         )
     }
 }
