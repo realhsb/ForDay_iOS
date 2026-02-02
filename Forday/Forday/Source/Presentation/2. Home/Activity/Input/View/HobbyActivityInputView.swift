@@ -271,12 +271,13 @@ extension HobbyActivityInputView {
         // 이미 토스트가 있으면 제거
         aiToastView?.removeFromSuperview()
 
-        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
-        toast.isUserInteractionEnabled = true
+        let toast = AIRecommendationToastView()
+        toast.configure(with: "포데이 AI가 알맞은 취미활동을 추천해드려요")
 
-        // Add tap gesture
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(aiToastTapped))
-        toast.addGestureRecognizer(tapGesture)
+        // Set tap callback
+        toast.onTap = { [weak self] in
+            self?.onAIToastTapped?()
+        }
 
         // Add to view
         addSubview(toast)
@@ -285,22 +286,20 @@ extension HobbyActivityInputView {
             $0.bottom.equalTo(saveButton.snp.top).offset(-30)
         }
 
-        // Fade in animation
-        toast.alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            toast.alpha = 1
+        // Expand animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            toast.expand(animated: true)
         }
 
         aiToastView = toast
     }
 
     func hideAIRecommendationToast() {
-        aiToastView?.hide()
-        aiToastView = nil
-    }
-
-    @objc private func aiToastTapped() {
-        onAIToastTapped?()
+        aiToastView?.collapse(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.aiToastView?.removeFromSuperview()
+            self?.aiToastView = nil
+        }
     }
 }
 

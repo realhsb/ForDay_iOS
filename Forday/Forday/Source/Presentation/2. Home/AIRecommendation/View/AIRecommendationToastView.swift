@@ -2,7 +2,7 @@
 //  AIRecommendationToastView.swift
 //  Forday
 //
-//  Created by Subeen on 1/15/26.
+//  Created by Subeen on 2/2/26.
 //
 
 
@@ -12,27 +12,47 @@ import Then
 
 final class AIRecommendationToastView: UIView {
 
-    // Properties
+    // MARK: - UI Components
 
     private let containerView = UIView()
     private let iconImageView = UIImageView()
     private let messageLabel = UILabel()
 
-    // Initialization
+    // MARK: - Properties
 
-    init(message: String) {
-        super.init(frame: .zero)
-        messageLabel.text = message
+    private var isExpanded = false
+    private var containerWidthConstraint: Constraint?
+
+    // MARK: - Callbacks
+
+    var onTap: (() -> Void)?
+
+    // MARK: - Constants
+
+    private let collapsedSize: CGFloat = 40
+    private let expandedHeight: CGFloat = 40
+    private let iconSize: CGFloat = 24
+
+    // MARK: - Initialization
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         style()
         layout()
+        setupGesture()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBorder()
+    }
 }
 
-// Setup
+// MARK: - Setup
 
 extension AIRecommendationToastView {
     private func style() {
@@ -40,7 +60,7 @@ extension AIRecommendationToastView {
 
         containerView.do {
             $0.backgroundColor = .bg001
-            $0.layer.cornerRadius = 20
+            $0.layer.cornerRadius = collapsedSize / 2
             $0.clipsToBounds = true
         }
 
@@ -53,70 +73,118 @@ extension AIRecommendationToastView {
             $0.applyTypography(.body14)
             $0.textColor = .neutral800
             $0.numberOfLines = 1
+            $0.textAlignment = .center
+            $0.alpha = 0
         }
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        containerView.applyGradientBorder(DesignGradient.gradient002, lineWidth: 1, cornerRadius: 20)
     }
 
     private func layout() {
         addSubview(containerView)
-
         containerView.addSubview(iconImageView)
         containerView.addSubview(messageLabel)
 
-        // Container
+        // Container - 초기 상태: 접힘 (아이콘만)
         containerView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-
-        // Icon
-        iconImageView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(22)
+            $0.height.equalTo(collapsedSize)
+            containerWidthConstraint = $0.width.equalTo(collapsedSize).constraint
         }
 
-        // Message
-        messageLabel.snp.makeConstraints {
-            $0.leading.equalTo(iconImageView.snp.trailing).offset(8)
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.top.equalToSuperview().offset(10)
-            $0.bottom.equalToSuperview().offset(-10)
+        // Icon - 오른쪽에 위치
+        iconImageView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-8)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(iconSize)
         }
+
+        // Message - 아이콘 왼쪽에 위치
+        messageLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalTo(iconImageView.snp.leading).offset(-8)
+            $0.centerY.equalToSuperview()
+        }
+
+        // Self height
+        snp.makeConstraints {
+            $0.height.equalTo(collapsedSize)
+        }
+    }
+
+    private func updateBorder() {
+        containerView.applyGradientBorder(DesignGradient.gradient002, lineWidth: 1, cornerRadius: containerView.layer.cornerRadius)
+    }
+
+    private func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        containerView.addGestureRecognizer(tapGesture)
+        containerView.isUserInteractionEnabled = true
+    }
+
+    @objc private func handleTap() {
+        onTap?()
     }
 }
 
-// Public Methods
+// MARK: - Public Methods
 
 extension AIRecommendationToastView {
-    func show(in view: UIView, bottomOffset: CGFloat = 0) {
-        view.addSubview(self)
+    func configure(with message: String) {
+        messageLabel.text = message
+    }
 
-        self.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(bottomOffset)
+    func expand(animated: Bool = true) {
+        guard !isExpanded else { return }
+        isExpanded = true
+
+        let duration = animated ? 0.4 : 0
+
+        // 컨테이너 너비를 전체로 확장
+        containerWidthConstraint?.deactivate()
+        containerView.snp.makeConstraints {
+            containerWidthConstraint = $0.leading.equalToSuperview().constraint
         }
 
-        // 페이드 인 애니메이션
-        alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            self.alpha = 1
+        // cornerRadius 변경
+        containerView.layer.cornerRadius = expandedHeight / 2
+
+        UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+            self.layoutIfNeeded()
+            self.messageLabel.alpha = 1
+            self.updateBorder()
         }
     }
 
-    func hide(completion: (() -> Void)? = nil) {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.alpha = 0
-        }) { _ in
-            self.removeFromSuperview()
-            completion?()
+    func collapse(animated: Bool = true) {
+        guard isExpanded else { return }
+        isExpanded = false
+
+        let duration = animated ? 0.3 : 0
+
+        // 컨테이너 너비를 접힘 상태로
+        containerWidthConstraint?.deactivate()
+        containerView.snp.makeConstraints {
+            containerWidthConstraint = $0.width.equalTo(collapsedSize).constraint
         }
+
+        // cornerRadius 변경
+        containerView.layer.cornerRadius = collapsedSize / 2
+
+        UIView.animate(withDuration: duration, delay: 0, options: .curveEaseIn) {
+            self.layoutIfNeeded()
+            self.messageLabel.alpha = 0
+            self.updateBorder()
+        }
+    }
+
+    var isExpandedState: Bool {
+        return isExpanded
     }
 }
 
 #Preview {
-    AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+    let view = AIRecommendationToastView()
+    view.configure(with: "반가워요, 몽실님!")
+    view.expand(animated: true)
+    return view
 }

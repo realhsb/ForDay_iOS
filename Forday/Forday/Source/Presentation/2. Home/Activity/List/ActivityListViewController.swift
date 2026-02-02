@@ -280,12 +280,13 @@ extension ActivityListViewController {
     }
 
     private func showAIRecommendationToast() {
-        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
-        toast.isUserInteractionEnabled = true
+        let toast = AIRecommendationToastView()
+        toast.configure(with: "포데이 AI가 알맞은 취미활동을 추천해드려요")
 
-        // Add tap gesture
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(aiToastTapped))
-        toast.addGestureRecognizer(tapGesture)
+        // Set tap callback
+        toast.onTap = { [weak self] in
+            self?.aiToastTapped()
+        }
 
         // Add to view
         view.addSubview(toast)
@@ -294,19 +295,15 @@ extension ActivityListViewController {
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
         }
 
-        // Fade in animation
-        toast.alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            toast.alpha = 1
+        // Expand animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            toast.expand(animated: true)
         }
 
         aiToastView = toast
     }
 
-    @objc private func aiToastTapped() {
-        // Hide toast
-        aiToastView?.hide()
-
+    private func aiToastTapped() {
         // Show AI recommendation loading
         showAIRecommendationFlow()
     }

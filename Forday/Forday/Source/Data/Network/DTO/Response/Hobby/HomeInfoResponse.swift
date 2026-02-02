@@ -16,14 +16,17 @@ extension DTO {
         struct HomeInfoData: Codable {
             let inProgressHobbies: [InProgressHobby]
             let activityPreview: ActivityPreview?
+            let greetingMessage: String
+            let userSummaryText: String
+            let recommendMessage: String
             let aiCallRemaining: Bool
-            
+
             struct InProgressHobby: Codable {
                 let hobbyId: Int
                 let hobbyName: String
                 let currentHobby: Bool
             }
-            
+
             struct ActivityPreview: Codable {
                 let activityId: Int
                 let content: String
@@ -56,6 +59,9 @@ extension DTO.HomeInfoResponse {
                     aiRecommended: preview.aiRecommended
                 )
             },
+            greetingMessage: data.greetingMessage,
+            userSummaryText: data.userSummaryText,
+            recommendMessage: data.recommendMessage,
             aiCallRemaining: data.aiCallRemaining
         )
     }

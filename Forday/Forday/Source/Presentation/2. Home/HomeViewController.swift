@@ -139,6 +139,11 @@ extension HomeViewController {
         homeView.floatingActionMenu.onActionSelected = { [weak self] actionType in
             self?.handleFloatingMenuAction(actionType)
         }
+
+        // AI 검색바 탭
+        homeView.toastView.onTap = { [weak self] in
+            self?.showAIRecommendationModal()
+        }
     }
 
     private func setupStickerBoardCallbacks() {
@@ -347,11 +352,13 @@ extension HomeViewController {
             homeView.updateAddActivityButtonTitle(hasHobbies: false)
         }
 
-        // 토스트 표시 조건: AI 추천 횟수가 남아있고, 활동이 없을 때
-        if homeInfo.aiCallRemaining && hasHobbies {
-            homeView.showToast()
-        } else {
-            homeView.hideToast()
+        // AI 추천 토스트 설정 및 펼치기 애니메이션
+        if hasHobbies {
+            homeView.configureToast(with: homeInfo.greetingMessage)
+            // 약간의 딜레이 후 펼치기 애니메이션
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.homeView.expandToast(animated: true)
+            }
         }
 
         // Update floating button state
@@ -369,7 +376,7 @@ extension HomeViewController {
         homeView.updateHobbies([])
         homeView.updateActivityPreview(nil)
         homeView.updateAddActivityButtonTitle(hasHobbies: false)
-        homeView.hideToast()
+        homeView.collapseToast(animated: false)
         homeView.hideFloatingMenu()
 
         // Disable floating button
@@ -525,10 +532,13 @@ extension HomeViewController {
         )
 
         // HomeInfo 업데이트
-        if var homeInfo = viewModel.homeInfo {
+        if let homeInfo = viewModel.homeInfo {
             let updatedHomeInfo = HomeInfo(
                 inProgressHobbies: homeInfo.inProgressHobbies,
                 activityPreview: activityPreview,
+                greetingMessage: homeInfo.greetingMessage,
+                userSummaryText: homeInfo.userSummaryText,
+                recommendMessage: homeInfo.recommendMessage,
                 aiCallRemaining: homeInfo.aiCallRemaining
             )
 
@@ -607,9 +617,6 @@ extension HomeViewController {
     }
 
     private func showAIRecommendationModal() {
-        // 토스트 숨기기
-        homeView.hideToast()
-
         let containerVC = AIRecommendationContainerViewController(viewModel: viewModel)
         containerVC.modalPresentationStyle = .pageSheet
 

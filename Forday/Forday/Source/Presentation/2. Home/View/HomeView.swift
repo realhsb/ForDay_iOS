@@ -29,11 +29,8 @@ class HomeView: UIView {
     let settingsButton = UIButton()
     let notificationButton = UIButton()
     
-    // Banner
-    private let bannerView = UIView()
-
-    // Toast
-    let toastView = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+    // AI Recommendation Toast
+    let toastView = AIRecommendationToastView()
 
     // My Activity Section
     private let myActivitySectionView = UIView()
@@ -157,16 +154,9 @@ extension HomeView {
             $0.tintColor = .label
         }
         
-        // Banner
-        bannerView.do {
-            $0.layer.shadowOpacity = 0.05
-            $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-            $0.layer.shadowRadius = 4
-        }
-
-        // Toast
+        // AI Recommendation Toast
         toastView.do {
-            $0.isHidden = true // 기본적으로 숨김
+            $0.isHidden = true // 초기에는 숨김, homeInfo 로드 후 표시
         }
 
         // My Activity Section
@@ -248,7 +238,6 @@ extension HomeView {
 //        scrollView.addSubview(contentView)
 
         contentView.addSubview(headerView)
-        contentView.addSubview(bannerView)
         contentView.addSubview(toastView)
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
@@ -329,17 +318,11 @@ extension HomeView {
             $0.width.height.equalTo(24)
         }
         
-        // Banner
-        bannerView.snp.makeConstraints {
-            $0.top.equalTo(headerView.snp.bottom)
+        // AI Recommendation Toast
+        toastView.snp.makeConstraints {
+            $0.top.equalTo(headerView.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
-        }
-
-        // Toast
-        toastView.snp.makeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         // My Activity Section
@@ -590,38 +573,6 @@ extension HomeView {
         addActivityButton.configuration = config
     }
 
-    func showToast() {
-        toastView.isHidden = false
-
-        // myActivitySectionView 제약 조건 업데이트
-        myActivitySectionView.snp.remakeConstraints {
-            $0.top.equalTo(toastView.snp.bottom).offset(12)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.height.equalTo(24)
-        }
-
-        UIView.animate(withDuration: 0.3) {
-            self.layoutIfNeeded()
-        }
-    }
-
-    func hideToast() {
-        toastView.isHidden = true
-
-        // myActivitySectionView 제약 조건 복원
-        myActivitySectionView.snp.remakeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(25)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.height.equalTo(24)
-        }
-
-        UIView.animate(withDuration: 0.3) {
-            self.layoutIfNeeded()
-        }
-    }
-
     func showFloatingMenu() {
         dimOverlayView.isHidden = false
         UIView.animate(withDuration: 0.3) { [weak self] in
@@ -645,6 +596,21 @@ extension HomeView {
 
         floatingActionButton.isExpanded = false
         floatingActionMenu.hide(animated: true)
+    }
+
+    // MARK: - AI Toast
+
+    func configureToast(with greetingMessage: String) {
+        toastView.configure(with: greetingMessage)
+        toastView.isHidden = false
+    }
+
+    func expandToast(animated: Bool = true) {
+        toastView.expand(animated: animated)
+    }
+
+    func collapseToast(animated: Bool = true) {
+        toastView.collapse(animated: animated)
     }
 }
 
