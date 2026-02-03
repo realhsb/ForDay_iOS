@@ -33,8 +33,8 @@ final class ActivityGridViewController: UIViewController {
         // Setup collection view layout
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 4
-        layout.minimumInteritemSpacing = 4
+        layout.minimumLineSpacing = 1
+        layout.minimumInteritemSpacing = 1
 
         self.activityCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
 
@@ -232,25 +232,31 @@ extension ActivityGridViewController: UICollectionViewDelegate {
 extension ActivityGridViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let numberOfColumns: CGFloat = 3
-        let spacing: CGFloat = 4 // minimumInteritemSpacing
-        let inset: CGFloat = 4 // left + right insets
+        let spacing: CGFloat = 1 // 1pt spacing between cells
 
         // Calculate total spacing between items (2 spacings for 3 columns)
         let totalSpacing = spacing * (numberOfColumns - 1)
-        let totalInsets = inset * 2
 
-        // Calculate available width
-        let availableWidth = collectionView.bounds.width - totalSpacing - totalInsets
+        // Calculate available width (no insets - fill screen)
+        let availableWidth = collectionView.bounds.width - totalSpacing
         let itemWidth = floor(availableWidth / numberOfColumns)
 
-        // Aspect ratio: 119:128 (slightly taller than square)
-        let itemHeight = floor(itemWidth * 128 / 119)
+        // Aspect ratio from Figma: 119.33 x 144.1 (height/width ≈ 1.2077)
+        let itemHeight = floor(itemWidth * 144.1 / 119.33)
 
         return CGSize(width: itemWidth, height: itemHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        return .zero
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 1
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 1
     }
 }
 

@@ -22,6 +22,7 @@ extension DTO {
         let recordId: Int
         let thumbnailImageUrl: String?
         let sticker: String
+        let memo: String?
         let createdAt: String
     }
 }
@@ -50,7 +51,7 @@ extension DTO.FeedItem {
             recordId: recordId,
             thumbnailImageUrl: thumbnailImageUrl ?? "",
             sticker: sticker,
-            memo: nil,
+            memo: memo,
             createdAt: createdAt
         )
     }
@@ -60,7 +61,7 @@ extension DTO.FeedItem {
             recordId: recordId,
             thumbnailImageUrl: thumbnailImageUrl ?? "",
             sticker: sticker,
-            memo: nil,
+            memo: memo,
             createdAt: createdAt
         )
     }

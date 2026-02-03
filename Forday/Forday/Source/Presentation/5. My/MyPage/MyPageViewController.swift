@@ -269,7 +269,9 @@ extension MyPageViewController {
                 activityGridVC.view.frame = myPageView.contentContainerView.bounds
                 myPageView.contentContainerView.addSubview(activityGridVC.view)
                 activityGridVC.view.snp.makeConstraints {
-                    $0.edges.equalToSuperview()
+                    $0.leading.trailing.equalToSuperview()
+                    $0.top.equalToSuperview().offset(20)
+                    $0.bottom.equalToSuperview().offset(24)
                 }
                 activityGridVC.didMove(toParent: self)
             }

@@ -48,8 +48,22 @@ final class HobbyFilterView: UIView {
     }
 
     func selectHobbies(_ hobbyIds: Set<Int>) {
+        let previousSelectedIds = selectedHobbyIds
         selectedHobbyIds = hobbyIds
-        collectionView.reloadData()
+
+        // Update only the cells that changed selection state
+        for (index, hobby) in hobbies.enumerated() {
+            let wasSelected = previousSelectedIds.contains(hobby.hobbyId)
+            let isNowSelected = hobbyIds.contains(hobby.hobbyId)
+
+            // Only update if selection state changed
+            if wasSelected != isNowSelected {
+                let indexPath = IndexPath(item: index, section: 0)
+                if let cell = collectionView.cellForItem(at: indexPath) as? HobbyFilterCell {
+                    cell.updateSelectionState(isSelected: isNowSelected)
+                }
+            }
+        }
     }
 }
 
@@ -113,15 +127,23 @@ extension HobbyFilterView: UICollectionViewDelegate {
         let hobby = hobbies[indexPath.item]
 
         // Calculate new selection state
-        var newSelectedIds = selectedHobbyIds
-        if newSelectedIds.contains(hobby.hobbyId) {
-            newSelectedIds.remove(hobby.hobbyId)
+        let isCurrentlySelected = selectedHobbyIds.contains(hobby.hobbyId)
+        let willBeSelected = !isCurrentlySelected
+
+        // Update local state immediately
+        if willBeSelected {
+            selectedHobbyIds.insert(hobby.hobbyId)
         } else {
-            newSelectedIds.insert(hobby.hobbyId)
+            selectedHobbyIds.remove(hobby.hobbyId)
         }
 
-        // Notify selection change (ViewModel will update and sync back)
-        onHobbiesSelected?(newSelectedIds)
+        // Update the tapped cell immediately for instant feedback
+        if let cell = collectionView.cellForItem(at: indexPath) as? HobbyFilterCell {
+            cell.updateSelectionState(isSelected: willBeSelected)
+        }
+
+        // Notify selection change (ViewModel will update)
+        onHobbiesSelected?(selectedHobbyIds)
     }
 }
 
@@ -129,7 +151,8 @@ extension HobbyFilterView: UICollectionViewDelegate {
 
 extension HobbyFilterView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 64, height: 64)
+        // Icon container (48pt) + spacing (4pt) + label height (~14pt)
+        return CGSize(width: 48, height: 66)
     }
 }
 
