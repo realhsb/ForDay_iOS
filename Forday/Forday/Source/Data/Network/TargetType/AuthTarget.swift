@@ -11,7 +11,7 @@ import Alamofire
 
 enum AuthTarget {
     case kakaoLogin(request: DTO.KakaoLoginRequest)
-//    case appleLogin(request: DTO.AppleLoginRequest)
+    case appleLogin(request: DTO.AppleLoginRequest)
     case guestLogin(request: DTO.GuestLoginRequest)
     case refreshToken(request: DTO.TokenRefreshRequest)
     case validateToken
@@ -28,8 +28,8 @@ extension AuthTarget: BaseTargetType {
         switch self {
         case .kakaoLogin:
             return AuthAPI.kakaoLogin.endpoint
-//        case .appleLogin:
-//            return AuthAPI.appleLogin.endpoint
+        case .appleLogin:
+            return AuthAPI.appleLogin.endpoint
         case .guestLogin:
             return AuthAPI.guestLogin.endpoint
         case .refreshToken:
@@ -43,7 +43,7 @@ extension AuthTarget: BaseTargetType {
     
     var method: Moya.Method {
         switch self {
-        case .kakaoLogin, .guestLogin, .refreshToken /*, .appleLogin, .logout*/:
+        case .kakaoLogin, .appleLogin, .guestLogin, .refreshToken /*, .logout*/:
             return .post
         case .validateToken:
             return .get
@@ -54,8 +54,8 @@ extension AuthTarget: BaseTargetType {
         switch self {
         case .kakaoLogin(let request):
             return .requestJSONEncodable(request)
-//        case .appleLogin(let request):
-//            return .requestJSONEncodable(request)
+        case .appleLogin(let request):
+            return .requestJSONEncodable(request)
         case .guestLogin(let request):
             return .requestJSONEncodable(request)
         case .refreshToken(let request):

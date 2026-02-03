@@ -18,6 +18,7 @@ class LoginViewController: UIViewController {
     
     // UseCase
     private let kakaoLoginUseCase: KakaoLoginUseCase
+    private let appleLoginUseCase: AppleLoginUseCase
     private let guestLoginUseCase: GuestLoginUseCase
     
     // Coordinator
@@ -27,6 +28,7 @@ class LoginViewController: UIViewController {
     
     init(useCaseFactory: AuthUseCaseFactory = AuthUseCaseFactory()) {
         self.kakaoLoginUseCase = useCaseFactory.makeKakaoLoginUseCase()
+        self.appleLoginUseCase = useCaseFactory.makeAppleLoginUseCase()
         self.guestLoginUseCase = useCaseFactory.makeGuestLoginUseCase()
         super.init(nibName: nil, bundle: nil)
     }
@@ -88,8 +90,18 @@ extension LoginViewController {
     }
     
     @objc private func appleLoginButtonTapped() {
-        print("애플 로그인")
-        // TODO: 애플 로그인 처리
+        Task {
+            do {
+                let authToken = try await appleLoginUseCase.execute()
+                await MainActor.run {
+                    coordinator?.handleLoginSuccess(authToken: authToken)
+                }
+            } catch {
+                await MainActor.run {
+                    showError(error)
+                }
+            }
+        }
     }
     
     @objc private func guestLoginButtonTapped() {
