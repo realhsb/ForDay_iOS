@@ -22,9 +22,13 @@ class HomeViewController: UIViewController {
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
 
-    // Dropdown
+    // Activity Dropdown
     private var dropdownBackgroundView: UIView?
     private var activityDropdownView: ActivityDropdownView?
+
+    // Settings Dropdown
+    private var settingsDropdownBackgroundView: UIView?
+    private var settingsDropdownView: DropdownMenuView<HomeSettingsMenuItem>?
     
     // Lifecycle
     
@@ -441,7 +445,76 @@ extension HomeViewController {
     }
 
     @objc private func settingsButtonTapped() {
-        coordinator?.showHobbySettings()
+        toggleSettingsDropdown()
+    }
+
+    private func toggleSettingsDropdown() {
+        if settingsDropdownView != nil {
+            dismissSettingsDropdown()
+        } else {
+            showSettingsDropdown()
+        }
+    }
+
+    private func showSettingsDropdown() {
+        dismissSettingsDropdown() // 기존 드롭다운이 있으면 먼저 제거
+
+        // 투명 배경 생성
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .clear
+        view.addSubview(backgroundView)
+
+        backgroundView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissSettingsDropdown))
+        backgroundView.addGestureRecognizer(tapGesture)
+
+        // 메뉴 아이템 결정 (진행 중인 취미가 2개 이상이면 addHobby 제외)
+        let inProgressCount = viewModel.homeInfo?.inProgressHobbies.count ?? 0
+        let menuItems: [HomeSettingsMenuItem]
+        if inProgressCount > 1 {
+            menuItems = HomeSettingsMenuItem.allCases.filter { $0 != .addHobby }
+        } else {
+            menuItems = HomeSettingsMenuItem.allCases
+        }
+
+        // 드롭다운 생성
+        let dropdownView = DropdownMenuView(items: menuItems)
+        dropdownView.onItemSelected = { [weak self] menuItem in
+            self?.handleSettingsDropdownOption(menuItem)
+        }
+
+        // 드롭다운 표시
+        dropdownView.showInParent(view, below: homeView.settingsButton)
+
+        // 참조 저장
+        settingsDropdownBackgroundView = backgroundView
+        settingsDropdownView = dropdownView
+    }
+
+    @objc private func dismissSettingsDropdown() {
+        settingsDropdownView?.dismiss()
+        settingsDropdownBackgroundView?.removeFromSuperview()
+        settingsDropdownView = nil
+        settingsDropdownBackgroundView = nil
+    }
+
+    private func handleSettingsDropdownOption(_ item: HomeSettingsMenuItem) {
+        dismissSettingsDropdown()
+
+        switch item {
+        case .manageHobby:
+            coordinator?.showHobbySettings()
+
+        case .addHobby:
+            coordinator?.showAddHobbyOnboarding()
+
+        case .generalSettings:
+            // TODO: 전체설정 화면으로 이동
+            print("전체설정 탭")
+        }
     }
 
     @objc private func notificationTapped() {

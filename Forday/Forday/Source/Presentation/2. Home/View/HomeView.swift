@@ -51,6 +51,7 @@ class HomeView: UIView {
     let floatingActionButton = FloatingActionButton()
     let floatingActionMenu = FloatingActionMenu()
 
+
     // Gradient Layer for addActivityButton
     private var addActivityButtonGradientLayer: CAGradientLayer?
 
@@ -229,6 +230,7 @@ extension HomeView {
             $0.alpha = 0
             $0.isHidden = true
         }
+
     }
     
     private func layout() {
@@ -247,6 +249,7 @@ extension HomeView {
         addSubview(dimOverlayView)
         addSubview(floatingActionMenu)
         addSubview(floatingActionButton)
+
         
         // Header
         headerView.addSubview(firstHobbyButton)
@@ -389,6 +392,7 @@ extension HomeView {
             $0.trailing.equalTo(floatingActionButton)
             $0.bottom.equalTo(floatingActionButton.snp.top).offset(-16)
         }
+
     }
 }
 

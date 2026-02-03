@@ -79,11 +79,11 @@ extension ActivityGridViewController {
 
         hobbyFilterView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
-            $0.height.equalTo(80)
+            $0.height.equalTo(90)
         }
 
         activityCollectionView.snp.makeConstraints {
-            $0.top.equalTo(hobbyFilterView.snp.bottom)
+            $0.top.equalTo(hobbyFilterView.snp.bottom).offset(24)
             $0.leading.trailing.bottom.equalToSuperview()
         }
     }
