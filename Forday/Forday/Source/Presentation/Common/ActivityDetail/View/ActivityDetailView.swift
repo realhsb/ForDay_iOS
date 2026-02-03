@@ -206,6 +206,7 @@ extension ActivityDetailView {
     }
 }
 
+#if DEBUG
 #Preview("ActivityDetailView - Basic") {
     let view = ActivityDetailView()
     view.configure(with: .preview)
@@ -223,3 +224,4 @@ extension ActivityDetailView {
     view.configure(with: .previewWithAllReactions)
     return view
 }
+#endif

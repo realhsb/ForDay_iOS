@@ -391,6 +391,7 @@ extension ActivityDetailViewController {
 
 }
 
+#if DEBUG
 #Preview("ActivityDetailViewController - Basic") {
     let viewModel = ActivityDetailViewModel(activityRecordId: 1)
     let vc = ActivityDetailViewController(viewModel: viewModel)
@@ -424,3 +425,4 @@ extension ActivityDetailViewController {
     let nav = UINavigationController(rootViewController: vc)
     return nav
 }
+#endif
