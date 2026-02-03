@@ -120,13 +120,6 @@ extension HomeViewController {
             for: .touchUpInside
         )
 
-        // 토스트 탭 제스처
-        let toastTapGesture = UITapGestureRecognizer(
-            target: self,
-            action: #selector(toastViewTapped)
-        )
-        homeView.toastView.addGestureRecognizer(toastTapGesture)
-
         // Floating Action Button
         homeView.floatingActionButton.onTap = { [weak self] in
             self?.toggleFloatingMenu()
@@ -633,11 +626,6 @@ extension HomeViewController {
         navigationController?.pushViewController(activityListVC, animated: true)
     }
     
-    @objc private func toastViewTapped() {
-        print("토스트 뷰 탭")
-        showAIRecommendationModal()
-    }
-
     @objc private func addActivityButtonTapped() {
         // Check if user has hobbies
         guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
