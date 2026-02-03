@@ -31,7 +31,7 @@ final class MyPageViewController: UIViewController {
 
     // Settings dropdown
     private var settingsDropdownBackgroundView: UIView?
-    private var settingsDropdownView: SettingsDropdownView?
+    private var settingsDropdownView: DropdownMenuView<MySettingsMenuItem>?
 
     // MARK: - Initialization
 
@@ -269,7 +269,9 @@ extension MyPageViewController {
                 activityGridVC.view.frame = myPageView.contentContainerView.bounds
                 myPageView.contentContainerView.addSubview(activityGridVC.view)
                 activityGridVC.view.snp.makeConstraints {
-                    $0.edges.equalToSuperview()
+                    $0.leading.trailing.equalToSuperview()
+                    $0.top.equalToSuperview().offset(20)
+                    $0.bottom.equalToSuperview().offset(24)
                 }
                 activityGridVC.didMove(toParent: self)
             }
@@ -334,14 +336,14 @@ extension MyPageViewController {
         backgroundView.addGestureRecognizer(tapGesture)
 
         // Create dropdown
-        let dropdownView = SettingsDropdownView()
-        dropdownView.onMenuSelected = { [weak self] menuItem in
+        let dropdownView = DropdownMenuView(items: MySettingsMenuItem.allCases)
+        dropdownView.onItemSelected = { [weak self] menuItem in
             self?.handleSettingsMenuSelection(menuItem)
         }
 
         // Show dropdown
         guard let navigationBar = navigationController?.navigationBar else { return }
-        dropdownView.show(in: view, below: navigationItem.rightBarButtonItem!, navigationBar: navigationBar)
+        dropdownView.showInParent(view, belowNavigationBar: navigationBar)
 
         // Store references
         settingsDropdownBackgroundView = backgroundView
@@ -355,7 +357,7 @@ extension MyPageViewController {
         settingsDropdownBackgroundView = nil
     }
 
-    private func handleSettingsMenuSelection(_ menuItem: SettingsMenuItem) {
+    private func handleSettingsMenuSelection(_ menuItem: MySettingsMenuItem) {
         dismissSettingsDropdown()
 
         switch menuItem {

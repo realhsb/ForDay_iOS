@@ -24,7 +24,7 @@ class HobbyActivityInputView: UIView {
     private let recommendationLabel = UILabel()
     private let flowLayoutView = FlowLayoutView()
     private let saveButton = UIButton()
-    private var aiToastView: AIRecommendationToastView?
+    private var aiToastView: AIRecommendationInputToastView?
 
     private var activityFields: [ActivityInputField] = []
     private let maxFields = 3
@@ -35,6 +35,7 @@ class HobbyActivityInputView: UIView {
     var onDeleteButtonTapped: ((Int) -> Void)?
     var onRecommendationButtonTapped: ((String) -> Void)?
     var onAIToastTapped: (() -> Void)?
+    var onActivitiesChanged: (() -> Void)?
     
     // Initialization
     
@@ -99,7 +100,7 @@ extension HobbyActivityInputView {
         saveButton.do {
             var config = UIButton.Configuration.filled()
             config.title = "저장"
-            config.baseBackgroundColor = .systemGray4
+            config.baseBackgroundColor = .action003
             config.baseForegroundColor = .white
             config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
@@ -206,6 +207,7 @@ extension HobbyActivityInputView {
 
         field.onTextChanged = { [weak self] _ in
             self?.updateAddButtonVisibility()
+            self?.onActivitiesChanged?()
         }
 
         activityFields.append(field)
@@ -226,10 +228,11 @@ extension HobbyActivityInputView {
     }
 
     func getActivities() -> [(content: String, aiRecommended: Bool)] {
-        return activityFields.compactMap {
-            let content = $0.getText()
+        return activityFields.compactMap { field in
+            let content = field.getText()
             guard !content.isEmpty else { return nil }
-            return (content, false)
+            let isAIRecommended = field.type == .aiRecommended
+            return (content, isAIRecommended)
         }
     }
 
@@ -250,6 +253,14 @@ extension HobbyActivityInputView {
         guard let lastField = activityFields.last else { return }
         lastField.setText(text)
         updateAddButtonVisibility()
+        onActivitiesChanged?()
+    }
+
+    func fillLastFieldWithAIRecommendation(_ text: String) {
+        guard let lastField = activityFields.last else { return }
+        lastField.configure(type: .aiRecommended, text: text)
+        updateAddButtonVisibility()
+        onActivitiesChanged?()
     }
 
     private func updateAddButtonVisibility() {
@@ -267,40 +278,37 @@ extension HobbyActivityInputView {
         }
     }
 
-    func showAIRecommendationToast() {
+    func showAIRecommendationToast(aiCallRemaining: Bool = true) {
         // 이미 토스트가 있으면 제거
         aiToastView?.removeFromSuperview()
 
-        let toast = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
-        toast.isUserInteractionEnabled = true
+        let toast = AIRecommendationInputToastView()
+        toast.configure(with: "포데이 AI 추천 활동 보기")
 
-        // Add tap gesture
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(aiToastTapped))
-        toast.addGestureRecognizer(tapGesture)
+        toast.setInteractionEnabled(aiCallRemaining)
+
+        // Set tap callback
+        toast.onTap = { [weak self] in
+            self?.onAIToastTapped?()
+        }
 
         // Add to view
         addSubview(toast)
         toast.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
             $0.bottom.equalTo(saveButton.snp.top).offset(-30)
-        }
-
-        // Fade in animation
-        toast.alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            toast.alpha = 1
         }
 
         aiToastView = toast
     }
 
     func hideAIRecommendationToast() {
-        aiToastView?.hide()
-        aiToastView = nil
-    }
-
-    @objc private func aiToastTapped() {
-        onAIToastTapped?()
+        UIView.animate(withDuration: 0.2) {
+            self.aiToastView?.alpha = 0
+        } completion: { _ in
+            self.aiToastView?.removeFromSuperview()
+            self.aiToastView = nil
+        }
     }
 }
 

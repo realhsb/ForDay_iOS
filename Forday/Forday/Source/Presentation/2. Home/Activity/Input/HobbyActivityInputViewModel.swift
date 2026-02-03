@@ -66,10 +66,13 @@ class HobbyActivityInputViewModel {
         
         do {
             let message = try await createActivitiesUseCase.execute(hobbyId: hobbyId, activities: activityInputs)
-            
+
             await MainActor.run {
                 self.isLoading = false
                 print("✅ 활동 생성 완료: \(message)")
+
+                // 홈 화면 업데이트를 위한 이벤트 발생
+                AppEventBus.shared.activityRecordCreated.send(hobbyId)
             }
         } catch {
             await MainActor.run {

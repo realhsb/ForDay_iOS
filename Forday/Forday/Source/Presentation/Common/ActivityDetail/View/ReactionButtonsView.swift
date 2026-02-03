@@ -259,10 +259,7 @@ extension ReactionType {
     }
 }
 
-#Preview("ReactionButton - Amazing") {
-    ReactionButton(type: .amazing)
-}
-
+#if DEBUG
 #Preview("ReactionButtonsView") {
     let view = ReactionButtonsView()
     view.configure(with: .preview)
@@ -280,3 +277,4 @@ extension ReactionType {
     view.configure(with: .previewWithAllReactions)
     return view
 }
+#endif

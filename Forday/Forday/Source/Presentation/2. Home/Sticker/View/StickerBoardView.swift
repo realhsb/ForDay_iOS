@@ -44,7 +44,6 @@ final class StickerBoardView: UIView {
     
     private func style() {
         titleLabel.do {
-            $0.applyTypography(.header14)
             $0.textColor = .neutral900
         }
         
@@ -144,7 +143,7 @@ final class StickerBoardView: UIView {
         self.onStickerTap = onStickerTap
 
         // 헤더 텍스트
-        titleLabel.text = "현재까지 \(board.totalStickerNum)개의 스티커 수집"
+        titleLabel.setTextWithTypography("현재까지 \(board.totalStickerNum)개의 스티커 수집", style: .header14)
 
         // 페이지네이션 버튼 상태
         previousButton.isEnabled = board.hasPrevious
@@ -171,7 +170,7 @@ final class StickerBoardView: UIView {
         emptyStateLabel.text = "아직 시작한 취미가 없어요"
         emptyStateLabel.isHidden = false
         activityIndicator.stopAnimating()
-        titleLabel.text = "스티커 수집"
+        titleLabel.setTextWithTypography("스티커 수집", style: .header14)
         previousButton.isEnabled = false
         nextButton.isEnabled = false
     }

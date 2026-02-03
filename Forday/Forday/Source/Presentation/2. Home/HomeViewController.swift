@@ -22,9 +22,13 @@ class HomeViewController: UIViewController {
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
 
-    // Dropdown
+    // Activity Dropdown
     private var dropdownBackgroundView: UIView?
     private var activityDropdownView: ActivityDropdownView?
+
+    // Settings Dropdown
+    private var settingsDropdownBackgroundView: UIView?
+    private var settingsDropdownView: DropdownMenuView<HomeSettingsMenuItem>?
     
     // Lifecycle
     
@@ -116,13 +120,6 @@ extension HomeViewController {
             for: .touchUpInside
         )
 
-        // 토스트 탭 제스처
-        let toastTapGesture = UITapGestureRecognizer(
-            target: self,
-            action: #selector(toastViewTapped)
-        )
-        homeView.toastView.addGestureRecognizer(toastTapGesture)
-
         // Floating Action Button
         homeView.floatingActionButton.onTap = { [weak self] in
             self?.toggleFloatingMenu()
@@ -138,6 +135,11 @@ extension HomeViewController {
         // Floating Action Menu
         homeView.floatingActionMenu.onActionSelected = { [weak self] actionType in
             self?.handleFloatingMenuAction(actionType)
+        }
+
+        // AI 검색바 탭
+        homeView.toastView.onTap = { [weak self] in
+            self?.showAIRecommendationModal()
         }
     }
 
@@ -194,6 +196,8 @@ extension HomeViewController {
     // - hobbySettingsUpdated: 취미 설정 변경 시 홈 정보 새로고침
     // - hobbyCreated: 새 취미 생성 시 홈 정보 및 스티커 보드 새로고침
     // - hobbyDeleted: 취미 삭제 시 홈 정보 및 스티커 보드 새로고침
+    // - activityUpdated: 활동 수정 시 홈 정보 새로고침
+    // - activityDeleted: 활동 삭제 시 홈 정보 새로고침
 
     private func setupEventBus() {
         // 활동 기록 생성 이벤트 구독
@@ -201,6 +205,8 @@ extension HomeViewController {
             .sink { [weak self] hobbyId in
                 print("🎉 활동 기록 생성됨! hobbyId: \(hobbyId)")
                 Task {
+                    // 홈 정보 새로고침 (ActivityPreview 포함)
+                    await self?.viewModel.fetchHomeInfo()
                     // 스티커 보드 새로고침
                     await self?.stickerBoardViewModel.loadInitialStickerBoard()
                 }
@@ -238,6 +244,28 @@ extension HomeViewController {
                     // 홈 정보 및 스티커 보드 새로고침
                     await self?.viewModel.fetchHomeInfo()
                     await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 활동 수정 이벤트 구독
+        AppEventBus.shared.activityUpdated
+            .sink { [weak self] hobbyId in
+                print("✏️ 활동 수정됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 새로고침 (드롭다운 미리보기 업데이트)
+                    await self?.viewModel.fetchHomeInfo()
+                }
+            }
+            .store(in: &cancellables)
+
+        // 활동 삭제 이벤트 구독
+        AppEventBus.shared.activityDeleted
+            .sink { [weak self] hobbyId in
+                print("🗑️ 활동 삭제됨! hobbyId: \(hobbyId)")
+                Task {
+                    // 홈 정보 새로고침 (드롭다운 미리보기 업데이트)
+                    await self?.viewModel.fetchHomeInfo()
                 }
             }
             .store(in: &cancellables)
@@ -313,17 +341,21 @@ extension HomeViewController {
         // 취미 리스트 업데이트
         homeView.updateHobbies(homeInfo.inProgressHobbies)
 
-        // 활동 미리보기 업데이트
+        // 활동 미리보기 업데이트 (버튼 텍스트도 함께 업데이트됨)
         homeView.updateActivityPreview(homeInfo.activityPreview)
 
-        // Update add activity button title
-        homeView.updateAddActivityButtonTitle(hasHobbies: hasHobbies)
+        // 취미가 없을 때만 버튼 텍스트를 "취미 추가하기"로 변경
+        if !hasHobbies {
+            homeView.updateAddActivityButtonTitle(hasHobbies: false)
+        }
 
-        // 토스트 표시 조건: AI 추천 횟수가 남아있고, 활동이 없을 때
-        if homeInfo.aiCallRemaining && hasHobbies {
-            homeView.showToast()
-        } else {
-            homeView.hideToast()
+        // AI 추천 토스트 설정 및 펼치기 애니메이션
+        if hasHobbies {
+            homeView.configureToast(with: homeInfo.greetingMessage, aiCallRemaining: homeInfo.aiCallRemaining)
+            // 약간의 딜레이 후 펼치기 애니메이션
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.homeView.expandToast(animated: true)
+            }
         }
 
         // Update floating button state
@@ -341,7 +373,7 @@ extension HomeViewController {
         homeView.updateHobbies([])
         homeView.updateActivityPreview(nil)
         homeView.updateAddActivityButtonTitle(hasHobbies: false)
-        homeView.hideToast()
+        homeView.collapseToast(animated: false)
         homeView.hideFloatingMenu()
 
         // Disable floating button
@@ -406,7 +438,76 @@ extension HomeViewController {
     }
 
     @objc private func settingsButtonTapped() {
-        coordinator?.showHobbySettings()
+        toggleSettingsDropdown()
+    }
+
+    private func toggleSettingsDropdown() {
+        if settingsDropdownView != nil {
+            dismissSettingsDropdown()
+        } else {
+            showSettingsDropdown()
+        }
+    }
+
+    private func showSettingsDropdown() {
+        dismissSettingsDropdown() // 기존 드롭다운이 있으면 먼저 제거
+
+        // 투명 배경 생성
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .clear
+        view.addSubview(backgroundView)
+
+        backgroundView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissSettingsDropdown))
+        backgroundView.addGestureRecognizer(tapGesture)
+
+        // 메뉴 아이템 결정 (진행 중인 취미가 2개 이상이면 addHobby 제외)
+        let inProgressCount = viewModel.homeInfo?.inProgressHobbies.count ?? 0
+        let menuItems: [HomeSettingsMenuItem]
+        if inProgressCount > 1 {
+            menuItems = HomeSettingsMenuItem.allCases.filter { $0 != .addHobby }
+        } else {
+            menuItems = HomeSettingsMenuItem.allCases
+        }
+
+        // 드롭다운 생성
+        let dropdownView = DropdownMenuView(items: menuItems)
+        dropdownView.onItemSelected = { [weak self] menuItem in
+            self?.handleSettingsDropdownOption(menuItem)
+        }
+
+        // 드롭다운 표시
+        dropdownView.showInParent(view, below: homeView.settingsButton)
+
+        // 참조 저장
+        settingsDropdownBackgroundView = backgroundView
+        settingsDropdownView = dropdownView
+    }
+
+    @objc private func dismissSettingsDropdown() {
+        settingsDropdownView?.dismiss()
+        settingsDropdownBackgroundView?.removeFromSuperview()
+        settingsDropdownView = nil
+        settingsDropdownBackgroundView = nil
+    }
+
+    private func handleSettingsDropdownOption(_ item: HomeSettingsMenuItem) {
+        dismissSettingsDropdown()
+
+        switch item {
+        case .manageHobby:
+            coordinator?.showHobbySettings()
+
+        case .addHobby:
+            coordinator?.showAddHobbyOnboarding()
+
+        case .generalSettings:
+            // TODO: 전체설정 화면으로 이동
+            print("전체설정 탭")
+        }
     }
 
     @objc private func notificationTapped() {
@@ -497,10 +598,13 @@ extension HomeViewController {
         )
 
         // HomeInfo 업데이트
-        if var homeInfo = viewModel.homeInfo {
+        if let homeInfo = viewModel.homeInfo {
             let updatedHomeInfo = HomeInfo(
                 inProgressHobbies: homeInfo.inProgressHobbies,
                 activityPreview: activityPreview,
+                greetingMessage: homeInfo.greetingMessage,
+                userSummaryText: homeInfo.userSummaryText,
+                recommendMessage: homeInfo.recommendMessage,
                 aiCallRemaining: homeInfo.aiCallRemaining
             )
 
@@ -522,11 +626,6 @@ extension HomeViewController {
         navigationController?.pushViewController(activityListVC, animated: true)
     }
     
-    @objc private func toastViewTapped() {
-        print("토스트 뷰 탭")
-        showAIRecommendationModal()
-    }
-
     @objc private func addActivityButtonTapped() {
         // Check if user has hobbies
         guard let homeInfo = viewModel.homeInfo, !homeInfo.inProgressHobbies.isEmpty else {
@@ -538,11 +637,11 @@ extension HomeViewController {
 
         // activityPreview 유무에 따라 다른 동작
         if homeInfo.activityPreview != nil {
-            // 스티커 붙이기
+            // 오늘의 스티커 붙이기 → ActivityRecord 화면으로 이동
             print("오늘의 스티커 붙이기 탭")
-            // TODO: 스티커 붙이기 API 연동
+            coordinator?.showActivityRecord()
         } else {
-            // 취미활동 추가하기
+            // 취미활동 추가하기 → Activity 입력 화면으로 이동
             print("취미활동 추가하기 탭")
             showActivityInput()
         }
@@ -555,6 +654,7 @@ extension HomeViewController {
         }
 
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         inputVC.onActivityCreated = { [weak self] in
             // Dismiss modal first, then push ActivityListViewController
             self?.dismiss(animated: true) {
@@ -575,13 +675,11 @@ extension HomeViewController {
 
         let activityListVC = ActivityListViewController(hobbyId: hobbyId)
         activityListVC.shouldShowAIRecommendationToast = true
+        activityListVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         navigationController?.pushViewController(activityListVC, animated: true)
     }
 
     private func showAIRecommendationModal() {
-        // 토스트 숨기기
-        homeView.hideToast()
-
         let containerVC = AIRecommendationContainerViewController(viewModel: viewModel)
         containerVC.modalPresentationStyle = .pageSheet
 
@@ -626,6 +724,7 @@ extension HomeViewController {
         }
 
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = viewModel.homeInfo?.aiCallRemaining ?? true
         inputVC.onActivityCreated = { [weak self] in
             self?.dismiss(animated: true)
         }

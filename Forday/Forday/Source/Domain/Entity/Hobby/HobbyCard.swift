@@ -25,6 +25,35 @@ enum HobbyImageAsset: String, Codable {
     case movie = "movie.png"
     case photo = "photo.png"
     case writing = "writing.png"
+
+    /// Maps Korean hobby name to HobbyImageAsset
+    init?(hobbyName: String) {
+        // Map Korean hobby names to image assets
+        let mapping: [String: HobbyImageAsset] = [
+            "그림 그리기": .drawing,
+            "그림그리기": .drawing,
+            "헬스": .gym,
+            "운동": .gym,
+            "독서": .reading,
+            "음악 듣기": .music,
+            "음악듣기": .music,
+            "러닝": .running,
+            "요리": .cooking,
+            "카페 탐방": .cafe,
+            "카페탐방": .cafe,
+            "영화 보기": .movie,
+            "영화보기": .movie,
+            "사진 촬영": .photo,
+            "사진촬영": .photo,
+            "글쓰기": .writing
+        ]
+
+        if let asset = mapping[hobbyName] {
+            self = asset
+        } else {
+            return nil
+        }
+    }
     
 //    var image: UIImage? {
 //        let assetName = self.rawValue.replacingOccurrences(of: ".png", with: "")
@@ -59,25 +88,25 @@ enum HobbyImageAsset: String, Codable {
     var icon: UIImage {
         switch self {
         case .drawing:
-                .My.todayEmpty
+                .Hobbyicon.drawing
         case .gym:
-                .My.todayEmpty
+                .Hobbyicon.gym
         case .reading:
-                .My.todayEmpty
+                .Hobbyicon.reading
         case .music:
-                .My.todayEmpty
+                .Hobbyicon.listeningmusic
         case .running:
-                .My.todayEmpty
+                .Hobbyicon.running
         case .cooking:
-                .My.todayEmpty
+                .Hobbyicon.cooking
         case .cafe:
-                .My.todayEmpty
+                .Hobbyicon.cafe
         case .movie:
-                .My.todayEmpty
+                .Hobbyicon.watchingmovie
         case .photo:
-                .My.todayEmpty
+                .Hobbyicon.pictures
         case .writing:
-                .My.todayEmpty
+                .Hobbyicon.writing
         }
     }
 }

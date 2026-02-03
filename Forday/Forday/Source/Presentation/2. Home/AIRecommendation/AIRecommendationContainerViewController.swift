@@ -104,17 +104,27 @@ extension AIRecommendationContainerViewController {
     
     private func showSelection(with result: AIRecommendationResult) {
         currentStep = .selection
-        
-        let selectionView = AIActivitySelectionView(result: result)
-        selectionView.onActivitySelected = { [weak self] activity in
-            print("선택된 활동: \(activity.content)")
+
+        guard let hobbyId = viewModel.currentHobbyId else {
+            showError(NSError(domain: "AIRecommendation", code: -1, userInfo: [NSLocalizedDescriptionKey: "취미 정보를 찾을 수 없습니다."]))
+            return
+        }
+
+        let selectionView = AIActivitySelectionView(result: result, hobbyId: hobbyId)
+
+        selectionView.onActivitySaved = { [weak self] in
+            print("✅ AI 추천 활동 저장 완료")
             self?.dismiss(animated: true)
         }
-        
+
         selectionView.onRefreshTapped = { [weak self] in
             self?.startAIRecommendation() // 재요청
         }
-        
+
+        selectionView.onError = { [weak self] errorMessage in
+            self?.showError(NSError(domain: "AIRecommendation", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage]))
+        }
+
         self.selectionView = selectionView
         transitionToView(selectionView)
     }

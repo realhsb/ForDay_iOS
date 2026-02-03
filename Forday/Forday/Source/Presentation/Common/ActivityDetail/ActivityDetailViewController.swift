@@ -10,7 +10,7 @@ import SnapKit
 import Then
 import Combine
 
-final class ActivityDetailViewController: UIViewController {
+final class ActivityDetailViewController: UIViewController, UIGestureRecognizerDelegate {
 
     // MARK: - Properties
 
@@ -49,6 +49,19 @@ final class ActivityDetailViewController: UIViewController {
         bind()
         loadData()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
+
+    // MARK: - UIGestureRecognizerDelegate
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }
 
 // MARK: - Setup
@@ -57,9 +70,22 @@ extension ActivityDetailViewController {
     private func setupNavigationBar() {
         title = "내 활동 보기"
 
-        // More button
+        // Back button with custom chevronLeft icon
+        let backButton = UIBarButtonItem(
+            image: .Icon.chevronLeft,
+            style: .plain,
+            target: self,
+            action: #selector(backButtonTapped)
+        )
+        backButton.tintColor = .label
+        navigationItem.leftBarButtonItem = backButton
+
+        // Hide the default back button
+        navigationItem.hidesBackButton = true
+
+        // More button with 3dot icon
         let moreButton = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
+            image: .Icon.threeDot,
             style: .plain,
             target: self,
             action: #selector(moreButtonTapped)
@@ -67,6 +93,10 @@ extension ActivityDetailViewController {
         moreButton.tintColor = .label
 
         navigationItem.rightBarButtonItem = moreButton
+    }
+
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
 
     private func setupGestures() {
@@ -361,6 +391,7 @@ extension ActivityDetailViewController {
 
 }
 
+#if DEBUG
 #Preview("ActivityDetailViewController - Basic") {
     let viewModel = ActivityDetailViewModel(activityRecordId: 1)
     let vc = ActivityDetailViewController(viewModel: viewModel)
@@ -394,3 +425,4 @@ extension ActivityDetailViewController {
     let nav = UINavigationController(rootViewController: vc)
     return nav
 }
+#endif

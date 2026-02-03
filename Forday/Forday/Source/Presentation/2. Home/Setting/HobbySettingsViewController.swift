@@ -52,6 +52,14 @@ class HobbySettingsViewController: UIViewController {
         navigationItem.title = "내 취미 관리"
         navigationController?.navigationBar.prefersLargeTitles = false
 
+        // Apply background color to navigation bar
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .neutral50
+        appearance.shadowColor = .clear
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+
         // Add chevron-left dismiss button
         let backButton = UIBarButtonItem(
             image: UIImage(systemName: "chevron.left"),
@@ -130,45 +138,122 @@ class HobbySettingsViewController: UIViewController {
 
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
         let status: HobbyStatus = sender.selectedSegmentIndex == 0 ? .inProgress : .archived
+        hobbySettingsView.animateUnderline(to: sender.selectedSegmentIndex)
         Task {
             await viewModel.switchSegment(to: status)
         }
     }
 
+    /// 프로그래밍 방식으로 탭 전환
+    private func switchToTab(_ status: HobbyStatus) {
+        print("🔄 switchToTab called with status: \(status)")
+        let index = status == .inProgress ? 0 : 1
+        hobbySettingsView.segmentedControl.selectedSegmentIndex = index
+        print("🔄 segmentedControl.selectedSegmentIndex set to: \(index)")
+        hobbySettingsView.animateUnderline(to: index)
+        print("🔄 animateUnderline called")
+        Task {
+            print("🔄 calling viewModel.switchSegment")
+            await viewModel.switchSegment(to: status)
+            print("🔄 viewModel.switchSegment completed")
+        }
+    }
+
     private func handleArchive(hobbyId: Int) {
-        let alert = UIAlertController(
-            title: "취미 보관",
-            message: "이 취미를 보관함으로 이동하시겠습니까?",
-            preferredStyle: .alert
+        // Find hobby name for alert message
+        guard let hobby = viewModel.hobbies.first(where: { $0.hobbyId == hobbyId }) else {
+            return
+        }
+
+        let alertVC = CommonAlertViewController(
+            title: "'\(hobby.hobbyName)' 취미를 보관하시겠어요?",
+            message: "저장된 기록과 함께 보관함에서 다시 꺼낼 수 있어요!",
+            cancelButtonTitle: "닫기",
+            confirmButtonTitle: "보관",
+            onCancel: nil,
+            onConfirm: { [weak self] in
+                self?.performArchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
+            }
         )
 
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "보관", style: .destructive) { [weak self] _ in
-            Task { [weak self] in
-                guard let self = self else { return }
-                do {
-                    try await self.viewModel.archiveHobby(hobbyId: hobbyId)
-                    await MainActor.run {
-                        // Notify other screens that a hobby was archived
-                        AppEventBus.shared.hobbyDeleted.send()
-                    }
-                } catch {
-                    // Error already handled via binding
-                }
-            }
-        })
+        present(alertVC, animated: true)
+    }
 
-        present(alert, animated: true)
+    private func performArchive(hobbyId: Int, hobbyName: String) {
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                try await self.viewModel.archiveHobby(hobbyId: hobbyId)
+                await MainActor.run {
+                    // Notify other screens that a hobby was archived
+                    AppEventBus.shared.hobbyDeleted.send()
+
+                    // Show success toast with navigation action
+                    ToastView.show(
+                        message: "'\(hobbyName)' 취미를 보관했어요.",
+                        actionTitle: "이동하기",
+                        duration: 3.0,
+                        onAction: { [weak self] in
+                            print("🍞 Toast action tapped - archive")
+                            guard let self = self else {
+                                print("❌ self is nil")
+                                return
+                            }
+                            // Switch to archived tab
+                            self.switchToTab(.archived)
+                        }
+                    )
+                }
+            } catch {
+                // Error already handled via binding
+            }
+        }
     }
 
     private func handleUnarchive(hobbyId: Int) {
-        Task {
-            do {
-                try await viewModel.unarchiveHobby(hobbyId: hobbyId)
+        // Find hobby name for alert message
+        guard let hobby = viewModel.hobbies.first(where: { $0.hobbyId == hobbyId }) else {
+            return
+        }
 
+        let alertVC = CommonAlertViewController(
+            title: "'\(hobby.hobbyName)' 취미를 꺼내시겠어요?",
+            message: "저장된 기록으로 다시 '\(hobby.hobbyName)' 취미를 시작할 수 있어요!",
+            cancelButtonTitle: "닫기",
+            confirmButtonTitle: "꺼내기",
+            onCancel: nil,
+            onConfirm: { [weak self] in
+                self?.performUnarchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
+            }
+        )
+
+        present(alertVC, animated: true)
+    }
+
+    private func performUnarchive(hobbyId: Int, hobbyName: String) {
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                try await self.viewModel.unarchiveHobby(hobbyId: hobbyId)
                 await MainActor.run {
                     // Notify other screens that a hobby was restored
                     AppEventBus.shared.hobbyDeleted.send()
+
+                    // Show success toast with navigation action
+                    ToastView.show(
+                        message: "'\(hobbyName)' 취미를 꺼냈어요.",
+                        actionTitle: "이동하기",
+                        duration: 3.0,
+                        onAction: { [weak self] in
+                            print("🍞 Toast action tapped - unarchive")
+                            guard let self = self else {
+                                print("❌ self is nil")
+                                return
+                            }
+                            // Switch to in-progress tab
+                            self.switchToTab(.inProgress)
+                        }
+                    )
                 }
             } catch {
                 // Error already handled via binding

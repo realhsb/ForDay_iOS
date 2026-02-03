@@ -48,13 +48,25 @@ class FlowLayoutView: UIView {
     private func createButton(title: String) -> UIButton {
         let button = UIButton()
         var config = UIButton.Configuration.plain()
-        config.title = title
+
+        // Typography: label/12
+        var attributedTitle = AttributedString(title)
+        attributedTitle.font = UIFont(name: "Pretendard-Regular", size: 12)
+        config.attributedTitle = attributedTitle
+
         config.baseForegroundColor = .neutral800
-        config.background.backgroundColor = .neutral100
-        config.background.cornerRadius = 16
-        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        config.background.backgroundColor = .white
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8)
 
         button.configuration = config
+
+        // Shadow
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 6
+        button.layer.shadowOpacity = 0.06
+        button.clipsToBounds = false
+
         button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
 
         return button
@@ -83,6 +95,9 @@ class FlowLayoutView: UIView {
             }
 
             button.frame = CGRect(x: currentX, y: currentY, width: buttonSize.width, height: buttonSize.height)
+
+            // Pill shape: cornerRadius = height / 2
+            button.layer.cornerRadius = buttonSize.height / 2
 
             currentX += buttonSize.width + spacing
         }

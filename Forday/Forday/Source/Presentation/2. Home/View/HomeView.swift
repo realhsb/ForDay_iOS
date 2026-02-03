@@ -29,11 +29,8 @@ class HomeView: UIView {
     let settingsButton = UIButton()
     let notificationButton = UIButton()
     
-    // Banner
-    private let bannerView = UIView()
-
-    // Toast
-    let toastView = AIRecommendationToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
+    // AI Recommendation Toast
+    let toastView = AIRecommendationToastView()
 
     // My Activity Section
     private let myActivitySectionView = UIView()
@@ -54,6 +51,10 @@ class HomeView: UIView {
     let floatingActionButton = FloatingActionButton()
     let floatingActionMenu = FloatingActionMenu()
 
+
+    // Gradient Layer for addActivityButton
+    private var addActivityButtonGradientLayer: CAGradientLayer?
+
     // Initialization
     
     override init(frame: CGRect) {
@@ -64,6 +65,13 @@ class HomeView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // 그라데이션 레이어 프레임 업데이트
+        addActivityButtonGradientLayer?.frame = addActivityButton.bounds
     }
 }
 
@@ -147,16 +155,9 @@ extension HomeView {
             $0.tintColor = .label
         }
         
-        // Banner
-        bannerView.do {
-            $0.layer.shadowOpacity = 0.05
-            $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-            $0.layer.shadowRadius = 4
-        }
-
-        // Toast
+        // AI Recommendation Toast
         toastView.do {
-            $0.isHidden = true // 기본적으로 숨김
+            $0.isHidden = true // 초기에는 숨김, homeInfo 로드 후 표시
         }
 
         // My Activity Section
@@ -166,8 +167,8 @@ extension HomeView {
         }
         
         myActivityChevronButton.do {
-            $0.setImage(UIImage(systemName: "chevron.right"), for: .normal)
-            $0.tintColor = .systemGray2
+            $0.setImage(.Icon.chevronRight, for: .normal)
+            $0.tintColor = .neutral500
         }
         
         // Activity Card - Empty State
@@ -191,7 +192,7 @@ extension HomeView {
 
         activityDropdownButton.do {
             var config = UIButton.Configuration.plain()
-            config.image = UIImage(systemName: "chevron.down")
+            config.image = .Icon.chevronDown
             config.imagePlacement = .trailing
             config.imagePadding = 8
             config.baseForegroundColor = .label
@@ -229,6 +230,7 @@ extension HomeView {
             $0.alpha = 0
             $0.isHidden = true
         }
+
     }
     
     private func layout() {
@@ -238,7 +240,6 @@ extension HomeView {
 //        scrollView.addSubview(contentView)
 
         contentView.addSubview(headerView)
-        contentView.addSubview(bannerView)
         contentView.addSubview(toastView)
         contentView.addSubview(myActivitySectionView)
         contentView.addSubview(activityCardView)
@@ -248,6 +249,7 @@ extension HomeView {
         addSubview(dimOverlayView)
         addSubview(floatingActionMenu)
         addSubview(floatingActionButton)
+
         
         // Header
         headerView.addSubview(firstHobbyButton)
@@ -319,17 +321,11 @@ extension HomeView {
             $0.width.height.equalTo(24)
         }
         
-        // Banner
-        bannerView.snp.makeConstraints {
-            $0.top.equalTo(headerView.snp.bottom)
+        // AI Recommendation Toast
+        toastView.snp.makeConstraints {
+            $0.top.equalTo(headerView.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
-        }
-
-        // Toast
-        toastView.snp.makeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         // My Activity Section
@@ -343,10 +339,11 @@ extension HomeView {
         myActivityTitleLabel.snp.makeConstraints {
             $0.leading.centerY.equalToSuperview()
         }
-        
+
         myActivityChevronButton.snp.makeConstraints {
-            $0.trailing.centerY.equalToSuperview()
-            $0.width.height.equalTo(24)
+            $0.leading.equalTo(myActivityTitleLabel.snp.trailing).offset(4)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(16)
         }
         
         // Activity Card
@@ -357,16 +354,16 @@ extension HomeView {
         
         emptyActivityLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(24)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
         }
 
         activityDropdownButton.snp.makeConstraints {
             $0.top.equalToSuperview().offset(20)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.centerX.equalToSuperview()
         }
 
         addActivityButton.snp.makeConstraints {
-            $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(16)
+            $0.top.equalTo(emptyActivityLabel.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalToSuperview().offset(-24)
@@ -395,6 +392,7 @@ extension HomeView {
             $0.trailing.equalTo(floatingActionButton)
             $0.bottom.equalTo(floatingActionButton.snp.top).offset(-16)
         }
+
     }
 }
 
@@ -515,8 +513,9 @@ extension HomeView {
             config?.title = preview.content
             activityDropdownButton.configuration = config
 
-            // 버튼 텍스트 변경
+            // 버튼 텍스트 변경 및 그라데이션 적용
             addActivityButton.setTitleWithTypography("오늘의 스티커 붙이기", style: .header14)
+            applyGradientToAddActivityButton()
 
             // addActivityButton 제약 조건 업데이트 (activityDropdownButton 기준)
             addActivityButton.snp.remakeConstraints {
@@ -530,8 +529,9 @@ extension HomeView {
             emptyActivityLabel.isHidden = false
             activityDropdownButton.isHidden = true
 
-            // 버튼 텍스트 복원
+            // 버튼 텍스트 복원 및 그라데이션 제거
             addActivityButton.setTitleWithTypography("취미활동 추가하기", style: .header14)
+            removeGradientFromAddActivityButton()
 
             // addActivityButton 제약 조건 복원 (emptyActivityLabel 기준)
             addActivityButton.snp.remakeConstraints {
@@ -543,36 +543,39 @@ extension HomeView {
         }
     }
 
-    func showToast() {
-        toastView.isHidden = false
+    private func applyGradientToAddActivityButton() {
+        // 기존 그라데이션 제거
+        addActivityButtonGradientLayer?.removeFromSuperlayer()
 
-        // myActivitySectionView 제약 조건 업데이트
-        myActivitySectionView.snp.remakeConstraints {
-            $0.top.equalTo(toastView.snp.bottom).offset(12)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.height.equalTo(24)
-        }
+        // 버튼 배경색 투명으로 변경
+        var config = addActivityButton.configuration
+        config?.baseBackgroundColor = .clear
+        config?.baseForegroundColor = .neutralWhite
+        addActivityButton.configuration = config
 
-        UIView.animate(withDuration: 0.3) {
-            self.layoutIfNeeded()
+        // 그라데이션 레이어 생성 (gradient002: F4A261 → F77F78)
+        let gradientLayer = DesignGradient.gradient002.makeLayer()
+        gradientLayer.cornerRadius = 12
+
+        // 레이아웃 후 프레임 설정을 위해 지연 실행
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            gradientLayer.frame = self.addActivityButton.bounds
+            self.addActivityButton.layer.insertSublayer(gradientLayer, at: 0)
+            self.addActivityButtonGradientLayer = gradientLayer
         }
     }
 
-    func hideToast() {
-        toastView.isHidden = true
+    private func removeGradientFromAddActivityButton() {
+        // 그라데이션 레이어 제거
+        addActivityButtonGradientLayer?.removeFromSuperlayer()
+        addActivityButtonGradientLayer = nil
 
-        // myActivitySectionView 제약 조건 복원
-        myActivitySectionView.snp.remakeConstraints {
-            $0.top.equalTo(bannerView.snp.bottom).offset(25)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.height.equalTo(24)
-        }
-
-        UIView.animate(withDuration: 0.3) {
-            self.layoutIfNeeded()
-        }
+        // 버튼 배경색 복원
+        var config = addActivityButton.configuration
+        config?.baseBackgroundColor = .primary003
+        config?.baseForegroundColor = .action001
+        addActivityButton.configuration = config
     }
 
     func showFloatingMenu() {
@@ -598,6 +601,22 @@ extension HomeView {
 
         floatingActionButton.isExpanded = false
         floatingActionMenu.hide(animated: true)
+    }
+
+    // MARK: - AI Toast
+
+    func configureToast(with greetingMessage: String, aiCallRemaining: Bool) {
+        toastView.configure(with: greetingMessage)
+        toastView.setInteractionEnabled(aiCallRemaining)
+        toastView.isHidden = false
+    }
+
+    func expandToast(animated: Bool = true) {
+        toastView.expand(animated: animated)
+    }
+
+    func collapseToast(animated: Bool = true) {
+        toastView.collapse(animated: animated)
     }
 }
 

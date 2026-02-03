@@ -94,6 +94,7 @@ extension ReactionUsersScrollView {
     }
 }
 
+#if DEBUG
 #Preview("ReactionUsersScrollView - Empty") {
     let view = ReactionUsersScrollView()
     view.frame = CGRect(x: 0, y: 0, width: 375, height: 60)
@@ -106,3 +107,4 @@ extension ReactionUsersScrollView {
     view.frame = CGRect(x: 0, y: 0, width: 375, height: 60)
     return view
 }
+#endif

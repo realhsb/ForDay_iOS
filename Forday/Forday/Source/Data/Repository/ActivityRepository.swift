@@ -137,7 +137,7 @@ extension ActivityRepository {
     
     func makeMockAIData() -> AIRecommendationResult {
         return AIRecommendationResult(
-            message: "AI가 취미 활동을 추천했습니다.",
+            message: "AI가 취미 활동을 추천했습니다.", recommendedText: "",
             aiCallCount: 1,
             aiCallLimit: 3,
             activities: [

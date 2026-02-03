@@ -22,48 +22,12 @@ final class CommonAlertViewController: UIViewController {
 
     // MARK: - UI Components
 
-    private let dimmerView = UIView().then {
-        $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-    }
-
-    private let containerView = UIView().then {
-        $0.backgroundColor = .white
-        $0.layer.cornerRadius = 20
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOpacity = 0.12
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowRadius = 12
-    }
-
-    private let titleLabel = UILabel().then {
-        $0.font = UIFont(name: "Pretendard-Bold", size: 18) ?? .systemFont(ofSize: 18, weight: .bold)
-        $0.textColor = UIColor(hex: "#1e1e1e")
-        $0.textAlignment = .left
-        $0.numberOfLines = 1
-    }
-
-    private let messageLabel = UILabel().then {
-        $0.font = UIFont(name: "Pretendard-Regular", size: 14) ?? .systemFont(ofSize: 14, weight: .regular)
-        $0.textColor = UIColor(hex: "#3a3a3a")
-        $0.textAlignment = .center
-        $0.numberOfLines = 0
-    }
-
-    private lazy var cancelButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: "#e5e5e5")
-        $0.layer.cornerRadius = 40
-        $0.setTitleColor(UIColor(hex: "#1e1e1e"), for: .normal)
-        $0.titleLabel?.font = UIFont(name: "Pretendard-Bold", size: 14) ?? .systemFont(ofSize: 14, weight: .bold)
-        $0.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-    }
-
-    private lazy var confirmButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: "#ff9447")
-        $0.layer.cornerRadius = 40
-        $0.setTitleColor(.white, for: .normal)
-        $0.titleLabel?.font = UIFont(name: "Pretendard-Bold", size: 14) ?? .systemFont(ofSize: 14, weight: .bold)
-        $0.addTarget(self, action: #selector(confirmButtonTapped), for: .touchUpInside)
-    }
+    private let dimmerView = UIView()
+    private let containerView = UIView()
+    private let titleLabel = UILabel()
+    private let messageLabel = UILabel()
+    private lazy var cancelButton = UIButton()
+    private lazy var confirmButton = UIButton()
 
     // MARK: - Initialization
 
@@ -95,15 +59,59 @@ final class CommonAlertViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        style()
+        layout()
         configure()
     }
+}
 
-    // MARK: - Setup
+// MARK: - Setup
 
-    private func setupUI() {
+extension CommonAlertViewController {
+    private func style() {
         view.backgroundColor = .clear
 
+        dimmerView.do {
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        }
+
+        containerView.do {
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 20
+            $0.layer.shadowColor = UIColor.black.cgColor
+            $0.layer.shadowOpacity = 0.12
+            $0.layer.shadowOffset = CGSize(width: 0, height: 2)
+            $0.layer.shadowRadius = 12
+        }
+
+        titleLabel.do {
+            $0.textColor = .neutral900
+            $0.textAlignment = .left
+            $0.numberOfLines = 0
+        }
+
+        messageLabel.do {
+            $0.textColor = .neutral800
+            $0.textAlignment = .center
+            $0.numberOfLines = 0
+        }
+
+        cancelButton.do {
+            $0.backgroundColor = .action003
+            $0.layer.cornerRadius = 20
+            $0.setTitleColor(.neutral900, for: .normal)
+            $0.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
+        }
+
+        confirmButton.do {
+            $0.backgroundColor = .action001
+            $0.layer.cornerRadius = 20
+            $0.setTitleColor(.neutralWhite, for: .normal)
+            $0.addTarget(self, action: #selector(confirmButtonTapped), for: .touchUpInside)
+        }
+    }
+
+    private func layout() {
         view.addSubview(dimmerView)
         view.addSubview(containerView)
 
@@ -123,14 +131,12 @@ final class CommonAlertViewController: UIViewController {
 
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(24)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         messageLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(18)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         cancelButton.snp.makeConstraints {
@@ -150,14 +156,18 @@ final class CommonAlertViewController: UIViewController {
     }
 
     private func configure() {
-        titleLabel.text = alertTitle
-        messageLabel.text = message
+        titleLabel.setTextWithTypography(alertTitle, style: .header18)
+        messageLabel.setTextWithTypography(message, style: .label14)
         cancelButton.setTitle(cancelButtonTitle, for: .normal)
+        cancelButton.applyTypography(.header14)
         confirmButton.setTitle(confirmButtonTitle, for: .normal)
+        confirmButton.applyTypography(.header14)
     }
+}
 
-    // MARK: - Actions
+// MARK: - Actions
 
+extension CommonAlertViewController {
     @objc private func cancelButtonTapped() {
         dismiss(animated: true) { [weak self] in
             self?.onCancel?()

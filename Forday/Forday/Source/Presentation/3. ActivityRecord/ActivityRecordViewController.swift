@@ -20,6 +20,7 @@ class ActivityRecordViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
     private var privacyDropdownView: PrivacyDropdownView?
+    private var didSubmitSuccessfully = false
 
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
@@ -48,6 +49,28 @@ class ActivityRecordViewController: UIViewController {
         bind()
         setupForEditMode()
         fetchActivities()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        deleteUploadedImageIfNeeded()
+    }
+
+    private func deleteUploadedImageIfNeeded() {
+        // 제출 성공한 경우 이미지 삭제하지 않음
+        guard !didSubmitSuccessfully else { return }
+
+        // 업로드된 이미지가 있으면 삭제
+        guard viewModel.uploadedImageUrl != nil else { return }
+
+        Task {
+            do {
+                try await viewModel.deleteImage()
+                print("✅ 페이지 이탈로 인해 업로드된 이미지 삭제 완료")
+            } catch {
+                print("❌ 이미지 삭제 실패: \(error)")
+            }
+        }
     }
 }
 
@@ -98,6 +121,13 @@ extension ActivityRecordViewController {
             for: .touchUpInside
         )
 
+        // 사진 삭제
+        recordView.photoDeleteButton.addTarget(
+            self,
+            action: #selector(photoDeleteButtonTapped),
+            for: .touchUpInside
+        )
+
         // 공개범위 드롭다운 버튼
         recordView.privacyButton.addTarget(
             self,
@@ -117,12 +147,8 @@ extension ActivityRecordViewController {
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
 
-        // 메모 텍스트필드
-        recordView.memoTextField.addTarget(
-            self,
-            action: #selector(memoTextFieldChanged),
-            for: .editingChanged
-        )
+        // 메모 텍스트뷰
+        recordView.memoTextView.delegate = self
     }
 
     private func bind() {
@@ -149,7 +175,7 @@ extension ActivityRecordViewController {
         viewModel.$selectedImage
             .receive(on: DispatchQueue.main)
             .sink { [weak self] image in
-                self?.updatePhotoButton(with: image)
+                self?.recordView.updatePhotoImage(image)
             }
             .store(in: &cancellables)
     }
@@ -160,8 +186,9 @@ extension ActivityRecordViewController {
             recordView.setSubmitButtonTitle("수정완료")
 
             // 메모 설정
-            recordView.memoTextField.text = viewModel.memo
+            recordView.memoTextView.text = viewModel.memo
             recordView.updateMemoCount(viewModel.memo.count)
+            recordView.updateMemoPlaceholder(isHidden: !viewModel.memo.isEmpty)
         }
     }
 
@@ -192,17 +219,19 @@ extension ActivityRecordViewController {
     }
 
     @objc private func backgroundTapped() {
+        view.endEditing(true)
         dismissActivityDropdown()
         dismissPrivacyDropdown()
     }
 
     @objc private func photoAddButtonTapped() {
-        // 이미지가 이미 선택된 경우 삭제 버튼이 눌린 것
-        if viewModel.selectedImage != nil {
-            deletePhoto()
-        } else {
+        if viewModel.selectedImage == nil {
             presentPhotoPicker()
         }
+    }
+
+    @objc private func photoDeleteButtonTapped() {
+        deletePhoto()
     }
 
     @objc private func privacyButtonTapped() {
@@ -213,21 +242,6 @@ extension ActivityRecordViewController {
         }
     }
 
-    @objc private func memoTextFieldChanged() {
-        let text = recordView.memoTextField.text ?? ""
-
-        // 200자 제한
-        if text.count > 200 {
-            let limitedText = String(text.prefix(200))
-            recordView.memoTextField.text = limitedText
-            viewModel.updateMemo(limitedText)
-            recordView.updateMemoCount(200)
-        } else {
-            viewModel.updateMemo(text)
-            recordView.updateMemoCount(text.count)
-        }
-    }
-
     @objc private func submitButtonTapped() {
         Task {
             do {
@@ -235,6 +249,9 @@ extension ActivityRecordViewController {
                 await MainActor.run {
                     let actionType = viewModel.isEditMode ? "수정" : "작성"
                     print("✅ 활동 기록 \(actionType) 성공: \(result.message)")
+
+                    // 제출 성공 플래그 설정 (이미지 삭제 방지)
+                    self.didSubmitSuccessfully = true
 
                     // Notify HomeViewController to refresh sticker board
                     AppEventBus.shared.activityRecordCreated.send(viewModel.currentHobbyId)
@@ -337,53 +354,17 @@ extension ActivityRecordViewController {
             do {
                 try await viewModel.deleteImage()
             } catch {
-                print("❌ 이미지 삭제 실패: \(error)")
+                await MainActor.run {
+                    print("❌ 이미지 삭제 실패: \(error)")
+                    showErrorAlert(
+                        title: "삭제 실패",
+                        message: "이미지 삭제에 실패했습니다.\n다시 시도해주세요."
+                    )
+                }
             }
         }
     }
 
-    private func updatePhotoButton(with image: UIImage?) {
-        guard let image = image else {
-            // 이미지 없음 - 원래 상태로 복원
-            recordView.photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
-            recordView.photoAddButton.tintColor = .systemGray
-            recordView.photoAddButton.backgroundColor = .white
-            return
-        }
-
-        // 선택된 이미지 표시
-        recordView.photoAddButton.setImage(image, for: .normal)
-        recordView.photoAddButton.imageView?.contentMode = .scaleAspectFill
-        recordView.photoAddButton.tintColor = nil
-
-        // X 아이콘 추가
-        addDeleteIconToPhotoButton()
-    }
-
-    private func addDeleteIconToPhotoButton() {
-        // 기존 X 아이콘 제거
-        recordView.photoAddButton.subviews.forEach { view in
-            if view.tag == 999 {
-                view.removeFromSuperview()
-            }
-        }
-
-        let deleteButton = UIButton()
-        deleteButton.tag = 999
-        deleteButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        deleteButton.tintColor = .white
-        deleteButton.backgroundColor = .black.withAlphaComponent(0.6)
-        deleteButton.layer.cornerRadius = 10
-        deleteButton.clipsToBounds = true
-
-        recordView.photoAddButton.addSubview(deleteButton)
-
-        deleteButton.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(2)
-            $0.trailing.equalToSuperview().offset(-2)
-            $0.width.height.equalTo(20)
-        }
-    }
 }
 
 // UICollectionView
@@ -447,6 +428,28 @@ extension ActivityRecordViewController: PHPickerViewControllerDelegate {
                 }
             }
         }
+    }
+}
+
+// UITextViewDelegate
+
+extension ActivityRecordViewController: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+        let text = textView.text ?? ""
+
+        // 100자 제한
+        if text.count > 100 {
+            let limitedText = String(text.prefix(100))
+            textView.text = limitedText
+            viewModel.updateMemo(limitedText)
+            recordView.updateMemoCount(100)
+        } else {
+            viewModel.updateMemo(text)
+            recordView.updateMemoCount(text.count)
+        }
+
+        // 플레이스홀더 표시/숨김
+        recordView.updateMemoPlaceholder(isHidden: !text.isEmpty)
     }
 }
 

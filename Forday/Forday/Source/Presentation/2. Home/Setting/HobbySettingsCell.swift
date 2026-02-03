@@ -13,88 +13,107 @@ class HobbySettingsCell: UITableViewCell {
 
     static let identifier = "HobbySettingsCell"
 
-    // UI Components
-    private let containerView = UIView()
+    // MARK: - UI Components
+
+    // White card container
+    private let cardContainerView = UIView()
     private let hobbyIconView = UIImageView()
+    private let infoLabel = UILabel()
     private let hobbyNameLabel = UILabel()
-    private let hobbyInfoLabel = UILabel()
     private let archiveButton = UIButton()
+
+    // Action buttons (outside card)
     private let actionStackView = UIStackView()
     private let timeButton = UIButton()
     private let executionButton = UIButton()
     private let goalDaysButton = UIButton()
 
-    // Callbacks
+    // MARK: - Callbacks
+
     var onArchiveTapped: ((Int) -> Void)?
     var onUnarchiveTapped: ((Int) -> Void)?
     var onTimeEditTapped: ((Int) -> Void)?
     var onExecutionEditTapped: ((Int) -> Void)?
     var onGoalDaysEditTapped: ((Int) -> Void)?
 
+    // MARK: - Properties
+
     private var hobbyId: Int?
     private var isArchived: Bool = false
 
+    // MARK: - Initialization
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        setupStyle()
+        setupLayout()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    private func setupUI() {
+// MARK: - Setup
+
+extension HobbySettingsCell {
+    private func setupStyle() {
         backgroundColor = .clear
+        contentView.backgroundColor = .clear
         selectionStyle = .none
 
-        // Container
-        containerView.do {
-            $0.backgroundColor = .systemBackground
-            $0.layer.cornerRadius = 12
+        // White card container
+        cardContainerView.do {
+            $0.backgroundColor = .bg001
+            $0.layer.cornerRadius = 8
             $0.layer.shadowColor = UIColor.black.cgColor
-            $0.layer.shadowOpacity = 0.05
+            $0.layer.shadowOpacity = 0.06
             $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-            $0.layer.shadowRadius = 4
+            $0.layer.shadowRadius = 12
         }
 
-        // Icon
+        // Hobby icon
         hobbyIconView.do {
             $0.contentMode = .scaleAspectFit
             $0.tintColor = .systemOrange
         }
 
-        // Name
+        // Info label (30분 · 주 2회 · 66일) - label/10, neutral/600
+        infoLabel.do {
+            $0.textColor = .neutral600
+        }
+
+        // Hobby name - body/16, neutral/800
         hobbyNameLabel.do {
-            $0.applyTypography(.header16)
-            $0.textColor = .neutral900
+            $0.textColor = .neutral800
         }
 
-        // Info
-        hobbyInfoLabel.do {
-            $0.applyTypography(.body14)
-            $0.textColor = .neutral500
-        }
-
-        // Archive button
+        // Archive button (vertical: icon + text)
         archiveButton.do {
             var config = UIButton.Configuration.plain()
-            config.image = UIImage(systemName: "archivebox")
-            config.imagePlacement = .leading
-            config.imagePadding = 4
-            config.baseForegroundColor = .neutral600
-            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+            config.image = .Icon.storageIn
+            config.imagePlacement = .top
+            config.imagePadding = 2
+            config.baseForegroundColor = .neutral800
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+
+            // Apply label/12 font
+            var attributedTitle = AttributedString("보관")
+            attributedTitle.font = TypographyStyle.label12.font
+            config.attributedTitle = attributedTitle
+
             $0.configuration = config
             $0.addTarget(self, action: #selector(archiveButtonTapped), for: .touchUpInside)
         }
 
-        // Action Stack
+        // Action stack view
         actionStackView.do {
             $0.axis = .horizontal
             $0.spacing = 8
             $0.distribution = .fillEqually
         }
 
-        // Action Buttons
+        // Action buttons
         configureActionButton(timeButton, title: "취미 시간 변경", action: #selector(timeButtonTapped))
         configureActionButton(executionButton, title: "실행 횟수 변경", action: #selector(executionButtonTapped))
         configureActionButton(goalDaysButton, title: "여정일 변경", action: #selector(goalDaysButtonTapped))
@@ -102,64 +121,80 @@ class HobbySettingsCell: UITableViewCell {
         actionStackView.addArrangedSubview(timeButton)
         actionStackView.addArrangedSubview(executionButton)
         actionStackView.addArrangedSubview(goalDaysButton)
+    }
 
-        // Layout
-        contentView.addSubview(containerView)
-        containerView.addSubview(hobbyIconView)
-        containerView.addSubview(hobbyNameLabel)
-        containerView.addSubview(hobbyInfoLabel)
-        containerView.addSubview(archiveButton)
-        containerView.addSubview(actionStackView)
+    private func setupLayout() {
+        contentView.addSubview(cardContainerView)
+        contentView.addSubview(actionStackView)
 
-        containerView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16))
+        cardContainerView.addSubview(hobbyIconView)
+        cardContainerView.addSubview(infoLabel)
+        cardContainerView.addSubview(hobbyNameLabel)
+        cardContainerView.addSubview(archiveButton)
+
+        // Card container
+        cardContainerView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(8)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.height.equalTo(60)
         }
 
+        // Hobby icon
         hobbyIconView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
-            $0.top.equalToSuperview().offset(16)
-            $0.width.height.equalTo(32)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(24)
         }
 
+        // Info label (top)
+        infoLabel.snp.makeConstraints {
+            $0.leading.equalTo(hobbyIconView.snp.trailing).offset(10)
+            $0.top.equalToSuperview().offset(12)
+        }
+
+        // Hobby name (bottom)
         hobbyNameLabel.snp.makeConstraints {
-            $0.leading.equalTo(hobbyIconView.snp.trailing).offset(12)
-            $0.top.equalTo(hobbyIconView.snp.top)
+            $0.leading.equalTo(infoLabel)
+            $0.top.equalTo(infoLabel.snp.bottom).offset(3)
         }
 
-        hobbyInfoLabel.snp.makeConstraints {
-            $0.leading.equalTo(hobbyNameLabel)
-            $0.top.equalTo(hobbyNameLabel.snp.bottom).offset(4)
-        }
-
+        // Archive button
         archiveButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
-            $0.top.equalToSuperview().offset(16)
+            $0.centerY.equalToSuperview()
         }
 
+        // Action stack view (below card)
         actionStackView.snp.makeConstraints {
+            $0.top.equalTo(cardContainerView.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().offset(-16)
-            $0.top.equalTo(hobbyInfoLabel.snp.bottom).offset(16)
-            $0.bottom.equalToSuperview().offset(-16)
-            $0.height.equalTo(36)
+            $0.bottom.equalToSuperview().offset(-8)
+            $0.height.equalTo(40)
         }
     }
 
     private func configureActionButton(_ button: UIButton, title: String, action: Selector) {
         var config = UIButton.Configuration.plain()
-        config.title = title
-        config.baseForegroundColor = .neutral700
-        config.background.backgroundColor = .systemGray6
+        config.baseForegroundColor = .neutral600
+        config.background.backgroundColor = .bg003
         config.background.cornerRadius = 8
-        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 10, bottom: 12, trailing: 10)
+
+        // Apply label/12 font
+        var attributedTitle = AttributedString(title)
+        attributedTitle.font = TypographyStyle.label12.font
+        config.attributedTitle = attributedTitle
 
         button.configuration = config
         button.addTarget(self, action: action, for: .touchUpInside)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 13)
-        button.titleLabel?.adjustsFontSizeToFitWidth = true
-        button.titleLabel?.minimumScaleFactor = 0.8
     }
+}
 
+// MARK: - Actions
+
+extension HobbySettingsCell {
     @objc private func archiveButtonTapped() {
         guard let hobbyId = hobbyId else { return }
         if isArchived {
@@ -183,41 +218,65 @@ class HobbySettingsCell: UITableViewCell {
         guard let hobbyId = hobbyId else { return }
         onGoalDaysEditTapped?(hobbyId)
     }
+}
 
+// MARK: - Configuration
+
+extension HobbySettingsCell {
     func configure(with hobby: HobbySetting, isArchived: Bool) {
         self.hobbyId = hobby.hobbyId
         self.isArchived = isArchived
 
-        // Icon (default to book icon)
-        hobbyIconView.image = UIImage(systemName: "book.fill")
+        // Icon
+        hobbyIconView.image = .Hobbyicon.reading
 
-        // Name & Info
-        hobbyNameLabel.text = hobby.hobbyName
-        hobbyInfoLabel.text = hobby.infoDisplayText
+        // Info text (label/10)
+        infoLabel.setTextWithTypography(hobby.infoDisplayText, style: .label10)
+
+        // Hobby name (body/16)
+        hobbyNameLabel.setTextWithTypography(hobby.hobbyName, style: .body16)
 
         // Archive button
-        var config = archiveButton.configuration
-        if isArchived {
-            config?.title = "꺼내기"
-            config?.image = UIImage(systemName: "tray.and.arrow.up")
-        } else {
-            config?.title = "보관"
-            config?.image = UIImage(systemName: "archivebox")
-        }
-        archiveButton.configuration = config
+        updateArchiveButton(isArchived: isArchived)
 
-        // Action buttons visibility
+        // Show/hide action buttons based on archived state
+        updateLayoutForArchivedState(isArchived)
+    }
+
+    private func updateArchiveButton(isArchived: Bool) {
+        var config = archiveButton.configuration
+
+        if isArchived {
+            config?.image = .Icon.storageOut
+            var attributedTitle = AttributedString("꺼내기")
+            attributedTitle.font = TypographyStyle.label12.font
+            config?.attributedTitle = attributedTitle
+        } else {
+            config?.image = .Icon.storageIn
+            var attributedTitle = AttributedString("보관")
+            attributedTitle.font = TypographyStyle.label12.font
+            config?.attributedTitle = attributedTitle
+        }
+
+        archiveButton.configuration = config
+    }
+
+    private func updateLayoutForArchivedState(_ isArchived: Bool) {
         actionStackView.isHidden = isArchived
 
-        // Update goal days button text if needed
-        if hobby.goalDays == nil {
-            var goalConfig = goalDaysButton.configuration
-            goalConfig?.title = "DAY 변경"
-            goalDaysButton.configuration = goalConfig
-        } else {
-            var goalConfig = goalDaysButton.configuration
-            goalConfig?.title = "여정일 변경"
-            goalDaysButton.configuration = goalConfig
+        // Update constraints
+        actionStackView.snp.remakeConstraints {
+            $0.top.equalTo(cardContainerView.snp.bottom).offset(8)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().offset(-16)
+
+            if isArchived {
+                $0.height.equalTo(0)
+                $0.bottom.equalToSuperview()
+            } else {
+                $0.height.equalTo(40)
+                $0.bottom.equalToSuperview().offset(-8)
+            }
         }
     }
 }

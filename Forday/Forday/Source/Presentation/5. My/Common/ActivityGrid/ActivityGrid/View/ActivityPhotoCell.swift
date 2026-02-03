@@ -26,7 +26,6 @@ final class ActivityPhotoCell: UICollectionViewCell {
 
     // Shared sticker image view
     private let stickerImageView = UIImageView()
-    private let stickerBackgroundView = UIView()
 
     // MARK: - Initialization
 
@@ -51,6 +50,16 @@ final class ActivityPhotoCell: UICollectionViewCell {
 
         // Remove gradient layers
         gradientContainerView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Update gradient layer frame when bounds change
+        // This fixes the issue where gradient doesn't show initially
+        gradientContainerView.layer.sublayers?
+            .compactMap { $0 as? CAGradientLayer }
+            .forEach { $0.frame = gradientContainerView.bounds }
     }
 
     // MARK: - Configuration
@@ -133,8 +142,7 @@ extension ActivityPhotoCell {
         }
 
         quoteIconImageView.do {
-            $0.image = UIImage(systemName: "quote.opening")
-            $0.tintColor = .white.withAlphaComponent(0.6)
+            $0.image = .Icon.quotationMark
             $0.contentMode = .scaleAspectFit
         }
 
@@ -144,11 +152,6 @@ extension ActivityPhotoCell {
             $0.textAlignment = .left
             $0.numberOfLines = 2
             $0.lineBreakMode = .byTruncatingTail
-        }
-
-        stickerBackgroundView.do {
-            $0.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-            $0.clipsToBounds = true
         }
 
         stickerImageView.do {
@@ -165,9 +168,8 @@ extension ActivityPhotoCell {
         gradientContainerView.addSubview(quoteIconImageView)
         gradientContainerView.addSubview(memoLabel)
 
-        // Sticker (shared) - background view and image view
-        contentView.addSubview(stickerBackgroundView)
-        stickerBackgroundView.addSubview(stickerImageView)
+        // Sticker (shared)
+        contentView.addSubview(stickerImageView)
 
         // Image view layout
         imageView.snp.makeConstraints {
@@ -193,17 +195,11 @@ extension ActivityPhotoCell {
             $0.trailing.equalToSuperview().offset(-12)
         }
 
-        // Sticker background layout (bottom-right)
-        stickerBackgroundView.snp.makeConstraints {
-            $0.bottom.equalToSuperview().offset(-4)
-            $0.trailing.equalToSuperview().offset(-4)
-            $0.width.height.equalTo(30)
-        }
-
-        // Sticker image layout (centered in background)
+        // Sticker image layout (bottom-right, proportional to cell width)
+        // Figma: 40x40 sticker on 119.33 width cell = 40/119.33 ≈ 0.335 ratio
         stickerImageView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.width.height.equalTo(20)
+            $0.bottom.trailing.equalToSuperview().inset(10)
+            $0.width.height.equalTo(contentView.snp.width).multipliedBy(40.0 / 119.33)
         }
     }
 }

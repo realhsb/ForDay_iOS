@@ -34,7 +34,7 @@ class HobbySettingsView: UIView {
     }
 
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .neutral50
 
         // Header
         headerLabel.do {
