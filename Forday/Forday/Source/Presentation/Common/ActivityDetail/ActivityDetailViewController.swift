@@ -49,6 +49,11 @@ final class ActivityDetailViewController: UIViewController {
         bind()
         loadData()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
 }
 
 // MARK: - Setup
@@ -57,9 +62,22 @@ extension ActivityDetailViewController {
     private func setupNavigationBar() {
         title = "내 활동 보기"
 
-        // More button
+        // Back button with custom chevronLeft icon
+        let backButton = UIBarButtonItem(
+            image: .Icon.chevronLeft,
+            style: .plain,
+            target: self,
+            action: #selector(backButtonTapped)
+        )
+        backButton.tintColor = .label
+        navigationItem.leftBarButtonItem = backButton
+
+        // Hide the default back button
+        navigationItem.hidesBackButton = true
+
+        // More button with 3dot icon
         let moreButton = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
+            image: .Icon.threeDot,
             style: .plain,
             target: self,
             action: #selector(moreButtonTapped)
@@ -67,6 +85,10 @@ extension ActivityDetailViewController {
         moreButton.tintColor = .label
 
         navigationItem.rightBarButtonItem = moreButton
+    }
+
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
 
     private func setupGestures() {
