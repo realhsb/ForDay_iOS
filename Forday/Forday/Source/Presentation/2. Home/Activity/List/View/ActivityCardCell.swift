@@ -60,7 +60,7 @@ class ActivityCardCell: UITableViewCell {
 
     func configure(with activity: Activity) {
         activityLabel.text = activity.content
-        stickerNumberLabel.text = "\(activity.collectedStickerNum)"
+        stickerNumberLabel.setTextWithTypography("\(activity.collectedStickerNum)", style: .label12)
 
         // Show/hide AI badge
         aiRecommendBadge.isHidden = !activity.aiRecommended
@@ -109,7 +109,6 @@ extension ActivityCardCell {
         }
         
         stickerNumberLabel.do {
-            $0.applyTypography(.label12)
             $0.textColor = .neutral500
         }
 

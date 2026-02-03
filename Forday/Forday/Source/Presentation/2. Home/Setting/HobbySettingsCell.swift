@@ -65,13 +65,11 @@ class HobbySettingsCell: UITableViewCell {
 
         // Name
         hobbyNameLabel.do {
-            $0.applyTypography(.header16)
             $0.textColor = .neutral900
         }
 
         // Info
         hobbyInfoLabel.do {
-            $0.applyTypography(.body14)
             $0.textColor = .neutral500
         }
 
@@ -192,8 +190,8 @@ class HobbySettingsCell: UITableViewCell {
         hobbyIconView.image = UIImage(systemName: "book.fill")
 
         // Name & Info
-        hobbyNameLabel.text = hobby.hobbyName
-        hobbyInfoLabel.text = hobby.infoDisplayText
+        hobbyNameLabel.setTextWithTypography(hobby.hobbyName, style: .header16)
+        hobbyInfoLabel.setTextWithTypography(hobby.infoDisplayText, style: .body14)
 
         // Archive button
         var config = archiveButton.configuration

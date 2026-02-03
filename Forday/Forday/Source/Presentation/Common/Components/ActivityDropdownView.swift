@@ -208,7 +208,6 @@ class ActivityDropdownCell: UITableViewCell {
         }
 
         activityLabel.do {
-            $0.applyTypography(.body14)
             $0.textColor = .neutral500
             $0.textAlignment = .center
         }

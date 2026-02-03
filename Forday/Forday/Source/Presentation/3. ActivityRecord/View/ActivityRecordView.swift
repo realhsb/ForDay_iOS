@@ -151,8 +151,7 @@ extension ActivityRecordView {
         }
 
         memoCountLabel.do {
-            $0.text = "0/100"
-            $0.applyTypography(.label10)
+            $0.setTextWithTypography("0/100", style: .label10)
             $0.textColor = .neutral400
         }
         
@@ -324,7 +323,7 @@ extension ActivityRecordView {
     }
 
     func updateMemoCount(_ count: Int) {
-        memoCountLabel.text = "\(count)/100"
+        memoCountLabel.setTextWithTypography("\(count)/100", style: .label10)
     }
 
     func updateMemoPlaceholder(isHidden: Bool) {

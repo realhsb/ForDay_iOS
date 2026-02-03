@@ -80,7 +80,6 @@ extension ActivityItemView {
         }
 
         descriptionLabel.do {
-            $0.applyTypography(.label14)
             $0.textColor = .neutral600
             $0.numberOfLines = 0
         }
@@ -130,7 +129,7 @@ extension ActivityItemView {
 
     private func configure() {
         contentTextField.text = activity.content
-        descriptionLabel.text = activity.description
+        descriptionLabel.setTextWithTypography(activity.description, style: .label14)
     }
 
     private func setupActions() {

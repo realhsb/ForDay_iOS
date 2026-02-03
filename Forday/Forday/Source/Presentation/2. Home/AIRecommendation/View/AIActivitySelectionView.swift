@@ -87,7 +87,7 @@ class AIActivitySelectionView: UIView {
 
 extension AIActivitySelectionView {
     private func configure() {
-        titleLabel.text = "\(result.recommendedText)"
+        titleLabel.setTextWithTypography(result.recommendedText, style: .header18)
     }
 
     private func style() {
@@ -105,7 +105,6 @@ extension AIActivitySelectionView {
         }
 
         titleLabel.do {
-            $0.applyTypography(.header18)
             $0.textColor = .neutral900
             $0.numberOfLines = 0
             $0.textAlignment = .center
@@ -130,7 +129,6 @@ extension AIActivitySelectionView {
         }
 
         refreshCountLabel.do {
-            $0.applyTypography(.label12)
             $0.textColor = .neutral500
             $0.textAlignment = .center
         }
@@ -257,7 +255,7 @@ extension AIActivitySelectionView {
         let count = result.aiCallCount
         let limit = result.aiCallLimit
 
-        refreshCountLabel.text = "\(count)/\(limit)"
+        refreshCountLabel.setTextWithTypography("\(count)/\(limit)", style: .label12)
 
         let isEnabled = count < limit
         refreshButton.isEnabled = isEnabled

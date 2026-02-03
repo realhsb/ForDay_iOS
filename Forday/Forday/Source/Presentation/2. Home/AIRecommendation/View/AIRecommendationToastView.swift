@@ -70,7 +70,6 @@ extension AIRecommendationToastView {
         }
 
         messageLabel.do {
-            $0.applyTypography(.body14)
             $0.textColor = .neutral800
             $0.numberOfLines = 1
             $0.textAlignment = .center
@@ -130,7 +129,7 @@ extension AIRecommendationToastView {
 
 extension AIRecommendationToastView {
     func configure(with message: String) {
-        messageLabel.text = message
+        messageLabel.setTextWithTypography(message, style: .body14)
     }
 
     func expand(animated: Bool = true) {

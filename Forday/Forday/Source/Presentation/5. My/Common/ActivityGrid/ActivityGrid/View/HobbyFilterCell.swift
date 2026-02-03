@@ -59,7 +59,7 @@ final class HobbyFilterCell: UICollectionViewCell {
         }
 
         // Truncate hobby name if longer than 4 characters
-        nameLabel.text = hobby.hobbyName.truncated(maxLength: 4)
+        nameLabel.setTextWithTypography(hobby.hobbyName.truncated(maxLength: 4), style: .body12)
 
         // Apply dim for archived hobbies
         let alpha: CGFloat = hobby.status == .archived ? 0.4 : 1.0
@@ -96,7 +96,6 @@ extension HobbyFilterCell {
         }
 
         nameLabel.do {
-            $0.applyTypography(.body12)
             $0.textColor = .neutral800
             $0.textAlignment = .center
         }

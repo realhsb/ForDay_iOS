@@ -190,7 +190,7 @@ final class ActivityDetailDropdownCell: UITableViewCell {
 
     func configure(with option: ActivityDetailDropdownOption) {
         iconImageView.image = option.icon
-        titleLabel.text = option.title
+        titleLabel.setTextWithTypography(option.title, style: .body16)
 
         // 삭제하기는 빨간색
         if option == .delete {
@@ -222,7 +222,6 @@ extension ActivityDetailDropdownCell {
         }
 
         titleLabel.do {
-            $0.applyTypography(.body16)
             $0.textColor = .neutral800
         }
 
