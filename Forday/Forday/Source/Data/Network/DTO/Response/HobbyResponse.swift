@@ -15,12 +15,12 @@ extension DTO {
 
     struct HobbyData: Codable {
         let appVersion: String
-        let hobbyInfos: [HobbyInfo]
+        let hobbyInfo: [HobbyInfo]
     }
 }
 
 extension DTO.HobbyData {
     func toDomain() -> [HobbyCard] {
-        return hobbyInfos.compactMap { $0.toDomain() }
+        return hobbyInfo.compactMap { $0.toDomain() }
     }
 }
