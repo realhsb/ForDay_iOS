@@ -24,8 +24,12 @@ class ActivityListViewController: UIViewController {
 
     // AI Recommendation Toast
     var shouldShowAIRecommendationToast = false
-    private var aiToastView: ToastView?
-    
+    var aiCallRemaining = true  // AI 호출 가능 여부
+    private var aiToastView: AIRecommendationToastView?
+
+    // Modal Presentation
+    var isPresentedModally = false
+
     // Initialization
     
     init(hobbyId: Int, viewModel: ActivityListViewModel = ActivityListViewModel()) {
@@ -81,15 +85,27 @@ class ActivityListViewController: UIViewController {
 extension ActivityListViewController {
     private func setupNavigationBar() {
         title = "활동 리스트"
-        
+
+        // Close button (when presented modally)
+        if isPresentedModally {
+            let closeButton = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            closeButton.tintColor = .neutral800
+            navigationItem.leftBarButtonItem = closeButton
+        }
+
         // + 버튼
         let addButton = UIBarButtonItem(
-            image: UIImage(systemName: "plus"),
+            image: .Icon.plus,
             style: .plain,
             target: self,
             action: #selector(addButtonTapped)
         )
-        addButton.tintColor = .label
+        addButton.tintColor = .neutral800
         navigationItem.rightBarButtonItem = addButton
     }
     
@@ -117,12 +133,12 @@ extension ActivityListViewController {
             }
             .store(in: &cancellables)
 
-        // 에러 메시지
-        viewModel.$errorMessage
+        // 에러 처리
+        viewModel.$error
             .receive(on: DispatchQueue.main)
             .compactMap { $0 }
             .sink { [weak self] error in
-                self?.showError(error)
+                self?.handleError(error)
             }
             .store(in: &cancellables)
     }
@@ -141,12 +157,20 @@ extension ActivityListViewController {
 // Actions
 
 extension ActivityListViewController {
+    @objc private func closeButtonTapped() {
+        dismiss(animated: true)
+    }
+
     @objc private func addButtonTapped() {
         let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = aiCallRemaining
         inputVC.onActivityCreated = { [weak self] in
-            self?.loadActivities()  // 목록 새로고침
+            // Dismiss modal first, then pop to HomeViewController
+            self?.dismiss(animated: true) {
+                self?.navigationController?.popToRootViewController(animated: true)
+            }
         }
-        
+
         let nav = UINavigationController(rootViewController: inputVC)
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
@@ -193,6 +217,11 @@ extension ActivityListViewController {
             do {
                 try await viewModel.updateActivity(activityId: activityId, content: content)
                 await viewModel.fetchActivities(hobbyId: hobbyId)  // 새로고침
+
+                // 홈 화면 업데이트를 위한 이벤트 발생
+                await MainActor.run {
+                    AppEventBus.shared.activityUpdated.send(hobbyId)
+                }
             } catch {
                 await MainActor.run {
                     showError(error.localizedDescription)
@@ -200,11 +229,16 @@ extension ActivityListViewController {
             }
         }
     }
-    
+
     private func deleteActivity(activityId: Int) {
         Task {
             do {
                 try await viewModel.deleteActivity(activityId: activityId)
+
+                // 홈 화면 업데이트를 위한 이벤트 발생
+                await MainActor.run {
+                    AppEventBus.shared.activityDeleted.send(hobbyId)
+                }
             } catch {
                 await MainActor.run {
                     showError(error.localizedDescription)
@@ -213,6 +247,33 @@ extension ActivityListViewController {
         }
     }
     
+    private func handleError(_ error: AppError) {
+        let title: String
+        let message = error.userMessage
+        var actions: [UIAlertAction] = []
+
+        switch error {
+        case .network:
+            title = "네트워크 오류"
+            actions.append(UIAlertAction(title: "다시 시도", style: .default) { [weak self] _ in
+                self?.loadActivities()
+            })
+            actions.append(UIAlertAction(title: "취소", style: .cancel))
+
+        case .server:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+
+        case .decoding, .unknown:
+            title = "오류"
+            actions.append(UIAlertAction(title: "확인", style: .default))
+        }
+
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        actions.forEach { alert.addAction($0) }
+        present(alert, animated: true)
+    }
+
     private func showError(_ message: String) {
         let alert = UIAlertController(
             title: "오류",
@@ -224,12 +285,16 @@ extension ActivityListViewController {
     }
 
     private func showAIRecommendationToast() {
-        let toast = ToastView(message: "포데이 AI가 알맞은 취미활동을 추천해드려요")
-        toast.isUserInteractionEnabled = true
+        let toast = AIRecommendationToastView()
+        toast.configure(with: "포데이 AI가 알맞은 취미활동을 추천해드려요")
 
-        // Add tap gesture
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(aiToastTapped))
-        toast.addGestureRecognizer(tapGesture)
+        // Set interaction based on aiCallRemaining
+        toast.setInteractionEnabled(aiCallRemaining)
+
+        // Set tap callback
+        toast.onTap = { [weak self] in
+            self?.aiToastTapped()
+        }
 
         // Add to view
         view.addSubview(toast)
@@ -238,19 +303,15 @@ extension ActivityListViewController {
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
         }
 
-        // Fade in animation
-        toast.alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            toast.alpha = 1
+        // Expand animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            toast.expand(animated: true)
         }
 
         aiToastView = toast
     }
 
-    @objc private func aiToastTapped() {
-        // Hide toast
-        aiToastView?.hide()
-
+    private func aiToastTapped() {
         // Show AI recommendation loading
         showAIRecommendationFlow()
     }
@@ -283,15 +344,27 @@ extension ActivityListViewController {
     }
 
     private func showAISelectionView(with result: AIRecommendationResult) {
+        // Select 모드: AI 추천 활동 선택 후 HobbyActivityInputView로 이동
         let selectionView = AIActivitySelectionView(result: result)
-        selectionView.onActivitySelected = { [weak self] activity in
-            self?.saveAIRecommendedActivity(activity)
+
+        selectionView.onActivitySelected = { [weak self] content in
+            guard let self = self else { return }
+
+            // Dismiss AI selection view
+            self.dismiss(animated: true) {
+                // Open HobbyActivityInputViewController with AI content
+                self.openActivityInputWithAIContent(content)
+            }
         }
 
         selectionView.onRefreshTapped = { [weak self] in
             self?.dismiss(animated: true) {
                 self?.showAIRecommendationFlow()
             }
+        }
+
+        selectionView.onError = { [weak self] errorMessage in
+            self?.showError(errorMessage)
         }
 
         // Show as modal
@@ -307,25 +380,21 @@ extension ActivityListViewController {
         present(containerVC, animated: true)
     }
 
-    private func saveAIRecommendedActivity(_ activity: AIRecommendation) {
-        Task {
-            do {
-                let activityInputs = [ActivityInput(aiRecommended: true, content: activity.content)]
-                try await viewModel.createActivities(hobbyId: hobbyId, activities: activityInputs)
+    private func openActivityInputWithAIContent(_ content: String) {
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = aiCallRemaining
+        inputVC.aiRecommendedContent = content  // AI 추천 활동 내용 전달 (aiRecommended: true)
 
-                await MainActor.run {
-                    // Dismiss AI selection view
-                    self.dismiss(animated: true)
-
-                    // Refresh activity list
-                    self.loadActivities()
-                }
-            } catch {
-                await MainActor.run {
-                    self.showError(error.localizedDescription)
-                }
+        inputVC.onActivityCreated = { [weak self] in
+            // Dismiss modal first, then pop to HomeViewController
+            self?.dismiss(animated: true) {
+                self?.navigationController?.popToRootViewController(animated: true)
             }
         }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 }
 
@@ -342,9 +411,7 @@ extension ActivityListViewController: UITableViewDataSource {
         }
 
         let activity = viewModel.activities[indexPath.row]
-        let isExpanded = viewModel.isExpanded(at: indexPath.row)
-
-        cell.configure(with: activity, isExpanded: isExpanded)
+        cell.configure(with: activity)
 
         cell.onEditTapped = { [weak self] in
             self?.showEditAlert(for: activity)

@@ -15,6 +15,7 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
 
     private let frequencyView = FrequencySelectionView()
     let viewModel: FrequencySelectionViewModel
+    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -36,50 +37,71 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationTitle("실행 횟수")
+        hideNextButton()
+        setupHobbyCard()
         setupCollectionView()
         bind()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.8)  // 4/5 = 80%
     }
-    
+
     // Actions
-    
-    override func nextButtonTapped() {
+
+    private func autoAdvance() {
         guard let selectedFrequency = viewModel.selectedFrequency else { return }
-        
+
+        // 이전 자동 진행 작업 취소
+        autoAdvanceWorkItem?.cancel()
+
         // Coordinator에게 데이터 전달
         viewModel.onFrequencySelected?(selectedFrequency.count)
-        
-        // 다음 화면으로
-        coordinator?.next(from: .frequency)
+
+        // 다음 화면으로 (약간의 딜레이 후)
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.coordinator?.next(from: .frequency)
+        }
+        autoAdvanceWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
     }
 }
 
 // Setup
 
 extension FrequencySelectionViewController {
+    private func setupHobbyCard() {
+        guard let onboardingData = coordinator?.getOnboardingData(),
+              let hobbyCard = onboardingData.selectedHobbyCard else {
+            return
+        }
+
+        // 아이콘 이미지 설정
+        let icon = hobbyCard.imageAsset.icon
+
+        // 시간 정보 설정
+        let time = onboardingData.timeMinutes > 0 ? "\(onboardingData.timeMinutes)분" : nil
+
+        // 목적 정보 설정
+        let purpose = !onboardingData.purpose.isEmpty ? onboardingData.purpose : nil
+
+        frequencyView.configureHobbyCard(icon: icon, title: hobbyCard.name, time: time, purpose: purpose)
+    }
+
     private func setupCollectionView() {
         frequencyView.collectionView.delegate = self
         frequencyView.collectionView.dataSource = self
     }
-    
+
     private func bind() {
-        // 선택된 횟수 변경 시 CollectionView 업데이트
+        // 선택된 횟수 변경 시 CollectionView 업데이트 및 자동 진행
         viewModel.$selectedFrequency
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.frequencyView.collectionView.reloadData()
-            }
-            .store(in: &cancellables)
-        
-        // 다음 버튼 활성화 상태 변경
-        viewModel.$isNextButtonEnabled
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isEnabled in
-                self?.setNextButtonEnabled(isEnabled)
+                self?.autoAdvance()
             }
             .store(in: &cancellables)
     }
@@ -113,6 +135,7 @@ extension FrequencySelectionViewController: UICollectionViewDataSource {
 extension FrequencySelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectFrequency(at: indexPath.item)
+        frequencyView.selectedHobbyCard.setSelected(true)
     }
 }
 

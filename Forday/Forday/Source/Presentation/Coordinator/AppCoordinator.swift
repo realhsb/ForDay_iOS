@@ -22,20 +22,20 @@ class AppCoordinator: Coordinator {
     }
     
     func start() {
-        print("AppCoordinator start")
+        print("🟣 AppCoordinator start")
 
-        // 토큰 유효성 검사 (비동기)
-        Task {
-            let isTokenValid = await TokenManager.shared.validateTokenOnAppLaunch()
+        // 앱 시작 시 항상 로그인 화면으로 이동
+        // 사용자가 직접 로그인 버튼을 눌러야 함
+        showAuth()
+    }
 
-            await MainActor.run {
-                if isTokenValid {
-                    showMainTabBar()
-                } else {
-                    showAuth()
-                }
-            }
-        }
+    // 자동 로그인 처리
+    private func performAutoLogin() {
+        window.rootViewController = navigationController
+        let authCoordinator = AuthCoordinator(navigationController: navigationController)
+        authCoordinator.parentCoordinator = self
+        authCoordinator.autoLogin()
+        self.authCoordinator = authCoordinator
     }
     
     // 로그인 여부 확인
@@ -76,14 +76,23 @@ class AppCoordinator: Coordinator {
     // 로그아웃
     func logout() {
         do {
-            try TokenStorage.shared.deleteAllTokens()
-            print("🔧 [DEBUG] 토큰 삭제됨 - 로그인 화면으로 이동")
-            
+            // 게스트 사용자인지 확인
+            let isGuest = TokenStorage.shared.loadGuestUserId() != nil
+
+            // 토큰만 삭제 (guestUserId는 유지)
+            try TokenStorage.shared.deleteTokens()
+
+            if isGuest {
+                print("🔧 [DEBUG] 게스트 토큰 삭제됨 (guestUserId 유지) - 로그인 화면으로 이동")
+            } else {
+                print("🔧 [DEBUG] 토큰 삭제됨 - 로그인 화면으로 이동")
+            }
+
             // 기존 coordinator 정리 후 인증 화면으로 전환
             mainTabBarCoordinator = nil
             authCoordinator = nil
             showAuth()
-            
+
         } catch {
             print("로그아웃 실패: \(error)")
         }

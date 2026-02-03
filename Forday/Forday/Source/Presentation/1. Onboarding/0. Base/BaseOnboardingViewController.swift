@@ -141,6 +141,23 @@ extension BaseOnboardingViewController {
     func updateProgress(_ progress: Float) {
         BaseOnboardingViewController.sharedProgressBar?.setProgress(progress, animated: true)
     }
+
+    /// 다음 버튼 숨기기 (자동 진행 화면용)
+    func hideNextButton() {
+        nextButton.isHidden = true
+    }
+
+    /// 프로그래스바 숨기기 (닉네임 설정 화면용)
+    func hideProgressBar() {
+        BaseOnboardingViewController.sharedProgressBar?.isHidden = true
+    }
+
+    /// 프로그래스바 초기화 (새로운 온보딩 시작 시)
+    static func resetProgressBar() {
+        sharedProgressBar?.removeFromSuperview()
+        sharedProgressBar = nil
+        print("✅ 프로그래스바 초기화 완료")
+    }
 }
 
 // Actions

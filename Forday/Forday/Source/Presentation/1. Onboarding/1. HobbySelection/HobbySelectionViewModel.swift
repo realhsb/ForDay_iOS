@@ -97,4 +97,11 @@ class HobbySelectionViewModel {
         guard index < hobbies.count else { return false }
         return hobbies[index].id == selectedHobby?.id
     }
+
+    /// 초기 취미 선택 설정 (온보딩 재개 시)
+    func setInitialSelection(_ hobbyCard: HobbyCard) {
+        selectedHobby = hobbyCard
+        isNextButtonEnabled = true
+        print("✅ 초기 취미 선택 설정: \(hobbyCard.name)")
+    }
 }

@@ -28,8 +28,11 @@ class ActivityRecordView: UIView {
     // 한 줄 메모
     private let memoLabel = UILabel()
     private let memoContainerView = UIView()
+    private let photoContainerView = UIView()
     let photoAddButton = UIButton()
-    let memoTextField = UITextField()
+    let photoDeleteButton = UIButton()
+    let memoTextView = UITextView()
+    private let memoPlaceholderLabel = UILabel()
     private let memoCountLabel = UILabel()
     
     // 기록 공개범위
@@ -106,10 +109,18 @@ extension ActivityRecordView {
         }
         
         memoContainerView.do {
-            $0.backgroundColor = .systemGray6
+            $0.backgroundColor = .neutral50
             $0.layer.cornerRadius = 12
+            $0.clipsToBounds = false
         }
-        
+
+        photoContainerView.do {
+            $0.layer.cornerRadius = 8
+            $0.layer.borderWidth = 1
+            $0.layer.borderColor = UIColor.stroke001.cgColor
+            $0.clipsToBounds = false
+        }
+
         photoAddButton.do {
             $0.setImage(UIImage(systemName: "camera.fill"), for: .normal)
             $0.tintColor = .systemGray
@@ -118,17 +129,30 @@ extension ActivityRecordView {
             $0.clipsToBounds = true
             $0.imageView?.contentMode = .scaleAspectFill
         }
-        
-        memoTextField.do {
-            $0.placeholder = "한 줄 메모를 입력해주세요"
-            $0.font = .systemFont(ofSize: 14)
-            $0.borderStyle = .none
+
+        photoDeleteButton.do {
+            $0.setImage(.Icon.imageDelete, for: .normal)
+            $0.isHidden = true
         }
-        
+
+        memoTextView.do {
+            $0.font = TypographyStyle.label14.font
+            $0.textColor = .neutral800
+            $0.backgroundColor = .clear
+            $0.isScrollEnabled = false
+            $0.textContainerInset = .zero
+            $0.textContainer.lineFragmentPadding = 0
+        }
+
+        memoPlaceholderLabel.do {
+            $0.text = "한 줄 메모를 입력해주세요"
+            $0.font = TypographyStyle.label14.font
+            $0.textColor = .neutral400
+        }
+
         memoCountLabel.do {
-            $0.text = "0/100"
-            $0.font = .systemFont(ofSize: 12)
-            $0.textColor = .systemGray
+            $0.setTextWithTypography("0/100", style: .label10)
+            $0.textColor = .neutral400
         }
         
         // 기록 공개범위
@@ -176,9 +200,13 @@ extension ActivityRecordView {
         contentView.addSubview(privacyButton)
         contentView.addSubview(submitButton)
         
-        memoContainerView.addSubview(photoAddButton)
-        memoContainerView.addSubview(memoTextField)
+        memoContainerView.addSubview(memoTextView)
+        memoContainerView.addSubview(memoPlaceholderLabel)
+        memoContainerView.addSubview(photoContainerView)
         memoContainerView.addSubview(memoCountLabel)
+
+        photoContainerView.addSubview(photoAddButton)
+        photoContainerView.addSubview(photoDeleteButton)
         
         // ContentView
         contentView.snp.makeConstraints {
@@ -215,26 +243,40 @@ extension ActivityRecordView {
         }
         
         memoContainerView.snp.makeConstraints {
-            $0.top.equalTo(memoLabel.snp.bottom).offset(12)
+            $0.top.equalTo(memoLabel.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.greaterThanOrEqualTo(60)
+            $0.height.equalTo(168)
         }
-        
+
+        memoTextView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(16)
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalTo(photoContainerView.snp.top).offset(-8)
+        }
+
+        memoPlaceholderLabel.snp.makeConstraints {
+            $0.top.leading.equalTo(memoTextView)
+        }
+
+        photoContainerView.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.bottom.equalToSuperview().offset(-16)
+            $0.width.height.equalTo(48)
+        }
+
         photoAddButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(12)
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(40)
+            $0.edges.equalToSuperview()
         }
-        
-        memoTextField.snp.makeConstraints {
-            $0.leading.equalTo(photoAddButton.snp.trailing).offset(12)
-            $0.trailing.equalTo(memoCountLabel.snp.leading).offset(-8)
-            $0.top.bottom.equalToSuperview().inset(12)
+
+        photoDeleteButton.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(-4)
+            $0.trailing.equalToSuperview().offset(4)
+            $0.width.height.equalTo(16)
         }
-        
+
         memoCountLabel.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-12)
-            $0.bottom.equalToSuperview().offset(-12)
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.bottom.equalToSuperview().offset(-16)
         }
         
         // 기록 공개범위
@@ -268,10 +310,41 @@ extension ActivityRecordView {
     
     func setSubmitButtonEnabled(_ isEnabled: Bool) {
         submitButton.isEnabled = isEnabled
-        
+
         var config = submitButton.configuration
         config?.baseBackgroundColor = isEnabled ? .action001 : .systemGray4
         submitButton.configuration = config
+    }
+
+    func setSubmitButtonTitle(_ title: String) {
+        var config = submitButton.configuration
+        config?.title = title
+        submitButton.configuration = config
+    }
+
+    func updateMemoCount(_ count: Int) {
+        memoCountLabel.setTextWithTypography("\(count)/100", style: .label10)
+    }
+
+    func updateMemoPlaceholder(isHidden: Bool) {
+        memoPlaceholderLabel.isHidden = isHidden
+    }
+
+    func showPhotoDeleteButton(_ show: Bool) {
+        photoDeleteButton.isHidden = !show
+    }
+
+    func updatePhotoImage(_ image: UIImage?) {
+        if let image = image {
+            photoAddButton.setImage(image, for: .normal)
+            photoAddButton.imageView?.contentMode = .scaleAspectFill
+            photoAddButton.tintColor = nil
+            showPhotoDeleteButton(true)
+        } else {
+            photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
+            photoAddButton.tintColor = .systemGray
+            showPhotoDeleteButton(false)
+        }
     }
 }
 

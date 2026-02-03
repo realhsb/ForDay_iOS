@@ -16,6 +16,7 @@ class MainTabBarCoordinator: NSObject, Coordinator {
 
     weak var parentCoordinator: AppCoordinator?
     private weak var homeViewController: HomeViewController?
+    private var onboardingCoordinator: OnboardingCoordinator?
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -58,18 +59,18 @@ class MainTabBarCoordinator: NSObject, Coordinator {
         )
 
         // 소식 탭
-        let storyVC = UIViewController()
-        storyVC.view.backgroundColor = .systemBackground
-        storyVC.title = "소식"
-        storyVC.tabBarItem = UITabBarItem(
+        let storiesVC = StoriesViewController()
+        storiesVC.coordinator = self
+        storiesVC.tabBarItem = UITabBarItem(
             title: "소식",
             image: .Gnb.story,
             selectedImage: .Gnb.storyFill
         )
-        let storyNav = createNavigationController(rootViewController: storyVC)
+        let storyNav = createNavigationController(rootViewController: storiesVC)
 
         // 프로필 탭
         let profileVC = MyPageViewController()
+        profileVC.coordinator = self
         profileVC.view.backgroundColor = .systemBackground
         profileVC.title = "마이"
         profileVC.tabBarItem = UITabBarItem(
@@ -173,5 +174,108 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
             homeNav.present(nav, animated: true)
         }
+    }
+
+    func showProfileEdit(currentProfile: UserInfo?) {
+        // Create ViewModel
+        let viewModel = EditProfileViewModel()
+
+        // Set initial profile if available
+        if let profile = currentProfile {
+            // TODO: Load actual profile image from URL when image loading is implemented
+            let placeholderImage = UIImage(systemName: "person.circle.fill")
+            viewModel.setInitialProfile(image: placeholderImage, nickname: profile.nickname)
+        }
+
+        // Create ViewController
+        let editProfileVC = EditProfileViewController(viewModel: viewModel)
+
+        // Push to MyPage navigation stack
+        if let myPageNav = tabBarController.viewControllers?.last as? UINavigationController {
+            myPageNav.pushViewController(editProfileVC, animated: true)
+        }
+    }
+
+    func showActivityDetail(activityRecordId: Int) {
+        // Create ViewModel
+        let viewModel = ActivityDetailViewModel(activityRecordId: activityRecordId)
+
+        // Create ViewController
+        let detailVC = ActivityDetailViewController(viewModel: viewModel)
+        detailVC.coordinator = self
+
+        // Push to Home navigation stack
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.pushViewController(detailVC, animated: true)
+        }
+    }
+
+    func showActivityRecord() {
+        // Get current hobby ID from HomeViewController
+        guard let hobbyId = homeViewController?.getCurrentHobbyId() else {
+            print("❌ 취미 ID 없음 - ActivityRecordViewController를 표시할 수 없습니다")
+            return
+        }
+
+        let recordVC = ActivityRecordViewController(hobbyId: hobbyId)
+        let nav = UINavigationController(rootViewController: recordVC)
+        nav.modalPresentationStyle = .fullScreen
+
+        // Present from Home navigation stack
+        if let homeNav = tabBarController.viewControllers?.first as? UINavigationController {
+            homeNav.present(nav, animated: true)
+        }
+    }
+
+    func showAddHobbyOnboarding() {
+        // Get home navigation controller
+        guard let homeNav = tabBarController.viewControllers?.first as? UINavigationController else {
+            print("❌ Home navigation controller not found")
+            return
+        }
+
+        // Create onboarding navigation controller
+        let onboardingNav = UINavigationController()
+        onboardingNav.modalPresentationStyle = .fullScreen
+
+        // Create onboarding coordinator
+        onboardingCoordinator = OnboardingCoordinator(navigationController: onboardingNav)
+
+        // Set completion handler to dismiss and refresh home
+        onboardingCoordinator?.onHobbyCreationCompleted = { [weak self] in
+            // Dismiss onboarding
+            onboardingNav.dismiss(animated: true) {
+                // Refresh home view
+                Task {
+                    await self?.homeViewController?.viewModel.fetchHomeInfo()
+                }
+                // Clean up coordinator reference
+                self?.onboardingCoordinator = nil
+            }
+        }
+
+        // Start onboarding
+        onboardingCoordinator?.start()
+
+        // Present onboarding
+        homeNav.present(onboardingNav, animated: true)
+    }
+
+    func updateTabBarRecordingButtonState(enabled: Bool) {
+        // Get recording tab (index 2)
+        guard let recordVC = tabBarController.viewControllers?[2] else { return }
+        recordVC.tabBarItem.isEnabled = enabled
+    }
+
+    func showUserProfile(userId: String) {
+        // TODO: Implement user profile screen navigation
+        // For now, just print
+        print("Navigate to user profile: \(userId)")
+
+        // When UserProfileViewController is ready:
+        // let profileVC = UserProfileViewController(userId: userId)
+        // if let storiesNav = tabBarController.viewControllers?[3] as? UINavigationController {
+        //     storiesNav.pushViewController(profileVC, animated: true)
+        // }
     }
 }

@@ -24,12 +24,7 @@ extension DTO {
         let content: String
         let aiRecommended: Bool
         let deletable: Bool
-        let stickers: [StickerData]
-    }
-    
-    struct StickerData: Codable {
-        let activityRecordId: Int
-        let sticker: String
+        let collectedStickerNum: Int
     }
 }
 
@@ -48,16 +43,7 @@ extension DTO.ActivityData {
             content: content,
             aiRecommended: aiRecommended,
             deletable: deletable,
-            stickers: stickers.map { $0.toDomain() }
-        )
-    }
-}
-
-extension DTO.StickerData {
-    func toDomain() -> ActivitySticker {
-        return ActivitySticker(
-            activityRecordId: activityRecordId,
-            sticker: sticker
+            collectedStickerNum: collectedStickerNum
         )
     }
 }

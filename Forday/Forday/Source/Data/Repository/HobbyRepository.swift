@@ -16,7 +16,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
     }
 
     func createHobby(
-        hobbyCardId: Int,
+        hobbyInfoId: Int,
         hobbyName: String,
         hobbyTimeMinutes: Int,
         hobbyPurpose: String,
@@ -24,7 +24,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
         isDurationSet: Bool
     ) async throws -> Int {
         let request = DTO.CreateHobbyRequest(
-            hobbyCardId: hobbyCardId,
+            hobbyInfoId: hobbyInfoId,
             hobbyName: hobbyName,
             hobbyTimeMinutes: hobbyTimeMinutes,
             hobbyPurpose: hobbyPurpose,
@@ -36,7 +36,7 @@ final class HobbyRepository: HobbyRepositoryInterface {
         return response.data.hobbyId
     }
 
-    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo {
+    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo? {
         let response = try await activityService.fetchHomeInfo(hobbyId: hobbyId)
         return response.toDomain()
     }
@@ -67,6 +67,16 @@ final class HobbyRepository: HobbyRepositoryInterface {
     func updateHobbyStatus(hobbyId: Int, hobbyStatus: HobbyStatus) async throws -> String {
         let request = DTO.UpdateHobbyStatusRequest(hobbyStatus: hobbyStatus.rawValue)
         let response = try await activityService.updateHobbyStatus(hobbyId: hobbyId, request: request)
+        return response.toDomain()
+    }
+
+    func updateCoverImage(hobbyId: Int?, coverImageUrl: String?, recordId: Int?) async throws -> UpdateHobbyCoverResult {
+        let request = DTO.UpdateHobbyCoverRequest(
+            hobbyId: hobbyId,
+            coverImageUrl: coverImageUrl,
+            recordId: recordId
+        )
+        let response = try await activityService.updateCoverImage(request: request)
         return response.toDomain()
     }
 }

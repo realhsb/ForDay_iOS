@@ -11,19 +11,22 @@ extension DTO {
     struct HomeInfoResponse: BaseResponse {
         let status: Int
         let success: Bool
-        let data: HomeInfoData
+        let data: HomeInfoData?
 
         struct HomeInfoData: Codable {
             let inProgressHobbies: [InProgressHobby]
             let activityPreview: ActivityPreview?
+            let greetingMessage: String
+            let userSummaryText: String
+            let recommendMessage: String
             let aiCallRemaining: Bool
-            
+
             struct InProgressHobby: Codable {
                 let hobbyId: Int
                 let hobbyName: String
                 let currentHobby: Bool
             }
-            
+
             struct ActivityPreview: Codable {
                 let activityId: Int
                 let content: String
@@ -35,7 +38,12 @@ extension DTO {
 }
 
 extension DTO.HomeInfoResponse {
-    func toDomain() -> HomeInfo {
+    func toDomain() -> HomeInfo? {
+        guard let data = data else {
+            // No hobbies - return nil
+            return nil
+        }
+
         return HomeInfo(
             inProgressHobbies: data.inProgressHobbies.map { hobby in
                 InProgressHobby(
@@ -51,6 +59,9 @@ extension DTO.HomeInfoResponse {
                     aiRecommended: preview.aiRecommended
                 )
             },
+            greetingMessage: data.greetingMessage,
+            userSummaryText: data.userSummaryText,
+            recommendMessage: data.recommendMessage,
             aiCallRemaining: data.aiCallRemaining
         )
     }

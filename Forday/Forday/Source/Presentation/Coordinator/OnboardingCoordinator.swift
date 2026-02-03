@@ -32,6 +32,8 @@ class OnboardingCoordinator: Coordinator {
     // Coordinator
     
     func start() {
+        // 프로그래스바 초기화 (이전 인스턴스 제거)
+        BaseOnboardingViewController.resetProgressBar()
         show(.hobby)
     }
     
@@ -57,8 +59,8 @@ class OnboardingCoordinator: Coordinator {
             
         case .purpose:
             let viewModel = PurposeSelectionViewModel()
-            viewModel.onPurposesSelected = { [weak self] purposes in
-                self?.updatePurposes(purposes)
+            viewModel.onPurposeSelected = { [weak self] purpose in
+                self?.updatePurpose(purpose)
             }
             vc = PurposeSelectionViewController(viewModel: viewModel)
             
@@ -81,8 +83,8 @@ class OnboardingCoordinator: Coordinator {
                 if let completionHandler = self?.onHobbyCreationCompleted {
                     completionHandler()
                 } else {
-                    // Normal onboarding flow - proceed to complete screen
-                    self?.next(from: .period)
+                    // Normal onboarding flow - proceed to transition screen
+                    self?.showNicknameTransition()
                 }
             }
             vc = PeriodSelectionViewController(viewModel: viewModel)
@@ -108,51 +110,171 @@ class OnboardingCoordinator: Coordinator {
         case .frequency: show(.period)
         case .period:
             // API 호출은 ViewModel에서 처리하고, 성공 시 onHobbyCreated 클로저를 통해 여기로 돌아옴
-            show(.complete)
-            // Complete 화면이 push 완료된 후 스택 정리
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.removeOnboardingStepsFromStack()
-            }
+            // Period 완료 후 닉네임 설정 화면으로
+            break
         case .complete:
             break
         }
     }
     
-    // 닉네임 설정 화면으로
+    // 닉네임 설정 화면으로 (progress bar 없음, 뒤로가기 불가)
     func showNicknameSetup() {
+        // 프로그래스바 초기화 (재로그인 시)
+        if navigationController.viewControllers.isEmpty {
+            BaseOnboardingViewController.resetProgressBar()
+        }
+
         let vc = NicknameViewController()
         vc.coordinator = self
-        
-        // Complete 화면 제거하고 Nickname만 남기기
-        var viewControllers = navigationController.viewControllers
-        if let completeIndex = viewControllers.firstIndex(where: { $0 is OnboardingCompleteViewController }) {
-            viewControllers.remove(at: completeIndex)
-        }
-        viewControllers.append(vc)
-        navigationController.setViewControllers(viewControllers, animated: true)
-    }
-    
-    // 닉네임 설정 완료 후 홈으로
-    func completeNicknameSetup() {
-        print("🔵 completeNicknameSetup 호출됨")
-        print("🔵 navigationController dismiss 시작")
 
-        // ✅ dismiss만 하고 바로 AuthCoordinator에 알림
-        navigationController.dismiss(animated: true) {
-            print("🔵 dismiss 완료, completeOnboarding 호출")
-            self.parentCoordinator?.completeOnboarding()
+        // 재로그인 시: 온보딩 스택 전부 제거하고 닉네임만 표시
+        if navigationController.viewControllers.isEmpty {
+            navigationController.setViewControllers([vc], animated: true)
+        } else {
+            // 온보딩 진행 중: 그냥 push
+            navigationController.pushViewController(vc, animated: true)
         }
     }
-    
-    // 온보딩 단계들을 스택에서 제거
-    private func removeOnboardingStepsFromStack() {
-        if let completeVC = navigationController.viewControllers.last as? OnboardingCompleteViewController {
-            navigationController.setViewControllers([completeVC], animated: false)
+
+    // 닉네임 전환 화면 표시
+    private func showNicknameTransition() {
+        let vc = NicknameTransitionViewController()
+        vc.coordinator = self
+        navigationController.pushViewController(vc, animated: true)
+    }
+
+    // 온보딩 완료 화면 표시
+    func showOnboardingComplete() {
+        show(.complete)
+    }
+
+    // 온보딩 완전 종료 (홈으로)
+    func finishOnboarding() {
+        print("✅ 온보딩 완전 종료 - 홈으로 이동")
+
+        // dismiss하고 AuthCoordinator에 알림
+        navigationController.dismiss(animated: true) {
+            self.parentCoordinator?.completeOnboarding()
         }
     }
     
     func dismissOnboarding() {
         navigationController.dismiss(animated: true)
+    }
+
+    // MARK: - Resume Onboarding with Saved Data
+
+    /// 저장된 온보딩 데이터로 온보딩 재개
+    func resumeWith(savedData: SavedOnboardingData) {
+        print("🔄 온보딩 재개 시작 - 저장된 데이터로 복원")
+
+        // 프로그래스바 초기화 (이전 인스턴스 제거)
+        BaseOnboardingViewController.resetProgressBar()
+
+        Task {
+            do {
+                // 1. 서버에서 취미 목록 가져오기
+                let fetchAppMetadataUseCase = FetchAppMetadataUseCase()
+                let metadata = try await fetchAppMetadataUseCase.execute()
+
+                // 2. hobbyInfoId로 해당 HobbyCard 찾기
+                guard let hobbyCard = metadata.hobbyCards.first(where: { $0.id == savedData.hobbyInfoId }) else {
+                    print("❌ 취미 카드를 찾을 수 없음: \(savedData.hobbyInfoId)")
+                    await MainActor.run {
+                        showNicknameSetup()  // 실패 시 닉네임 화면으로
+                    }
+                    return
+                }
+
+                // 3. onboardingData에 데이터 채우기
+                await MainActor.run {
+                    onboardingData.selectedHobbyCard = hobbyCard
+                    onboardingData.timeMinutes = savedData.hobbyTimeMinutes
+                    onboardingData.purpose = savedData.hobbyPurpose
+                    onboardingData.executionCount = savedData.executionCount
+                    onboardingData.isDurationSet = savedData.durationSet
+
+                    print("✅ 온보딩 데이터 복원 완료:")
+                    print("   - 취미: \(hobbyCard.name)")
+                    print("   - 시간: \(savedData.hobbyTimeMinutes)분")
+                    print("   - 목적: \(savedData.hobbyPurpose)")
+                    print("   - 횟수: 주 \(savedData.executionCount)회")
+                    print("   - 기간 설정: \(savedData.durationSet)")
+
+                    // 4. 화면들을 스택에 쌓기
+                    buildOnboardingStack(with: hobbyCard, allHobbies: metadata.hobbyCards, savedData: savedData)
+                }
+            } catch {
+                print("❌ 온보딩 재개 실패: \(error)")
+                await MainActor.run {
+                    showNicknameSetup()  // 실패 시 닉네임 화면으로
+                }
+            }
+        }
+    }
+
+    /// 온보딩 화면 스택 구성
+    private func buildOnboardingStack(with hobbyCard: HobbyCard, allHobbies: [HobbyCard], savedData: SavedOnboardingData) {
+        var viewControllers: [UIViewController] = []
+
+        // 1. HobbySelection (선택된 취미 표시)
+        let hobbyViewModel = HobbySelectionViewModel()
+        hobbyViewModel.hobbies = allHobbies
+        hobbyViewModel.setInitialSelection(hobbyCard)
+        hobbyViewModel.onHobbySelected = { [weak self] selectedHobby in
+            self?.updateHobby(selectedHobby)
+        }
+        let hobbyVC = HobbySelectionViewController(viewModel: hobbyViewModel)
+        hobbyVC.coordinator = self
+        viewControllers.append(hobbyVC)
+
+        // 2. TimeSelection (기존 시간 표시)
+        let timeViewModel = TimeSelectionViewModel()
+        timeViewModel.setInitialTime(savedData.hobbyTimeMinutes)
+        timeViewModel.onTimeSelected = { [weak self] minutes in
+            self?.updateTime(minutes)
+        }
+        let timeVC = TimeSelectionViewController(viewModel: timeViewModel)
+        timeVC.coordinator = self
+        viewControllers.append(timeVC)
+
+        // 3. PurposeSelection (기존 목적 표시)
+        let purposeViewModel = PurposeSelectionViewModel()
+        purposeViewModel.setInitialPurpose(savedData.hobbyPurpose)
+        purposeViewModel.onPurposeSelected = { [weak self] purpose in
+            self?.updatePurpose(purpose)
+        }
+        let purposeVC = PurposeSelectionViewController(viewModel: purposeViewModel)
+        purposeVC.coordinator = self
+        viewControllers.append(purposeVC)
+
+        // 4. FrequencySelection (기존 횟수 표시)
+        let frequencyViewModel = FrequencySelectionViewModel()
+        frequencyViewModel.setInitialFrequency(savedData.executionCount)
+        frequencyViewModel.onFrequencySelected = { [weak self] count in
+            self?.updateFrequency(count)
+        }
+        let frequencyVC = FrequencySelectionViewController(viewModel: frequencyViewModel)
+        frequencyVC.coordinator = self
+        viewControllers.append(frequencyVC)
+
+        // 5. PeriodSelection (현재 보여줄 화면)
+        let periodViewModel = PeriodSelectionViewModel()
+        periodViewModel.onPeriodSelected = { [weak self] isDurationSet in
+            self?.updatePeriod(isDurationSet)
+        }
+        periodViewModel.onHobbyCreated = { [weak self] hobbyId in
+            print("✅ 취미 생성 완료 - hobbyId: \(hobbyId)")
+            self?.showNicknameTransition()
+        }
+        let periodVC = PeriodSelectionViewController(viewModel: periodViewModel)
+        periodVC.coordinator = self
+        viewControllers.append(periodVC)
+
+        // 스택에 모두 추가 (animated: false)
+        navigationController.setViewControllers(viewControllers, animated: false)
+
+        print("✅ 온보딩 화면 스택 구성 완료 - PeriodSelection 화면 표시")
     }
 }
 
@@ -170,9 +292,9 @@ extension OnboardingCoordinator {
         print("✅ 시간 저장: \(minutes)분")
     }
     
-    func updatePurposes(_ purposes: [String]) {
-        onboardingData.purposes = purposes
-        print("✅ 목적 저장: \(purposes)")
+    func updatePurpose(_ purpose: String) {
+        onboardingData.purpose = purpose
+        print("✅ 목적 저장: \(purpose)")
     }
     
     func updateFrequency(_ count: Int) {

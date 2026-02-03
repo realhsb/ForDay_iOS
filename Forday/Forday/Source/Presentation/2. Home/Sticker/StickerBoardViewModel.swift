@@ -21,16 +21,28 @@ final class StickerBoardViewModel {
     private let fetchStickerBoardUseCase: FetchStickerBoardUseCase
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - Navigation Callbacks
+
+    var onNavigateToActivityDetail: ((Int) -> Void)? // (activityRecordId)
+    var onNavigateToActivityRecord: (() -> Void)? // Navigate to activity record screen
+
     // MARK: - Initialization
 
     init(fetchStickerBoardUseCase: FetchStickerBoardUseCase = FetchStickerBoardUseCase()) {
         self.fetchStickerBoardUseCase = fetchStickerBoardUseCase
     }
 
+    // MARK: - Private Properties
+
+    private var currentHobbyId: Int?
+
     // MARK: - Public Methods
 
     /// 초기 로드: 페이지 번호 없이 조회 (마지막 페이지 반환)
-    func loadInitialStickerBoard() async {
+    func loadInitialStickerBoard(hobbyId: Int? = nil) async {
+        if let hobbyId = hobbyId {
+            currentHobbyId = hobbyId
+        }
         await loadStickerBoard(page: nil)
     }
 
@@ -78,7 +90,7 @@ final class StickerBoardViewModel {
         }
 
         do {
-            let result = try await fetchStickerBoardUseCase.execute(page: page)
+            let result = try await fetchStickerBoardUseCase.execute(hobbyId: currentHobbyId, page: page)
 
             await MainActor.run {
                 switch result {
@@ -104,13 +116,13 @@ final class StickerBoardViewModel {
     }
 
     private func navigateToActivityRecord() {
-        // TODO: 활동 기록 화면으로 이동
         print("🎯 Navigate to Activity Record")
+        onNavigateToActivityRecord?()
     }
 
     private func navigateToActivityDetail(activityRecordId: Int) {
-        // TODO: 활동 기록 상세 화면으로 이동 (API 없음)
         print("🎯 Navigate to Activity Detail: \(activityRecordId)")
+        onNavigateToActivityDetail?(activityRecordId)
     }
 
     // MARK: - View State

@@ -115,39 +115,8 @@ final class ActivityRepository: ActivityRepositoryInterface {
         do {
             let response = try await activityService.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size)
 
-            // Case 4: data is null - no hobby in progress (정상 상태)
-            guard let dto = response.data else {
-                return .noHobbyInProgress
-            }
-
-            // Transform DTO to Domain with safe handling of optional fields
-            let stickers = dto.stickers?
-                .compactMap { item -> StickerBoardItem? in
-                    guard let id = item.activityRecordId, let sticker = item.sticker else {
-                        return nil
-                    }
-                    return StickerBoardItem(activityRecordId: id, sticker: sticker)
-                } ?? []
-
-            let board = StickerBoard(
-                hobbyId: dto.hobbyId,
-                durationSet: dto.durationSet,
-                activityRecordedToday: dto.activityRecordedToday,
-                currentPage: dto.currentPage,
-                totalPage: dto.totalPage,
-                pageSize: dto.pageSize,
-                totalStickerNum: dto.totalStickerNum,
-                hasPrevious: dto.hasPrevious,
-                hasNext: dto.hasNext,
-                stickers: stickers
-            )
-
-            // Case 5: 취미는 있는데 스티커가 아직 없음
-            if stickers.isEmpty {
-                return .emptyBoard(board)
-            }
-
-            return .loaded(board)
+            // DTO가 자동으로 domain mapping 처리
+            return response.toDomain()
 
         } catch {
             // 진짜 에러 (네트워크, 디코딩 실패)만 fallback
@@ -168,7 +137,7 @@ extension ActivityRepository {
     
     func makeMockAIData() -> AIRecommendationResult {
         return AIRecommendationResult(
-            message: "AI가 취미 활동을 추천했습니다.",
+            message: "AI가 취미 활동을 추천했습니다.", recommendedText: "",
             aiCallCount: 1,
             aiCallLimit: 3,
             activities: [
@@ -201,24 +170,21 @@ extension ActivityRepository {
                 content: "미라클 모닝 아침 독서",
                 aiRecommended: false,
                 deletable: false,
-                stickers: [
-                    ActivitySticker(activityRecordId: 1, sticker: "smile.jpg"),
-                    ActivitySticker(activityRecordId: 2, sticker: "smile.jpg")
-                ]
+                collectedStickerNum: 1
             ),
             Activity(
                 activityId: 2,
                 content: "한 챕터마다 독후감 쓰기",
                 aiRecommended: false,
                 deletable: true,
-                stickers: []
+                collectedStickerNum: 11
             ),
             Activity(
                 activityId: 3,
                 content: "SNS 독서 인증",
                 aiRecommended: true,
                 deletable: true,
-                stickers: []
+                collectedStickerNum: 111
             )
         ]
     }

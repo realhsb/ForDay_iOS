@@ -9,7 +9,7 @@ import Foundation
 
 protocol HobbyRepositoryInterface {
     func createHobby(
-        hobbyCardId: Int,
+        hobbyInfoId: Int,
         hobbyName: String,
         hobbyTimeMinutes: Int,
         hobbyPurpose: String,
@@ -17,7 +17,7 @@ protocol HobbyRepositoryInterface {
         isDurationSet: Bool
     ) async throws -> Int
 
-    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo
+    func fetchHomeInfo(hobbyId: Int?) async throws -> HomeInfo?
 
     // Hobby Management
     func fetchHobbySettings(hobbyStatus: HobbyStatus?) async throws -> HobbySettings
@@ -25,4 +25,5 @@ protocol HobbyRepositoryInterface {
     func updateExecutionCount(hobbyId: Int, executionCount: Int) async throws -> String
     func updateGoalDays(hobbyId: Int, isDurationSet: Bool) async throws -> String
     func updateHobbyStatus(hobbyId: Int, hobbyStatus: HobbyStatus) async throws -> String
+    func updateCoverImage(hobbyId: Int?, coverImageUrl: String?, recordId: Int?) async throws -> UpdateHobbyCoverResult
 }

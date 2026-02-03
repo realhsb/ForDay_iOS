@@ -20,14 +20,15 @@ class ActivityRecordViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var activityDropdownView: ActivityDropdownView?
     private var privacyDropdownView: PrivacyDropdownView?
+    private var didSubmitSuccessfully = false
 
     // Coordinator
     weak var coordinator: MainTabBarCoordinator?
 
     // Initialization
 
-    init(hobbyId: Int) {
-        self.viewModel = ActivityRecordViewModel(hobbyId: hobbyId)
+    init(hobbyId: Int, activityDetail: ActivityDetail? = nil) {
+        self.viewModel = ActivityRecordViewModel(hobbyId: hobbyId, activityDetail: activityDetail)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -46,7 +47,30 @@ class ActivityRecordViewController: UIViewController {
         setupNavigationBar()
         setupActions()
         bind()
+        setupForEditMode()
         fetchActivities()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        deleteUploadedImageIfNeeded()
+    }
+
+    private func deleteUploadedImageIfNeeded() {
+        // 제출 성공한 경우 이미지 삭제하지 않음
+        guard !didSubmitSuccessfully else { return }
+
+        // 업로드된 이미지가 있으면 삭제
+        guard viewModel.uploadedImageUrl != nil else { return }
+
+        Task {
+            do {
+                try await viewModel.deleteImage()
+                print("✅ 페이지 이탈로 인해 업로드된 이미지 삭제 완료")
+            } catch {
+                print("❌ 이미지 삭제 실패: \(error)")
+            }
+        }
     }
 }
 
@@ -54,17 +78,28 @@ class ActivityRecordViewController: UIViewController {
 
 extension ActivityRecordViewController {
     private func setupNavigationBar() {
-        title = "내 활동 남기기"
-        
-        // X 버튼
-        let closeButton = UIBarButtonItem(
-            image: UIImage(systemName: "xmark"),
-            style: .plain,
-            target: self,
-            action: #selector(closeButtonTapped)
-        )
-        closeButton.tintColor = .label
-        navigationItem.leftBarButtonItem = closeButton
+        title = viewModel.isEditMode ? "내 활동 수정하기" : "내 활동 남기기"
+
+        // 뒤로 가기 버튼 (수정 모드) 또는 X 버튼 (생성 모드)
+        if viewModel.isEditMode {
+            let backButton = UIBarButtonItem(
+                image: UIImage(systemName: "chevron.left"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            backButton.tintColor = .label
+            navigationItem.leftBarButtonItem = backButton
+        } else {
+            let closeButton = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                style: .plain,
+                target: self,
+                action: #selector(closeButtonTapped)
+            )
+            closeButton.tintColor = .label
+            navigationItem.leftBarButtonItem = closeButton
+        }
     }
     
     private func setupActions() {
@@ -83,6 +118,13 @@ extension ActivityRecordViewController {
         recordView.photoAddButton.addTarget(
             self,
             action: #selector(photoAddButtonTapped),
+            for: .touchUpInside
+        )
+
+        // 사진 삭제
+        recordView.photoDeleteButton.addTarget(
+            self,
+            action: #selector(photoDeleteButtonTapped),
             for: .touchUpInside
         )
 
@@ -105,12 +147,8 @@ extension ActivityRecordViewController {
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
 
-        // 메모 텍스트필드
-        recordView.memoTextField.addTarget(
-            self,
-            action: #selector(memoTextFieldChanged),
-            for: .editingChanged
-        )
+        // 메모 텍스트뷰
+        recordView.memoTextView.delegate = self
     }
 
     private func bind() {
@@ -126,7 +164,10 @@ extension ActivityRecordViewController {
         viewModel.$isSubmitEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isEnabled in
-                self?.recordView.setSubmitButtonEnabled(isEnabled)
+                guard let self = self else { return }
+                // 수정 모드에서는 항상 활성화
+                let shouldEnable = self.viewModel.isEditMode ? true : isEnabled
+                self.recordView.setSubmitButtonEnabled(shouldEnable)
             }
             .store(in: &cancellables)
 
@@ -134,9 +175,21 @@ extension ActivityRecordViewController {
         viewModel.$selectedImage
             .receive(on: DispatchQueue.main)
             .sink { [weak self] image in
-                self?.updatePhotoButton(with: image)
+                self?.recordView.updatePhotoImage(image)
             }
             .store(in: &cancellables)
+    }
+
+    private func setupForEditMode() {
+        if viewModel.isEditMode {
+            // 수정 모드: 버튼 텍스트 변경
+            recordView.setSubmitButtonTitle("수정완료")
+
+            // 메모 설정
+            recordView.memoTextView.text = viewModel.memo
+            recordView.updateMemoCount(viewModel.memo.count)
+            recordView.updateMemoPlaceholder(isHidden: !viewModel.memo.isEmpty)
+        }
     }
 
     private func fetchActivities() {
@@ -166,17 +219,19 @@ extension ActivityRecordViewController {
     }
 
     @objc private func backgroundTapped() {
+        view.endEditing(true)
         dismissActivityDropdown()
         dismissPrivacyDropdown()
     }
 
     @objc private func photoAddButtonTapped() {
-        // 이미지가 이미 선택된 경우 삭제 버튼이 눌린 것
-        if viewModel.selectedImage != nil {
-            deletePhoto()
-        } else {
+        if viewModel.selectedImage == nil {
             presentPhotoPicker()
         }
+    }
+
+    @objc private func photoDeleteButtonTapped() {
+        deletePhoto()
     }
 
     @objc private func privacyButtonTapped() {
@@ -187,26 +242,59 @@ extension ActivityRecordViewController {
         }
     }
 
-    @objc private func memoTextFieldChanged() {
-        viewModel.updateMemo(recordView.memoTextField.text ?? "")
-    }
-
     @objc private func submitButtonTapped() {
         Task {
             do {
                 let result = try await viewModel.submitActivityRecord()
                 await MainActor.run {
-                    print("✅ 활동 기록 작성 성공: \(result.message)")
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("✅ 활동 기록 \(actionType) 성공: \(result.message)")
+
+                    // 제출 성공 플래그 설정 (이미지 삭제 방지)
+                    self.didSubmitSuccessfully = true
+
+                    // Notify HomeViewController to refresh sticker board
+                    AppEventBus.shared.activityRecordCreated.send(viewModel.currentHobbyId)
+
                     dismiss(animated: true)
+                }
+            } catch ActivityRecordError.missingRequiredFields {
+                await MainActor.run {
+                    print("❌ 필수 항목이 누락되었습니다")
+                    showErrorAlert(
+                        title: "입력 오류",
+                        message: "활동과 스티커를 모두 선택해주세요."
+                    )
+                }
+            } catch let appError as AppError {
+                await MainActor.run {
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("❌ 활동 기록 \(actionType) 실패: \(appError)")
+                    // Use common error handler
+                    self.handleActivityRecordError(appError)
                 }
             } catch {
                 await MainActor.run {
-                    print("❌ 활동 기록 작성 실패: \(error)")
-                    // TODO: 에러 처리 UI 표시
+                    let actionType = viewModel.isEditMode ? "수정" : "작성"
+                    print("❌ 활동 기록 \(actionType) 실패: \(error)")
+                    self.handleActivityRecordError(.unknown(error))
                 }
             }
         }
     }
+
+    private func showErrorAlert(title: String, message: String, action: (() -> Void)? = nil) {
+        let alert = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+            action?()
+        })
+        present(alert, animated: true)
+    }
+
 
     private func showActivityDropdown() {
         guard activityDropdownView == nil else { return }
@@ -266,53 +354,17 @@ extension ActivityRecordViewController {
             do {
                 try await viewModel.deleteImage()
             } catch {
-                print("❌ 이미지 삭제 실패: \(error)")
+                await MainActor.run {
+                    print("❌ 이미지 삭제 실패: \(error)")
+                    showErrorAlert(
+                        title: "삭제 실패",
+                        message: "이미지 삭제에 실패했습니다.\n다시 시도해주세요."
+                    )
+                }
             }
         }
     }
 
-    private func updatePhotoButton(with image: UIImage?) {
-        guard let image = image else {
-            // 이미지 없음 - 원래 상태로 복원
-            recordView.photoAddButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
-            recordView.photoAddButton.tintColor = .systemGray
-            recordView.photoAddButton.backgroundColor = .white
-            return
-        }
-
-        // 선택된 이미지 표시
-        recordView.photoAddButton.setImage(image, for: .normal)
-        recordView.photoAddButton.imageView?.contentMode = .scaleAspectFill
-        recordView.photoAddButton.tintColor = nil
-
-        // X 아이콘 추가
-        addDeleteIconToPhotoButton()
-    }
-
-    private func addDeleteIconToPhotoButton() {
-        // 기존 X 아이콘 제거
-        recordView.photoAddButton.subviews.forEach { view in
-            if view.tag == 999 {
-                view.removeFromSuperview()
-            }
-        }
-
-        let deleteButton = UIButton()
-        deleteButton.tag = 999
-        deleteButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        deleteButton.tintColor = .white
-        deleteButton.backgroundColor = .black.withAlphaComponent(0.6)
-        deleteButton.layer.cornerRadius = 10
-        deleteButton.clipsToBounds = true
-
-        recordView.photoAddButton.addSubview(deleteButton)
-
-        deleteButton.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(2)
-            $0.trailing.equalToSuperview().offset(-2)
-            $0.width.height.equalTo(20)
-        }
-    }
 }
 
 // UICollectionView
@@ -376,6 +428,28 @@ extension ActivityRecordViewController: PHPickerViewControllerDelegate {
                 }
             }
         }
+    }
+}
+
+// UITextViewDelegate
+
+extension ActivityRecordViewController: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+        let text = textView.text ?? ""
+
+        // 100자 제한
+        if text.count > 100 {
+            let limitedText = String(text.prefix(100))
+            textView.text = limitedText
+            viewModel.updateMemo(limitedText)
+            recordView.updateMemoCount(100)
+        } else {
+            viewModel.updateMemo(text)
+            recordView.updateMemoCount(text.count)
+        }
+
+        // 플레이스홀더 표시/숨김
+        recordView.updateMemoPlaceholder(isHidden: !text.isEmpty)
     }
 }
 

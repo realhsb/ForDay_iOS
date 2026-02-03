@@ -15,7 +15,7 @@ final class FetchHomeInfoUseCase {
         self.repository = repository
     }
 
-    func execute(hobbyId: Int? = nil) async throws -> HomeInfo {
+    func execute(hobbyId: Int? = nil) async throws -> HomeInfo? {
         return try await repository.fetchHomeInfo(hobbyId: hobbyId)
     }
 }

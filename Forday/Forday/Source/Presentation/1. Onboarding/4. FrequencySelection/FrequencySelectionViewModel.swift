@@ -57,4 +57,15 @@ class FrequencySelectionViewModel {
         guard index < frequencies.count else { return false }
         return frequencies[index].id == selectedFrequency?.id
     }
+
+    /// 초기 횟수 설정 (온보딩 재개 시)
+    func setInitialFrequency(_ count: Int) {
+        if let frequency = frequencies.first(where: { $0.count == count }) {
+            selectedFrequency = frequency
+            isNextButtonEnabled = true
+            print("✅ 초기 횟수 설정: 주 \(count)회")
+        } else {
+            print("⚠️ 횟수를 찾을 수 없음: \(count)")
+        }
+    }
 }

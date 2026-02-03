@@ -16,10 +16,5 @@ extension DTO {
     struct ActivityInput: Codable {
         let aiRecommended: Bool
         let content: String
-        
-        enum CodingKeys: String, CodingKey {
-            case aiRecommended = "ai_recommended"
-            case content
-        }
     }
 }

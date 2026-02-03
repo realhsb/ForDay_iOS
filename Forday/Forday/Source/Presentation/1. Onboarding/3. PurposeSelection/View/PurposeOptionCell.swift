@@ -15,9 +15,9 @@ class PurposeOptionCell: UICollectionViewCell {
     static let identifier = "PurposeOptionCell"
     
     // Properties
-    
+
     private let containerView = UIView()
-    private let checkboxImageView = UIImageView()
+    private let radioImageView = UIImageView()  // checkbox → radio로 이름 변경
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     
@@ -38,20 +38,20 @@ class PurposeOptionCell: UICollectionViewCell {
     func configure(with purpose: PurposeModel, isSelected: Bool) {
         titleLabel.text = purpose.title
         subtitleLabel.text = purpose.subtitle
-        
-        // 선택 상태에 따른 스타일 변경
+
+        // 선택 상태에 따른 스타일 변경 (라디오 버튼 스타일)
         if isSelected {
             containerView.backgroundColor = .systemBackground
             containerView.layer.borderColor = UIColor.systemOrange.cgColor
             containerView.layer.borderWidth = 2
-            checkboxImageView.image = UIImage(systemName: "checkmark.square.fill")
-            checkboxImageView.tintColor = .systemOrange
+            radioImageView.image = UIImage(systemName: "checkmark.circle.fill")
+            radioImageView.tintColor = .systemOrange
         } else {
             containerView.backgroundColor = .systemBackground
             containerView.layer.borderColor = UIColor.systemGray5.cgColor
             containerView.layer.borderWidth = 1
-            checkboxImageView.image = UIImage(systemName: "square")
-            checkboxImageView.tintColor = .systemGray4
+            radioImageView.image = UIImage(systemName: "circle")
+            radioImageView.tintColor = .systemGray4
         }
     }
 }
@@ -67,10 +67,10 @@ extension PurposeOptionCell {
             $0.layer.borderColor = UIColor.systemGray5.cgColor
         }
         
-        checkboxImageView.do {
+        radioImageView.do {
             $0.contentMode = .scaleAspectFit
             $0.tintColor = .systemGray4
-            $0.image = UIImage(systemName: "square")
+            $0.image = UIImage(systemName: "circle")
         }
         
         titleLabel.do {
@@ -88,25 +88,25 @@ extension PurposeOptionCell {
     
     private func layout() {
         contentView.addSubview(containerView)
-        containerView.addSubview(checkboxImageView)
+        containerView.addSubview(radioImageView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(subtitleLabel)
-        
+
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
-        checkboxImageView.snp.makeConstraints {
+
+        radioImageView.snp.makeConstraints {
             $0.top.leading.equalToSuperview().offset(16)
             $0.width.height.equalTo(24)
         }
-        
+
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(checkboxImageView.snp.bottom).offset(12)
+            $0.top.equalTo(radioImageView.snp.bottom).offset(12)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().offset(-16)
         }
-        
+
         subtitleLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(4)
             $0.leading.equalToSuperview().offset(16)

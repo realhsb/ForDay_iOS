@@ -14,35 +14,12 @@ final class StickerBoardView: UIView {
     // MARK: - UI Components
 
     private let headerView = UIView()
-
-    private let titleLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 18, weight: .bold)
-        $0.textColor = .label
-    }
-
-    private let previousButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        $0.tintColor = .label
-    }
-
-    private let nextButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(systemName: "chevron.right"), for: .normal)
-        $0.tintColor = .label
-    }
-
+    private let titleLabel = UILabel()
+    private let previousButton = UIButton(type: .system)
+    private let nextButton = UIButton(type: .system)
     private let stickerGridView = StickerGridView()
-
-    private let emptyStateLabel = UILabel().then {
-        $0.text = "아직 시작한 취미가 없어요"
-        $0.font = .systemFont(ofSize: 16, weight: .medium)
-        $0.textColor = .secondaryLabel
-        $0.textAlignment = .center
-        $0.isHidden = true
-    }
-
-    private let activityIndicator = UIActivityIndicatorView(style: .medium).then {
-        $0.hidesWhenStopped = true
-    }
+    private let emptyStateLabel = UILabel()
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
 
     // MARK: - Properties
 
@@ -54,7 +31,8 @@ final class StickerBoardView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        style()
+        layout()
         setupActions()
     }
 
@@ -63,8 +41,36 @@ final class StickerBoardView: UIView {
     }
 
     // MARK: - Setup
+    
+    private func style() {
+        titleLabel.do {
+            $0.textColor = .neutral900
+        }
+        
+        previousButton.do {
+            $0.setImage(.Icon.chevronLeft, for: .normal)
+            $0.tintColor = .neutral400
+        }
+        
+        nextButton.do {
+            $0.setImage(.Icon.chevronRight, for: .normal)
+            $0.tintColor = .neutral400
+        }
+        
+        emptyStateLabel.do {
+            $0.text = "아직 시작한 취미가 없어요"
+            $0.font = .systemFont(ofSize: 16, weight: .medium)
+            $0.textColor = .secondaryLabel
+            $0.textAlignment = .center
+            $0.isHidden = true
+        }
+        
+        activityIndicator.do {
+            $0.hidesWhenStopped = true
+        }
+    }
 
-    private func setupUI() {
+    private func layout() {
         addSubview(headerView)
         addSubview(stickerGridView)
         addSubview(emptyStateLabel)
@@ -137,7 +143,7 @@ final class StickerBoardView: UIView {
         self.onStickerTap = onStickerTap
 
         // 헤더 텍스트
-        titleLabel.text = "현재까지 \(board.totalStickerNum)개의 스티커 수집"
+        titleLabel.setTextWithTypography("현재까지 \(board.totalStickerNum)개의 스티커 수집", style: .header14)
 
         // 페이지네이션 버튼 상태
         previousButton.isEnabled = board.hasPrevious
@@ -164,7 +170,7 @@ final class StickerBoardView: UIView {
         emptyStateLabel.text = "아직 시작한 취미가 없어요"
         emptyStateLabel.isHidden = false
         activityIndicator.stopAnimating()
-        titleLabel.text = "스티커 수집"
+        titleLabel.setTextWithTypography("스티커 수집", style: .header14)
         previousButton.isEnabled = false
         nextButton.isEnabled = false
     }
@@ -185,4 +191,8 @@ final class StickerBoardView: UIView {
         emptyStateLabel.isHidden = false
         activityIndicator.stopAnimating()
     }
+}
+
+#Preview {
+    StickerBoardView()
 }

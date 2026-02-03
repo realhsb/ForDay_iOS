@@ -17,14 +17,14 @@ final class CreateHobbyUseCase {
 
     func execute(onboardingData: OnboardingData) async throws -> Int {
         guard let hobbyCard = onboardingData.selectedHobbyCard,
-              let hobbyCardId = hobbyCard.id else {
+              let hobbyInfoId = hobbyCard.id else {
             throw NSError(domain: "CreateHobbyUseCase", code: -1, userInfo: [NSLocalizedDescriptionKey: "취미 카드를 선택해주세요."])
         }
 
-        let hobbyPurpose = onboardingData.purposes.joined(separator: ", ")
+        let hobbyPurpose = onboardingData.purpose
 
         return try await repository.createHobby(
-            hobbyCardId: hobbyCardId,
+            hobbyInfoId: hobbyInfoId,
             hobbyName: hobbyCard.name,
             hobbyTimeMinutes: onboardingData.timeMinutes,
             hobbyPurpose: hobbyPurpose,

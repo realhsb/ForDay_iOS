@@ -40,4 +40,23 @@ class TimeSelectionViewModel {
         default: return 0
         }
     }
+
+    /// 초기 시간 설정 (온보딩 재개 시)
+    func setInitialTime(_ minutes: Int) {
+        let timeString = convertMinutesToString(minutes)
+        selectedTime = timeString
+        isNextButtonEnabled = true
+        print("✅ 초기 시간 설정: \(minutes)분 (\(timeString))")
+    }
+
+    private func convertMinutesToString(_ minutes: Int) -> String {
+        switch minutes {
+        case 10: return "10"
+        case 20: return "20"
+        case 30: return "30분"
+        case 60: return "1시간"
+        case 120: return "2시간"
+        default: return "\(minutes)분"
+        }
+    }
 }

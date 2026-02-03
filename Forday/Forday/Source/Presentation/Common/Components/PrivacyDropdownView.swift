@@ -181,7 +181,6 @@ class PrivacyDropdownCell: UITableViewCell {
         }
 
         privacyLabel.do {
-            $0.applyTypography(.body14)
             $0.textColor = .neutral500
             $0.textAlignment = .center
         }

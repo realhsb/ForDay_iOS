@@ -28,14 +28,28 @@ class OnboardingCompleteViewController: UIViewController {
         setupNavigationBar()
         setupActions()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // 네비게이션 바 숨김 (progress bar 제거)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // 다음 화면을 위해 네비게이션 바 다시 보이기
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
 }
 
 // Setup
 
 extension OnboardingCompleteViewController {
     private func setupNavigationBar() {
-        // 네비게이션 바 숨김
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // 뒤로가기 버튼 숨기기
+        navigationItem.hidesBackButton = true
+        // Swipe back gesture 비활성화
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     }
     
     private func setupActions() {

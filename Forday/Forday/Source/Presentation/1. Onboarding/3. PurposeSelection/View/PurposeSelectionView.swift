@@ -35,13 +35,15 @@ class PurposeSelectionView: UIView {
         super.init(frame: frame)
         style()
         layout()
-        
-        // 임시 데이터
-        selectedHobbyCard.configure(
-            iconName: "book.fill",
-            time: "30분",
-            title: "독서"
-        )
+    }
+
+    // Configure
+
+    func configureHobbyCard(icon: UIImage?, title: String, time: String?) {
+        selectedHobbyCard.configure(icon: icon, title: title)
+        if let time = time {
+            selectedHobbyCard.updateInfo(time: time)
+        }
     }
     
     required init?(coder: NSCoder) {

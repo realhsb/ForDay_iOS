@@ -9,7 +9,7 @@ import Foundation
 
 /// Domain model for sticker board
 /// Guaranteed to have valid, non-optional values
-struct StickerBoard {
+struct StickerBoard: Sendable {
     let hobbyId: Int
     let durationSet: Bool
     let activityRecordedToday: Bool
@@ -25,6 +25,11 @@ struct StickerBoard {
 struct StickerBoardItem {
     let activityRecordId: Int
     let sticker: String
+
+    /// Converts the sticker filename string to a StickerType enum
+    var stickerType: StickerType? {
+        StickerType(fileName: sticker)
+    }
 }
 
 /// Represents the state when no hobby is in progress

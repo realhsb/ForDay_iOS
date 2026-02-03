@@ -10,6 +10,9 @@ import Foundation
 struct HomeInfo {
     let inProgressHobbies: [InProgressHobby]
     let activityPreview: ActivityPreview?
+    let greetingMessage: String
+    let userSummaryText: String
+    let recommendMessage: String
     let aiCallRemaining: Bool
 }
 

@@ -50,7 +50,9 @@ extension AppTarget: BaseTargetType {
         case .fetchPresignedUrl(let request):
             return .requestJSONEncodable(request)
         case .deleteImage(let request):
-            return .requestJSONEncodable(request)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .withoutEscapingSlashes
+            return .requestCustomJSONEncodable(request, encoder: encoder)
         }
     }
 }

@@ -19,6 +19,19 @@ extension DTO {
         let newUser: Bool
         let socialType: String
         let guestUserId: String?
+        let onboardingCompleted: Bool
+        let nicknameSet: Bool
+        let onboardingData: OnboardingHobbyData?
+    }
+
+    struct OnboardingHobbyData: Codable {
+        let id: Int
+        let hobbyInfoId: Int
+        let hobbyName: String
+        let hobbyPurpose: String
+        let hobbyTimeMinutes: Int
+        let executionCount: Int
+        let durationSet: Bool
     }
 }
 
@@ -29,7 +42,24 @@ extension DTO.LoginData {
             refreshToken: refreshToken,
             isNewUser: newUser,
             socialType: SocialType(rawValue: socialType) ?? .guest,
-            guestUserId: guestUserId
+            guestUserId: guestUserId,
+            onboardingCompleted: onboardingCompleted,
+            nicknameSet: nicknameSet,
+            onboardingData: onboardingData?.toDomain()
+        )
+    }
+}
+
+extension DTO.OnboardingHobbyData {
+    func toDomain() -> SavedOnboardingData {
+        return SavedOnboardingData(
+            id: id,
+            hobbyInfoId: hobbyInfoId,
+            hobbyName: hobbyName,
+            hobbyPurpose: hobbyPurpose,
+            hobbyTimeMinutes: hobbyTimeMinutes,
+            executionCount: executionCount,
+            durationSet: durationSet
         )
     }
 }
