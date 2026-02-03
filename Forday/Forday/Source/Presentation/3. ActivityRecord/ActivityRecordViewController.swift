@@ -354,7 +354,13 @@ extension ActivityRecordViewController {
             do {
                 try await viewModel.deleteImage()
             } catch {
-                print("❌ 이미지 삭제 실패: \(error)")
+                await MainActor.run {
+                    print("❌ 이미지 삭제 실패: \(error)")
+                    showErrorAlert(
+                        title: "삭제 실패",
+                        message: "이미지 삭제에 실패했습니다.\n다시 시도해주세요."
+                    )
+                }
             }
         }
     }
