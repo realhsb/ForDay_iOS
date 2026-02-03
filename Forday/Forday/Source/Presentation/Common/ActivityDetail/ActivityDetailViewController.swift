@@ -10,7 +10,7 @@ import SnapKit
 import Then
 import Combine
 
-final class ActivityDetailViewController: UIViewController {
+final class ActivityDetailViewController: UIViewController, UIGestureRecognizerDelegate {
 
     // MARK: - Properties
 
@@ -53,6 +53,14 @@ final class ActivityDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
+
+    // MARK: - UIGestureRecognizerDelegate
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }
 
