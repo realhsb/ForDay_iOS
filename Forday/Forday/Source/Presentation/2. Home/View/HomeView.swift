@@ -12,12 +12,13 @@ import Then
 //import Lott
 
 class HomeView: UIView {
-    
+
     // Properties
-    
+
     private let backgroundImageView = UIImageView()
-    
-    private let scrollView = UIScrollView()
+
+    let scrollView = UIScrollView()
+    let refreshControl = UIRefreshControl()
     private let contentView = UIView()
     
     // Header
@@ -88,6 +89,8 @@ extension HomeView {
         
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
+            $0.refreshControl = refreshControl
+            $0.alwaysBounceVertical = true
         }
         
         // Header
@@ -235,9 +238,9 @@ extension HomeView {
     
     private func layout() {
         contentView.insertSubview(backgroundImageView, at: 0)
-        
-        addSubview(contentView)
-//        scrollView.addSubview(contentView)
+
+        addSubview(scrollView)
+        scrollView.addSubview(contentView)
 
         contentView.addSubview(headerView)
         contentView.addSubview(toastView)
@@ -277,10 +280,16 @@ extension HomeView {
         }
         
         contentView.clipsToBounds = true
-        
+
+        // ScrollView
+        scrollView.snp.makeConstraints {
+            $0.edges.equalTo(safeAreaLayoutGuide)
+        }
+
         // ContentView
         contentView.snp.makeConstraints {
-            $0.edges.equalTo(safeAreaLayoutGuide)
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
         }
         
         // Header
@@ -373,6 +382,7 @@ extension HomeView {
         stickerBoardView.snp.makeConstraints {
             $0.top.equalTo(activityCardView.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(20)
+            $0.height.equalTo(280) // 고정 높이: 헤더(44) + 갭(8) + 그리드(~200) + 패딩(28)
             $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
         }
 
