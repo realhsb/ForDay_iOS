@@ -25,10 +25,11 @@ final class AuthRepository: AuthRepositoryInterface {
     }
     
     // MARK: - Apple Login
-    
+
     func loginWithApple(appleIdentityToken: String) async throws -> AuthToken {
-        // TODO: 나중에 구현
-        fatalError("Apple Login not implemented yet")
+        let request = DTO.AppleLoginRequest(code: appleIdentityToken)
+        let response = try await apiService.loginWithApple(request: request)
+        return response.data.toDomain()
     }
     
     // MARK: - Guest Login

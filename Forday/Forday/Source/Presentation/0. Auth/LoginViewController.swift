@@ -18,6 +18,7 @@ class LoginViewController: UIViewController {
     
     // UseCase
     private let kakaoLoginUseCase: KakaoLoginUseCase
+    private let appleLoginUseCase: AppleLoginUseCase
     private let guestLoginUseCase: GuestLoginUseCase
     
     // Coordinator
@@ -27,6 +28,7 @@ class LoginViewController: UIViewController {
     
     init(useCaseFactory: AuthUseCaseFactory = AuthUseCaseFactory()) {
         self.kakaoLoginUseCase = useCaseFactory.makeKakaoLoginUseCase()
+        self.appleLoginUseCase = useCaseFactory.makeAppleLoginUseCase()
         self.guestLoginUseCase = useCaseFactory.makeGuestLoginUseCase()
         super.init(nibName: nil, bundle: nil)
     }
@@ -80,16 +82,30 @@ extension LoginViewController {
                     coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
+                // 사용자 취소 시 에러 알림 표시하지 않음
+                if isUserCancellationError(error) { return }
                 await MainActor.run {
                     showError(error)
                 }
             }
         }
     }
-    
+
     @objc private func appleLoginButtonTapped() {
-        print("애플 로그인")
-        // TODO: 애플 로그인 처리
+        Task {
+            do {
+                let authToken = try await appleLoginUseCase.execute()
+                await MainActor.run {
+                    coordinator?.handleLoginSuccess(authToken: authToken)
+                }
+            } catch {
+                // 사용자 취소 시 에러 알림 표시하지 않음
+                if isUserCancellationError(error) { return }
+                await MainActor.run {
+                    showError(error)
+                }
+            }
+        }
     }
     
     @objc private func guestLoginButtonTapped() {
@@ -111,7 +127,21 @@ extension LoginViewController {
     }
     
     // MARK: - Helper
-    
+
+    private func isUserCancellationError(_ error: Error) -> Bool {
+        // Apple 로그인 취소
+        if let appleError = error as? AppleAuthService.AppleAuthError,
+           case .userCancelled = appleError {
+            return true
+        }
+        // Kakao 로그인 취소
+        if let kakaoError = error as? KakaoAuthService.KakaoAuthError,
+           case .userCancelled = kakaoError {
+            return true
+        }
+        return false
+    }
+
     private func showError(_ error: Error) {
         let alert = UIAlertController(
             title: "로그인 실패",

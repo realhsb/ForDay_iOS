@@ -8,7 +8,12 @@
 import Foundation
 
 struct APIConstants {
-    static let baseURL = "http://forday-alb-1599562729.ap-northeast-2.elb.amazonaws.com"
+    static let baseURL: String = {
+        guard let url = Bundle.main.infoDictionary?["BASE_URL"] as? String else {
+            fatalError("BASE_URL not found in Info.plist")
+        }
+        return url
+    }()
     static let contentType = "Content-Type"
     static let applicationJson = "application/json"
 }
