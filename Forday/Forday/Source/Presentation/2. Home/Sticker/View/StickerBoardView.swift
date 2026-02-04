@@ -80,17 +80,18 @@ final class StickerBoardView: UIView {
         headerView.addSubview(nextButton)
 
         headerView.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
+            $0.top.equalToSuperview().offset(16)
+            $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(44)
         }
 
         titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(20)
             $0.centerY.equalToSuperview()
         }
 
         nextButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(20)
             $0.centerY.equalToSuperview()
             $0.size.equalTo(32)
         }
@@ -103,8 +104,8 @@ final class StickerBoardView: UIView {
 
         stickerGridView.snp.makeConstraints {
             $0.top.equalTo(headerView.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.bottom.equalToSuperview().inset(20)
         }
 
         emptyStateLabel.snp.makeConstraints {
