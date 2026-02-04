@@ -162,12 +162,14 @@ extension ActivityGridViewController {
                 $0.leading.trailing.bottom.equalToSuperview()
             }
 
-            emptyStateView.configure(
-                icon: UIImage(systemName: "photo.on.rectangle.angled"),
-                message: "아직 기록한 활동이 없습니다.\n취미 활동을 기록해보세요!",
-                actionTitle: nil
-            )
+            emptyStateView.configureForActivities { [weak self] in
+                self?.navigateToActivityRecord()
+            }
         }
+    }
+
+    private func navigateToActivityRecord() {
+        coordinator?.showActivityRecord()
     }
 }
 

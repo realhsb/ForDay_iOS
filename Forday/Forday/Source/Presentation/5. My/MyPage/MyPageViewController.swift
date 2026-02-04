@@ -55,11 +55,21 @@ final class MyPageViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
+        setupCustomNavigationBar()
         setupSegmentedControl()
         bind()
         setupEventBus()
         loadData()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -84,28 +94,10 @@ final class MyPageViewController: UIViewController {
 // MARK: - Setup
 
 extension MyPageViewController {
-    private func setupNavigationBar() {
-        title = "마이페이지"
-
-        // Settings button
-        let settingsButton = UIBarButtonItem(
-            image: UIImage(systemName: "gearshape"),
-            style: .plain,
-            target: self,
-            action: #selector(settingsButtonTapped)
-        )
-        settingsButton.tintColor = .label
-
-        // Notification button
-        let notificationButton = UIBarButtonItem(
-            image: UIImage(systemName: "bell"),
-            style: .plain,
-            target: self,
-            action: #selector(notificationButtonTapped)
-        )
-        notificationButton.tintColor = .label
-
-        navigationItem.rightBarButtonItems = [settingsButton, notificationButton]
+    private func setupCustomNavigationBar() {
+        // Setup custom navigation buttons from ProfileView
+        myPageView.notificationButton.addTarget(self, action: #selector(notificationButtonTapped), for: .touchUpInside)
+        myPageView.settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
     }
 
     private func setupSegmentedControl() {
@@ -331,9 +323,12 @@ extension MyPageViewController {
 
 extension MyPageViewController {
     @objc private func settingsButtonTapped() {
-        // TODO: Show settings dropdown
-        print("⚙️ Settings button tapped")
-        showSettingsDropdown()
+        // Toggle dropdown - if already showing, dismiss it
+        if settingsDropdownView != nil {
+            dismissSettingsDropdown()
+        } else {
+            showSettingsDropdown()
+        }
     }
 
     @objc private func notificationButtonTapped() {
@@ -362,9 +357,8 @@ extension MyPageViewController {
             self?.handleSettingsMenuSelection(menuItem)
         }
 
-        // Show dropdown
-        guard let navigationBar = navigationController?.navigationBar else { return }
-        dropdownView.showInParent(view, belowNavigationBar: navigationBar)
+        // Show dropdown below custom navigation (settings button)
+        dropdownView.showInParent(view, below: myPageView.settingsButton)
 
         // Store references
         settingsDropdownBackgroundView = backgroundView
