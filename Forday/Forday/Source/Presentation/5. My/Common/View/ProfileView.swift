@@ -18,6 +18,10 @@ final class ProfileView: UIView {
     let notificationButton = UIButton()
     let settingsButton = UIButton()
 
+    let scrollView = UIScrollView()
+    let refreshControl = UIRefreshControl()
+    private let scrollContentView = UIView()
+
     let headerView = ProfileHeaderView()
     let segmentedControlView = ProfileSegmentedControlView()
     let contentContainerView = UIView()
@@ -67,6 +71,16 @@ extension ProfileView {
             $0.tintColor = .neutral900
         }
 
+        scrollView.do {
+            $0.showsVerticalScrollIndicator = false
+            $0.refreshControl = refreshControl
+            $0.alwaysBounceVertical = true
+        }
+
+        scrollContentView.do {
+            $0.backgroundColor = .systemBackground
+        }
+
         contentContainerView.do {
             $0.backgroundColor = .systemBackground
         }
@@ -78,9 +92,12 @@ extension ProfileView {
         navigationView.addSubview(settingsButton)
         navigationView.addSubview(notificationButton)
 
-        addSubview(headerView)
-        addSubview(segmentedControlView)
-        addSubview(contentContainerView)
+        addSubview(scrollView)
+        scrollView.addSubview(scrollContentView)
+
+        scrollContentView.addSubview(headerView)
+        scrollContentView.addSubview(segmentedControlView)
+        scrollContentView.addSubview(contentContainerView)
 
         navigationView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -105,8 +122,19 @@ extension ProfileView {
             $0.width.height.equalTo(24)
         }
 
-        headerView.snp.makeConstraints {
+        scrollView.snp.makeConstraints {
             $0.top.equalTo(navigationView.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide)
+        }
+
+        scrollContentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+        }
+
+        headerView.snp.makeConstraints {
+            $0.top.equalToSuperview()
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(80)
         }
@@ -120,7 +148,9 @@ extension ProfileView {
         contentContainerView.snp.makeConstraints {
             $0.top.equalTo(segmentedControlView.snp.bottom)
             $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalTo(safeAreaLayoutGuide)
+            $0.bottom.equalToSuperview()
+            // 최소 높이 설정 - 화면 나머지 공간 채우기
+            $0.height.greaterThanOrEqualTo(400)
         }
     }
 }

@@ -56,6 +56,7 @@ final class MyPageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupCustomNavigationBar()
+        setupRefreshControl()
         setupSegmentedControl()
         bind()
         setupEventBus()
@@ -98,6 +99,14 @@ extension MyPageViewController {
         // Setup custom navigation buttons from ProfileView
         myPageView.notificationButton.addTarget(self, action: #selector(notificationButtonTapped), for: .touchUpInside)
         myPageView.settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+    }
+
+    private func setupRefreshControl() {
+        myPageView.refreshControl.addTarget(
+            self,
+            action: #selector(refreshMyPageData),
+            for: .valueChanged
+        )
     }
 
     private func setupSegmentedControl() {
@@ -322,6 +331,16 @@ extension MyPageViewController {
 // MARK: - Actions
 
 extension MyPageViewController {
+    @objc private func refreshMyPageData() {
+        Task {
+            await viewModel.fetchInitialData()
+
+            await MainActor.run {
+                myPageView.refreshControl.endRefreshing()
+            }
+        }
+    }
+
     @objc private func settingsButtonTapped() {
         // Toggle dropdown - if already showing, dismiss it
         if settingsDropdownView != nil {
