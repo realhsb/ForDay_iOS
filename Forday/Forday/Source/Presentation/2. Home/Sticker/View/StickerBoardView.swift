@@ -58,9 +58,8 @@ final class StickerBoardView: UIView {
         }
         
         emptyStateLabel.do {
-            $0.text = "아직 시작한 취미가 없어요"
-            $0.font = .systemFont(ofSize: 16, weight: .medium)
-            $0.textColor = .secondaryLabel
+            $0.setTextWithTypography("아직 시작한 취미가 없어요", style: .body16)
+            $0.textColor = .neutral600
             $0.textAlignment = .center
             $0.isHidden = true
         }
@@ -167,12 +166,14 @@ final class StickerBoardView: UIView {
 
     func showNoHobby() {
         stickerGridView.isHidden = true
-        emptyStateLabel.text = "아직 시작한 취미가 없어요"
+        emptyStateLabel.setTextWithTypography("아직 시작한 취미가 없어요", style: .body16)
         emptyStateLabel.isHidden = false
         activityIndicator.stopAnimating()
         titleLabel.setTextWithTypography("스티커 수집", style: .header14)
         previousButton.isEnabled = false
+        previousButton.alpha = 0.3
         nextButton.isEnabled = false
+        nextButton.alpha = 0.3
     }
 
     func showEmpty(board: StickerBoard) {
@@ -187,12 +188,14 @@ final class StickerBoardView: UIView {
 
     func showError(message: String) {
         stickerGridView.isHidden = true
-        emptyStateLabel.text = message
+        emptyStateLabel.setTextWithTypography(message, style: .body16)
         emptyStateLabel.isHidden = false
         activityIndicator.stopAnimating()
     }
 }
 
+#if DEBUG
 #Preview {
     StickerBoardView()
 }
+#endif

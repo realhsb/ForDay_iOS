@@ -124,7 +124,13 @@ final class StickerGridView: UIView {
         // 실제 스티커가 있으면 표시
         if index < board.stickers.count {
             let sticker = board.stickers[index]
-            return .filled(sticker.sticker)
+
+            // 삭제되었거나 sticker가 nil이면 빈 칸
+            guard let stickerType = sticker.stickerType else {
+                return .empty
+            }
+
+            return .filled(stickerType.rawValue)
         }
 
         // 오늘 활동 기록 안 함 && 채워진 스티커 바로 다음 칸 → 핑크 외곽선

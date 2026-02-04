@@ -24,11 +24,14 @@ struct StickerBoard: Sendable {
 
 struct StickerBoardItem {
     let activityRecordId: Int
-    let sticker: String
+    let sticker: String?
+    let deleted: Bool
 
     /// Converts the sticker filename string to a StickerType enum
+    /// Returns nil if deleted or sticker is nil
     var stickerType: StickerType? {
-        StickerType(fileName: sticker)
+        guard !deleted, let sticker = sticker else { return nil }
+        return StickerType(fileName: sticker)
     }
 }
 
