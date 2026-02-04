@@ -82,13 +82,15 @@ extension LoginViewController {
                     coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
+                // 사용자 취소 시 에러 알림 표시하지 않음
+                if isUserCancellationError(error) { return }
                 await MainActor.run {
                     showError(error)
                 }
             }
         }
     }
-    
+
     @objc private func appleLoginButtonTapped() {
         Task {
             do {
@@ -97,6 +99,8 @@ extension LoginViewController {
                     coordinator?.handleLoginSuccess(authToken: authToken)
                 }
             } catch {
+                // 사용자 취소 시 에러 알림 표시하지 않음
+                if isUserCancellationError(error) { return }
                 await MainActor.run {
                     showError(error)
                 }
@@ -123,7 +127,21 @@ extension LoginViewController {
     }
     
     // MARK: - Helper
-    
+
+    private func isUserCancellationError(_ error: Error) -> Bool {
+        // Apple 로그인 취소
+        if let appleError = error as? AppleAuthService.AppleAuthError,
+           case .userCancelled = appleError {
+            return true
+        }
+        // Kakao 로그인 취소
+        if let kakaoError = error as? KakaoAuthService.KakaoAuthError,
+           case .userCancelled = kakaoError {
+            return true
+        }
+        return false
+    }
+
     private func showError(_ error: Error) {
         let alert = UIAlertController(
             title: "로그인 실패",

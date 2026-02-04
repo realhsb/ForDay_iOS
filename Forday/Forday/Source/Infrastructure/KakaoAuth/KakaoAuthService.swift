@@ -9,12 +9,14 @@
 import Foundation
 import KakaoSDKAuth
 import KakaoSDKUser
+import KakaoSDKCommon
 
 
 final class KakaoAuthService: SocialAuthService {
     
     enum KakaoAuthError: Error {
         case tokenNotFound
+        case userCancelled
         case loginFailed(Error)
     }
     
@@ -35,7 +37,11 @@ final class KakaoAuthService: SocialAuthService {
         return try await withCheckedThrowingContinuation { continuation in
             UserApi.shared.loginWithKakaoTalk { oauthToken, error in
                 if let error = error {
-                    continuation.resume(throwing: KakaoAuthError.loginFailed(error))
+                    if self.isUserCancellation(error) {
+                        continuation.resume(throwing: KakaoAuthError.userCancelled)
+                    } else {
+                        continuation.resume(throwing: KakaoAuthError.loginFailed(error))
+                    }
                 } else if let accessToken = oauthToken?.accessToken {
                     continuation.resume(returning: accessToken)
                 } else {
@@ -44,12 +50,16 @@ final class KakaoAuthService: SocialAuthService {
             }
         }
     }
-    
+
     private func loginWithKakaoAccount() async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             UserApi.shared.loginWithKakaoAccount { oauthToken, error in
                 if let error = error {
-                    continuation.resume(throwing: KakaoAuthError.loginFailed(error))
+                    if self.isUserCancellation(error) {
+                        continuation.resume(throwing: KakaoAuthError.userCancelled)
+                    } else {
+                        continuation.resume(throwing: KakaoAuthError.loginFailed(error))
+                    }
                 } else if let accessToken = oauthToken?.accessToken {
                     continuation.resume(returning: accessToken)
                 } else {
@@ -57,5 +67,14 @@ final class KakaoAuthService: SocialAuthService {
                 }
             }
         }
+    }
+
+    private func isUserCancellation(_ error: Error) -> Bool {
+        if let sdkError = error as? SdkError {
+            if case .ClientFailed(let reason, _) = sdkError {
+                return reason == .Cancelled
+            }
+        }
+        return false
     }
 }
