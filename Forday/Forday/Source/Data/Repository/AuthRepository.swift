@@ -48,9 +48,17 @@ final class AuthRepository: AuthRepositoryInterface {
     }
     
     // MARK: - Logout
-    
+
     func logout() async throws {
         // TODO: 나중에 구현
         fatalError("Logout not implemented yet")
+    }
+
+    // MARK: - Switch Account (Guest → Social)
+
+    func switchAccount(socialType: SocialType, socialCode: String) async throws -> AuthToken {
+        let request = DTO.SwitchAccountRequest(socialType: socialType.rawValue, socialCode: socialCode)
+        let response = try await apiService.switchAccount(request: request)
+        return response.data.toDomain()
     }
 }
