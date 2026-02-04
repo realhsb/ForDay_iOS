@@ -33,6 +33,9 @@ final class MyPageViewController: UIViewController {
     private var settingsDropdownBackgroundView: UIView?
     private var settingsDropdownView: DropdownMenuView<MySettingsMenuItem>?
 
+    // Guest login bottom sheet
+    private var hasShownGuestLoginSheet = false
+
     // MARK: - Initialization
 
     init(viewModel: MyPageViewModel = MyPageViewModel()) {
@@ -57,6 +60,24 @@ final class MyPageViewController: UIViewController {
         bind()
         setupEventBus()
         loadData()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        checkGuestAccess()
+    }
+
+    // MARK: - Guest Access Check
+
+    private func checkGuestAccess() {
+        // 이미 바텀시트를 보여줬으면 다시 표시하지 않음
+        guard !hasShownGuestLoginSheet else { return }
+
+        // 게스트 유저인 경우 로그인 바텀시트 표시
+        if TokenStorage.shared.loadGuestUserId() != nil {
+            hasShownGuestLoginSheet = true
+            GuestLoginBottomSheetViewController.present(from: self, delegate: self)
+        }
     }
 }
 
@@ -472,6 +493,25 @@ extension MyPageViewController {
         )
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - GuestLoginBottomSheetDelegate
+
+extension MyPageViewController: GuestLoginBottomSheetDelegate {
+    func guestLoginBottomSheetDidLoginSuccess(_ controller: GuestLoginBottomSheetViewController, authToken: AuthToken) {
+        // 로그인 성공 후 데이터 새로고침
+        Task {
+            await viewModel.fetchInitialData()
+        }
+
+        // 토스트 메시지 표시
+        ToastView.show(message: "로그인되었습니다")
+    }
+
+    func guestLoginBottomSheetDidDismiss(_ controller: GuestLoginBottomSheetViewController) {
+        // 바텀시트가 로그인 없이 닫힌 경우 홈 탭으로 이동
+        coordinator?.switchToHomeTab()
     }
 }
 
