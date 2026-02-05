@@ -403,12 +403,14 @@ extension HomeViewController {
 extension HomeViewController {
     @objc private func refreshHomeData() {
         Task {
+            defer {
+                Task { @MainActor in
+                    homeView.refreshControl.endRefreshing()
+                }
+            }
+
             await viewModel.fetchHomeInfo()
             await stickerBoardViewModel.loadInitialStickerBoard()
-
-            await MainActor.run {
-                homeView.refreshControl.endRefreshing()
-            }
         }
     }
 

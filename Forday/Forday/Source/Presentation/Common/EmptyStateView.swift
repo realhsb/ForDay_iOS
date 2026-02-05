@@ -40,6 +40,7 @@ final class EmptyStateView: UIView {
 
     /// Legacy configure method for backward compatibility
     func configure(icon: UIImage?, message: String, actionTitle: String? = nil) {
+        onActionTapped = nil // 이전 클로저 초기화
         iconImageView.image = icon
         iconImageView.alpha = 1.0
         titleLabel.setTextWithTypography(message, style: .header16)

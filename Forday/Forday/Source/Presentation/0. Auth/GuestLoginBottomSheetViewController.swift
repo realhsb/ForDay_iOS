@@ -83,7 +83,15 @@ extension GuestLoginBottomSheetViewController {
     // MARK: - Actions
 
     @objc private func kakaoLoginButtonTapped() {
+        isModalInPresentation = true // 로그인 중 드래그 dismiss 차단
+
         Task {
+            defer {
+                Task { @MainActor in
+                    self.isModalInPresentation = false
+                }
+            }
+
             do {
                 let authToken = try await switchToKakaoUseCase.execute()
                 await MainActor.run {
@@ -104,7 +112,15 @@ extension GuestLoginBottomSheetViewController {
     }
 
     @objc private func appleLoginButtonTapped() {
+        isModalInPresentation = true // 로그인 중 드래그 dismiss 차단
+
         Task {
+            defer {
+                Task { @MainActor in
+                    self.isModalInPresentation = false
+                }
+            }
+
             do {
                 let authToken = try await switchToAppleUseCase.execute()
                 await MainActor.run {

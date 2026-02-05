@@ -285,8 +285,9 @@ extension HomeView {
             // safe area 포함 세로 길이 - 66*2
             $0.width.height.equalTo(UIScreen.main.bounds.height)
         }
-        
-        contentView.clipsToBounds = true
+
+        backgroundImageView.clipsToBounds = true
+        contentView.clipsToBounds = false // 스티커판 shadow가 잘리지 않도록
 
         // ScrollView
         scrollView.snp.makeConstraints {
