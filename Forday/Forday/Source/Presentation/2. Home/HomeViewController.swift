@@ -39,6 +39,7 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
+        setupRefreshControl()
         setupActions()
         setupStickerBoardCallbacks()
         bind()
@@ -62,7 +63,15 @@ extension HomeViewController {
     private func setupNavigationBar() {
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
-    
+
+    private func setupRefreshControl() {
+        homeView.refreshControl.addTarget(
+            self,
+            action: #selector(refreshHomeData),
+            for: .valueChanged
+        )
+    }
+
     private func setupActions() {
         // 첫 번째 취미 버튼
         homeView.firstHobbyButton.addTarget(
@@ -392,6 +401,19 @@ extension HomeViewController {
 // Actions
 
 extension HomeViewController {
+    @objc private func refreshHomeData() {
+        Task {
+            defer {
+                Task { @MainActor in
+                    homeView.refreshControl.endRefreshing()
+                }
+            }
+
+            await viewModel.fetchHomeInfo()
+            await stickerBoardViewModel.loadInitialStickerBoard()
+        }
+    }
+
     @objc private func addHobbyButtonTapped() {
         print("취미 추가 탭")
         coordinator?.showAddHobbyOnboarding()

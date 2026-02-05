@@ -46,4 +46,10 @@ final class AuthService {
     func validateToken() async throws -> DTO.TokenValidateResponse {
         return try await provider.request(.validateToken)
     }
+
+    // MARK: - Switch Account (Guest → Social)
+
+    func switchAccount(request: DTO.SwitchAccountRequest) async throws -> DTO.SwitchAccountResponse {
+        return try await provider.request(.switchAccount(request: request))
+    }
 }

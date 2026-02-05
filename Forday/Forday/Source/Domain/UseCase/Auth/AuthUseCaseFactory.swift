@@ -48,4 +48,20 @@ struct AuthUseCaseFactory {
             tokenStorage: tokenStorage
         )
     }
+
+    func makeSwitchToKakaoUseCase() -> SwitchToKakaoUseCase {
+        return SwitchToKakaoUseCase(
+            kakaoAuthService: kakaoAuthService,
+            authRepository: authRepository,
+            tokenStorage: tokenStorage
+        )
+    }
+
+    func makeSwitchToAppleUseCase() -> SwitchToAppleUseCase {
+        return SwitchToAppleUseCase(
+            appleAuthService: appleAuthService,
+            authRepository: authRepository,
+            tokenStorage: tokenStorage
+        )
+    }
 }

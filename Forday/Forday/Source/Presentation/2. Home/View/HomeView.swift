@@ -12,12 +12,13 @@ import Then
 //import Lott
 
 class HomeView: UIView {
-    
+
     // Properties
-    
+
     private let backgroundImageView = UIImageView()
-    
-    private let scrollView = UIScrollView()
+
+    let scrollView = UIScrollView()
+    let refreshControl = UIRefreshControl()
     private let contentView = UIView()
     
     // Header
@@ -88,6 +89,8 @@ extension HomeView {
         
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
+            $0.refreshControl = refreshControl
+            $0.alwaysBounceVertical = true
         }
         
         // Header
@@ -218,10 +221,17 @@ extension HomeView {
             $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
         }
         
-        // Sticker Section
+        // Sticker Section - 바텀시트 스타일 (상단만 라운드)
         stickerBoardView.do {
             $0.backgroundColor = .neutralWhite
             $0.layer.cornerRadius = 20
+            $0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner] // 상단만 라운드
+
+            // 그림자 설정
+            $0.layer.shadowColor = UIColor.black.cgColor
+            $0.layer.shadowOpacity = 0.08
+            $0.layer.shadowOffset = CGSize(width: 0, height: -2)
+            $0.layer.shadowRadius = 8
         }
 
         // Floating Action Button
@@ -235,9 +245,9 @@ extension HomeView {
     
     private func layout() {
         contentView.insertSubview(backgroundImageView, at: 0)
-        
-        addSubview(contentView)
-//        scrollView.addSubview(contentView)
+
+        addSubview(scrollView)
+        scrollView.addSubview(contentView)
 
         contentView.addSubview(headerView)
         contentView.addSubview(toastView)
@@ -275,12 +285,19 @@ extension HomeView {
             // safe area 포함 세로 길이 - 66*2
             $0.width.height.equalTo(UIScreen.main.bounds.height)
         }
-        
-        contentView.clipsToBounds = true
-        
+
+        backgroundImageView.clipsToBounds = true
+        contentView.clipsToBounds = false // 스티커판 shadow가 잘리지 않도록
+
+        // ScrollView
+        scrollView.snp.makeConstraints {
+            $0.edges.equalTo(safeAreaLayoutGuide)
+        }
+
         // ContentView
         contentView.snp.makeConstraints {
-            $0.edges.equalTo(safeAreaLayoutGuide)
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
         }
         
         // Header
@@ -369,11 +386,12 @@ extension HomeView {
             $0.bottom.equalToSuperview().offset(-24)
         }
         
-        // Sticker Section
+        // Sticker Section - 양옆 간격 없이 전체 너비, 하단까지 확장
         stickerBoardView.snp.makeConstraints {
             $0.top.equalTo(activityCardView.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalToSuperview().offset(-100) // TabBar 공간
+            $0.leading.trailing.equalToSuperview() // 양옆 간격 제거
+            $0.height.equalTo(320) // 고정 높이: 헤더(44) + 갭(8) + 그리드(~240) + 패딩(28)
+            $0.bottom.equalToSuperview() // 하단까지 확장 (탭바 아래까지)
         }
 
         // Dim Overlay

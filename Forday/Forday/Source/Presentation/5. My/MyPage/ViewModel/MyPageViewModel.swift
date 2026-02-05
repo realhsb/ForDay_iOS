@@ -65,7 +65,20 @@ final class MyPageViewModel {
 
     // MARK: - Public Methods
 
+    /// 게스트 유저 여부 확인
+    var isGuestUser: Bool {
+        return TokenStorage.shared.loadGuestUserId() != nil
+    }
+
     func fetchInitialData() async {
+        // 게스트 유저는 API 호출 스킵 (마이페이지 데이터 불필요)
+        guard !isGuestUser else {
+            await MainActor.run {
+                self.isLoading = false
+            }
+            return
+        }
+
         await MainActor.run {
             isLoading = true
         }
@@ -116,6 +129,8 @@ final class MyPageViewModel {
     }
 
     func filterByHobbies(hobbyIds: Set<Int>) async {
+        guard !isGuestUser else { return }
+
         await MainActor.run {
             selectedHobbyIds = hobbyIds
             lastRecordId = nil
@@ -126,6 +141,8 @@ final class MyPageViewModel {
     }
 
     func refreshActivities() async {
+        guard !isGuestUser else { return }
+
         await MainActor.run {
             isLoading = true
         }
@@ -159,7 +176,7 @@ final class MyPageViewModel {
     }
 
     func loadMoreActivities() async {
-        guard !isLoadingMore && hasMoreActivities else { return }
+        guard !isGuestUser, !isLoadingMore && hasMoreActivities else { return }
 
         await MainActor.run {
             isLoadingMore = true
@@ -194,6 +211,8 @@ final class MyPageViewModel {
     // MARK: - Refresh Individual Data
 
     func refreshUserProfile() async {
+        guard !isGuestUser else { return }
+
         do {
             let profile = try await fetchUserProfileUseCase.execute()
             await MainActor.run {
@@ -206,6 +225,8 @@ final class MyPageViewModel {
     }
 
     func refreshHobbies() async {
+        guard !isGuestUser else { return }
+
         do {
             let hobbies = try await fetchMyHobbiesUseCase.execute()
             await MainActor.run {
@@ -220,6 +241,8 @@ final class MyPageViewModel {
     }
 
     func refreshScraps() async {
+        guard !isGuestUser else { return }
+
         await MainActor.run {
             isLoading = true
         }
@@ -248,7 +271,7 @@ final class MyPageViewModel {
     }
 
     func loadMoreScraps() async {
-        guard !isLoadingMore && hasMoreScraps else { return }
+        guard !isGuestUser, !isLoadingMore && hasMoreScraps else { return }
 
         await MainActor.run {
             isLoadingMore = true

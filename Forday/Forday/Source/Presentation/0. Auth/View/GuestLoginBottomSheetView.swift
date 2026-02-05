@@ -1,21 +1,20 @@
 //
-//  LoginView.swift
+//  GuestLoginBottomSheetView.swift
 //  Forday
 //
-//  Created by Subeen on 1/11/26.
+//  Created by Subeen on 2/4/26.
 //
-
 
 import UIKit
 import SnapKit
 import Then
 
-class LoginView: UIView {
+final class GuestLoginBottomSheetView: UIView {
 
     // MARK: - UI Components
 
     private let characterImageView = UIImageView()
-    private let titleLabel = UILabel()
+    private let welcomeTitleLabel = UILabel()
     private let subtitleLabel = UILabel()
 
     private let hintBubbleView = UIView()
@@ -24,13 +23,6 @@ class LoginView: UIView {
 
     let kakaoLoginButton = UIButton()
     let appleLoginButton = UIButton()
-
-    private let dividerStackView = UIStackView()
-    private let leftDividerLine = UIView()
-    private let orLabel = UILabel()
-    private let rightDividerLine = UIView()
-
-    let guestLoginButton = UIButton()
 
     // MARK: - Initialization
 
@@ -47,22 +39,27 @@ class LoginView: UIView {
 
 // MARK: - Setup
 
-extension LoginView {
+extension GuestLoginBottomSheetView {
     private func style() {
         backgroundColor = .neutralWhite
+        layer.cornerRadius = 20
+        layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 
+        // Character
         characterImageView.do {
             $0.image = .My.main
             $0.contentMode = .scaleAspectFit
         }
 
-        titleLabel.do {
+        // Welcome Title
+        welcomeTitleLabel.do {
             $0.setTextWithTypography("포데이에\n오신 것을 환영합니다!", style: .header24)
             $0.textColor = .neutral900
             $0.textAlignment = .center
             $0.numberOfLines = 0
         }
 
+        // Subtitle
         subtitleLabel.do {
             $0.setTextWithTypography("당신만의 취미 루틴, AI가 추천해드립니다", style: .label14)
             $0.textColor = .secondary003
@@ -130,74 +127,36 @@ extension LoginView {
 
             $0.configuration = config
         }
-
-        // Divider
-        dividerStackView.do {
-            $0.axis = .horizontal
-            $0.alignment = .center
-            $0.spacing = 20
-        }
-
-        leftDividerLine.do {
-            $0.backgroundColor = .neutral200
-        }
-
-        orLabel.do {
-            $0.setTextWithTypography("또는", style: .label12)
-            $0.textColor = .neutral600
-            $0.textAlignment = .center
-        }
-
-        rightDividerLine.do {
-            $0.backgroundColor = .neutral200
-        }
-
-        // Guest Button
-        guestLoginButton.do {
-            $0.layer.cornerRadius = 12
-
-            let attributedTitle = NSAttributedString(
-                string: "게스트로 둘러보기",
-                attributes: TypographyStyle.header14.attributes.merging([
-                    .foregroundColor: UIColor.neutral600,
-                    .underlineStyle: NSUnderlineStyle.single.rawValue
-                ]) { _, new in new }
-            )
-            $0.setAttributedTitle(attributedTitle, for: .normal)
-        }
     }
 
     private func layout() {
         addSubview(characterImageView)
-        addSubview(titleLabel)
+        addSubview(welcomeTitleLabel)
         addSubview(subtitleLabel)
+
         addSubview(hintBubbleView)
         hintBubbleView.addSubview(hintLabel)
         addSubview(hintTriangleView)
+
         addSubview(kakaoLoginButton)
         addSubview(appleLoginButton)
-        addSubview(dividerStackView)
-        dividerStackView.addArrangedSubview(leftDividerLine)
-        dividerStackView.addArrangedSubview(orLabel)
-        dividerStackView.addArrangedSubview(rightDividerLine)
-        addSubview(guestLoginButton)
 
-        // Character Image
+        // Character
         characterImageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalTo(safeAreaLayoutGuide).offset(146)
+            $0.top.equalToSuperview().offset(40)
             $0.size.equalTo(56)
         }
 
         // Title
-        titleLabel.snp.makeConstraints {
+        welcomeTitleLabel.snp.makeConstraints {
             $0.top.equalTo(characterImageView.snp.bottom).offset(10)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         // Subtitle
         subtitleLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.top.equalTo(welcomeTitleLabel.snp.bottom).offset(10)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
 
@@ -212,7 +171,6 @@ extension LoginView {
             $0.leading.trailing.equalToSuperview().inset(12)
         }
 
-        // Triangle
         hintTriangleView.snp.makeConstraints {
             $0.centerX.equalTo(hintBubbleView)
             $0.top.equalTo(hintBubbleView.snp.bottom)
@@ -231,30 +189,7 @@ extension LoginView {
         appleLoginButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(48)
-            $0.bottom.equalTo(dividerStackView.snp.top).offset(-16)
-        }
-
-        // Divider
-        dividerStackView.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.bottom.equalTo(guestLoginButton.snp.top).offset(-16)
-        }
-
-        leftDividerLine.snp.makeConstraints {
-            $0.width.equalTo(126)
-            $0.height.equalTo(1)
-        }
-
-        rightDividerLine.snp.makeConstraints {
-            $0.width.equalTo(126)
-            $0.height.equalTo(1)
-        }
-
-        // Guest Button
-        guestLoginButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.equalTo(48)
-            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-34)
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-20)
         }
     }
 
@@ -285,6 +220,6 @@ extension LoginView {
 
 #if DEBUG
 #Preview {
-    LoginView()
+    GuestLoginBottomSheetView()
 }
 #endif

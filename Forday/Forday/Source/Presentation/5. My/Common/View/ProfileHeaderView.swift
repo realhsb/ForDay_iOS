@@ -8,10 +8,11 @@
 import UIKit
 import SnapKit
 import Then
+import Kingfisher
 
 final class ProfileHeaderView: UIView {
 
-    // MARK: - Properties
+    // MARK: - UI Components
 
     private let profileImageView = UIImageView()
     private let nicknameLabel = UILabel()
@@ -32,16 +33,19 @@ final class ProfileHeaderView: UIView {
     // MARK: - Configuration
 
     func configure(with info: UserInfo) {
-        nicknameLabel.text = info.nickname
-        stickerCountLabel.text = "\(info.totalCollectedStickerCount)개 스티커 수집 중"
+        nicknameLabel.setTextWithTypography(info.nickname, style: .header18)
+        stickerCountLabel.setTextWithTypography("\(info.totalCollectedStickerCount)개 스티커 수집 중", style: .label14)
 
         // Profile image
         if let imageUrlString = info.profileImageUrl,
            let imageUrl = URL(string: imageUrlString) {
-            // TODO: Load image from URL when image loading is implemented
-            profileImageView.image = UIImage(systemName: "person.circle.fill")
+            profileImageView.kf.setImage(
+                with: imageUrl,
+                placeholder: UIImage.Icon.defaultProfile,
+                options: [.transition(.fade(0.2))]
+            )
         } else {
-            profileImageView.image = UIImage(systemName: "person.circle.fill")
+            profileImageView.image = .Icon.defaultProfile
         }
     }
 }
@@ -55,19 +59,16 @@ extension ProfileHeaderView {
         profileImageView.do {
             $0.contentMode = .scaleAspectFill
             $0.clipsToBounds = true
-            $0.layer.cornerRadius = 28
-            $0.tintColor = .systemGray3
-            $0.backgroundColor = .systemGray6
+            $0.layer.cornerRadius = 30
+            $0.image = .Icon.defaultProfile
         }
 
         nicknameLabel.do {
-            $0.font = .systemFont(ofSize: 20, weight: .bold)
-            $0.textColor = .label
+            $0.textColor = .neutral900
         }
 
         stickerCountLabel.do {
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+            $0.textColor = .neutral600
         }
     }
 
@@ -79,7 +80,7 @@ extension ProfileHeaderView {
         profileImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(56)
+            $0.width.height.equalTo(60)
         }
 
         nicknameLabel.snp.makeConstraints {

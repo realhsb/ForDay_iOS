@@ -28,9 +28,9 @@ struct DefaultStickerBoardFallbackProvider: StickerBoardFallbackProviding {
             hasPrevious: false,
             hasNext: false,
             stickers: [
-                StickerBoardItem(activityRecordId: 1, sticker: "🌟"),
-                StickerBoardItem(activityRecordId: 2, sticker: "💎"),
-                StickerBoardItem(activityRecordId: 3, sticker: "🔥")
+                StickerBoardItem(activityRecordId: 1, sticker: "smile.jpg", deleted: false),
+                StickerBoardItem(activityRecordId: 2, sticker: "smile.jpg", deleted: false),
+                StickerBoardItem(activityRecordId: 3, sticker: "smile.jpg", deleted: false)
             ]
         )
     }

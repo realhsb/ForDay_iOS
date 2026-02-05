@@ -12,18 +12,46 @@ import Kingfisher
 
 final class ActivityDetailView: UIView {
 
+    // MARK: - Layout Type
+
+    private enum LayoutType {
+        case withImage           // 이미지가 있는 경우
+        case withoutImage        // 이미지 없고 메모만 있는 경우
+        case withoutImageAndMemo // 이미지도 메모도 없는 경우
+    }
+
     // MARK: - Properties
 
-    private let scrollView = UIScrollView()
-    private let contentStackView = UIStackView()
+    // Custom Navigation
+    private let navigationView = UIView()
+    let backButton = UIButton()
+    let moreButton = UIButton()
 
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+
+    // Title at top (activity content)
+    let titleLabel = UILabel()
+
+    // Date label
+    let dateLabel = UILabel()
+
+    // Image container (with padding)
+    private let imageContainerView = UIView()
     let imageView = UIImageView()
     let stickerImageView = UIImageView()
-    let dateLabel = UILabel()
-    let titleLabel = UILabel()
+
+    // Memo container (with background)
+    private let memoContainerView = UIView()
     let contentLabel = UILabel()
+    private let memoStickerImageView = UIImageView() // 이미지 없을 때 메모 안 스티커
+
+    // Reactions
     let reactionUsersScrollView = ReactionUsersScrollView()
     let reactionButtonsView = ReactionButtonsView()
+
+    private var currentLayoutType: LayoutType = .withImage
+    private(set) var hasImage: Bool = false
 
     // MARK: - Initialization
 
@@ -40,33 +68,59 @@ final class ActivityDetailView: UIView {
     // MARK: - Configuration
 
     func configure(with detail: ActivityDetail) {
-        // Load image from URL
-        loadImage(from: detail.imageUrl)
+        // Determine layout type
+        hasImage = !detail.imageUrl.isEmpty
+        let hasMemo = !detail.memo.isEmpty
+
+        if hasImage {
+            currentLayoutType = .withImage
+        } else if hasMemo {
+            currentLayoutType = .withoutImage
+        } else {
+            currentLayoutType = .withoutImageAndMemo
+        }
 
         // Load sticker image
         if let stickerType = StickerType(fileName: detail.sticker) {
             stickerImageView.image = stickerType.image
+            memoStickerImageView.image = stickerType.image
         }
 
-        dateLabel.text = detail.createdAt
-        titleLabel.text = detail.activityContent
+        // Configure title (at top) and date
+        titleLabel.setTextWithTypography(detail.activityContent, style: .header18)
+        dateLabel.setTextWithTypography(detail.createdAt, style: .label14)
 
-        // Show memo if available
-        if detail.memo.isEmpty {
-            contentLabel.text = "메모가 없습니다"
-            contentLabel.textColor = .secondaryLabel
+        // Configure memo
+        if hasMemo {
+            contentLabel.setTextWithTypography(detail.memo, style: .body14)
+            contentLabel.textColor = .neutral900
+            memoContainerView.isHidden = false
         } else {
-            contentLabel.text = detail.memo
-            contentLabel.textColor = .label
+            memoContainerView.isHidden = true
+        }
+
+        // Configure image
+        if hasImage {
+            loadImage(from: detail.imageUrl)
+            imageContainerView.isHidden = false
+            stickerImageView.isHidden = false
+            memoStickerImageView.isHidden = true
+        } else {
+            imageContainerView.isHidden = true
+            stickerImageView.isHidden = true
+            // 이미지 없을 때는 메모 안(또는 날짜 아래)에 스티커 표시
+            memoStickerImageView.isHidden = false
         }
 
         // Configure reaction buttons
         reactionButtonsView.configure(with: detail)
+
+        // Update layout based on type
+        updateLayoutForType()
     }
 
     private func loadImage(from urlString: String) {
         guard !urlString.isEmpty, let url = URL(string: urlString) else {
-            // Show placeholder if URL is invalid or empty
             imageView.image = UIImage(systemName: "photo.fill")
             imageView.tintColor = .systemGray3
             return
@@ -80,7 +134,80 @@ final class ActivityDetailView: UIView {
                 .transition(.fade(0.2)),
                 .cacheOriginalImage
             ]
-        )
+        ) { [weak self] result in
+            // 이미지 로드 후 원본 비율로 높이 조정
+            if case .success(let imageResult) = result {
+                self?.updateImageHeight(for: imageResult.image)
+            }
+        }
+    }
+
+    private func updateImageHeight(for image: UIImage) {
+        let imageWidth = bounds.width - 40 // 좌우 패딩 20씩
+        guard imageWidth > 0 else { return }
+
+        let aspectRatio = image.size.height / image.size.width
+        let imageHeight = imageWidth * aspectRatio
+
+        imageView.snp.updateConstraints {
+            $0.height.equalTo(imageHeight)
+        }
+
+        layoutIfNeeded()
+    }
+
+    private func updateLayoutForType() {
+        // Update constraints based on layout type
+        switch currentLayoutType {
+        case .withImage:
+            // 이미지가 있을 때: 이미지 아래에 날짜
+            dateLabel.snp.remakeConstraints {
+                $0.top.equalTo(imageContainerView.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+            }
+            // 메모 컨테이너 전체 너비 (스티커가 이미지 위에 있으므로)
+            memoContainerView.snp.remakeConstraints {
+                $0.top.equalTo(dateLabel.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.lessThanOrEqualToSuperview().offset(-20)
+            }
+
+        case .withoutImage:
+            // 이미지 없을 때: 타이틀 아래에 날짜
+            dateLabel.snp.remakeConstraints {
+                $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+            }
+            // 메모 컨테이너 전체 너비, 스티커가 메모 안 오른쪽 하단에 위치
+            memoContainerView.snp.remakeConstraints {
+                $0.top.equalTo(dateLabel.snp.bottom).offset(16)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.bottom.lessThanOrEqualToSuperview().offset(-20)
+            }
+            // 스티커가 메모 컨테이너 안 오른쪽 하단
+            memoStickerImageView.snp.remakeConstraints {
+                $0.trailing.equalTo(memoContainerView).offset(-8)
+                $0.bottom.equalTo(memoContainerView).offset(-8)
+                $0.size.equalTo(64)
+            }
+
+        case .withoutImageAndMemo:
+            // 이미지도 메모도 없을 때: 타이틀 아래에 날짜, 스티커는 날짜 아래
+            dateLabel.snp.remakeConstraints {
+                $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+            }
+            memoStickerImageView.snp.remakeConstraints {
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.top.equalTo(dateLabel.snp.bottom).offset(16)
+                $0.size.equalTo(80)
+            }
+        }
     }
 }
 
@@ -90,119 +217,196 @@ extension ActivityDetailView {
     private func style() {
         backgroundColor = .systemBackground
 
+        // Custom Navigation
+        navigationView.do {
+            $0.backgroundColor = .systemBackground
+        }
+
+        backButton.do {
+            $0.setImage(.Icon.chevronLeft, for: .normal)
+            $0.tintColor = .neutral900
+        }
+
+        moreButton.do {
+            $0.setImage(.Icon.threeDotVertical, for: .normal)
+            $0.tintColor = .neutral900
+        }
+
         scrollView.do {
             $0.showsVerticalScrollIndicator = true
         }
 
-        contentStackView.do {
-            $0.axis = .vertical
-            $0.spacing = 16
-            $0.alignment = .fill
-            $0.distribution = .fill
+        contentView.do {
+            $0.backgroundColor = .systemBackground
+        }
+
+        titleLabel.do {
+            $0.textColor = .neutral900
+            $0.numberOfLines = 0
+        }
+
+        dateLabel.do {
+            $0.textColor = .neutral600
+        }
+
+        imageContainerView.do {
+            $0.backgroundColor = .clear
         }
 
         imageView.do {
-            $0.contentMode = .scaleAspectFill
+            $0.contentMode = .scaleAspectFit // 원본 비율 유지
             $0.clipsToBounds = true
-            $0.backgroundColor = .systemGray5
+            $0.backgroundColor = .clear
+            $0.layer.cornerRadius = 12
         }
 
         stickerImageView.do {
             $0.contentMode = .scaleAspectFit
         }
 
-        dateLabel.do {
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+        memoStickerImageView.do {
+            $0.contentMode = .scaleAspectFit
         }
 
-        titleLabel.do {
-            $0.font = .systemFont(ofSize: 20, weight: .bold)
-            $0.textColor = .label
-            $0.numberOfLines = 0
+        memoContainerView.do {
+            $0.backgroundColor = .bg002
+            $0.layer.cornerRadius = 12
         }
 
         contentLabel.do {
-            $0.font = .systemFont(ofSize: 16, weight: .regular)
-            $0.textColor = .label
+            $0.textColor = .neutral900
             $0.numberOfLines = 0
         }
     }
 
     private func layout() {
+        // Custom Navigation
+        addSubview(navigationView)
+        navigationView.addSubview(backButton)
+        navigationView.addSubview(moreButton)
+
         addSubview(scrollView)
         addSubview(reactionUsersScrollView)
         addSubview(reactionButtonsView)
-        scrollView.addSubview(contentStackView)
+        scrollView.addSubview(contentView)
 
+        // Navigation view constraints
+        navigationView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.leading.trailing.equalToSuperview()
+            $0.height.equalTo(56)
+        }
+
+        backButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(24)
+        }
+
+        moreButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(24)
+        }
+
+        // Scroll view constraints
         scrollView.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
+            $0.top.equalTo(navigationView.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(reactionUsersScrollView.snp.top)
         }
 
+        // Reaction users scroll view
         reactionUsersScrollView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(reactionButtonsView.snp.top)
-            $0.height.equalTo(60)  // 28 (image) + 4 (spacing) + 12 (label) + 16 (padding)
+            $0.height.equalTo(60)
         }
 
+        // Reaction buttons - safe area 고려
         reactionButtonsView.snp.makeConstraints {
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-16)
         }
 
-        contentStackView.snp.makeConstraints {
+        // Content view
+        contentView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.width.equalToSuperview()
         }
 
-        // Add views to stack (without reactionUsersScrollView)
-        contentStackView.addArrangedSubview(imageView)
-        contentStackView.addArrangedSubview(createInfoContainer())
+        // Add subviews to content view
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(imageContainerView)
+        contentView.addSubview(dateLabel)
+        contentView.addSubview(memoContainerView)
+        contentView.addSubview(memoStickerImageView)
+
+        // Image container (with padding)
+        imageContainerView.addSubview(imageView)
+        imageView.addSubview(stickerImageView)
 
         // Initially hide reaction users scroll view
         reactionUsersScrollView.isHidden = true
 
-        // Add sticker overlay on image
-        imageView.addSubview(stickerImageView)
-
-        imageView.snp.makeConstraints {
-            $0.height.equalTo(300)
-        }
-
-        stickerImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-21)
-            $0.bottom.equalToSuperview().offset(-21)
-            $0.size.equalTo(80)
-        }
-    }
-
-    private func createInfoContainer() -> UIView {
-        let container = UIView()
-
-        container.addSubview(dateLabel)
-        container.addSubview(titleLabel)
-        container.addSubview(contentLabel)
-
-        dateLabel.snp.makeConstraints {
+        // Title at top left
+        titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(16)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
         }
 
-        titleLabel.snp.makeConstraints {
-            $0.top.equalTo(dateLabel.snp.bottom).offset(8)
+        // Image container constraints (below title)
+        imageContainerView.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(16)
+            $0.leading.trailing.equalToSuperview()
+        }
+
+        // Image with padding and corner radius (원본 비율)
+        imageView.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.height.equalTo(300) // 초기값, 이미지 로드 후 업데이트
+            $0.bottom.equalToSuperview()
+        }
+
+        // Sticker on image (bottom-right with offset)
+        stickerImageView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.bottom.equalToSuperview().offset(-16)
+            $0.size.equalTo(80)
+        }
+
+        // Date label (below image by default)
+        dateLabel.snp.makeConstraints {
+            $0.top.equalTo(imageContainerView.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
         }
 
-        contentLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(12)
+        // Memo container with background
+        memoContainerView.addSubview(contentLabel)
+        memoContainerView.snp.makeConstraints {
+            $0.top.equalTo(dateLabel.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
+            $0.bottom.lessThanOrEqualToSuperview().offset(-20)
+        }
+
+        // Content label inside memo container
+        contentLabel.snp.makeConstraints {
+            $0.top.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().offset(-16)
             $0.bottom.equalToSuperview().offset(-16)
         }
 
-        return container
+        // Memo sticker (when no image - inside memo container)
+        memoStickerImageView.snp.makeConstraints {
+            $0.trailing.equalTo(memoContainerView).offset(-8)
+            $0.bottom.equalTo(memoContainerView).offset(-8)
+            $0.size.equalTo(64)
+        }
     }
 }
 

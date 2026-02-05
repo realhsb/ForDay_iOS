@@ -44,7 +44,7 @@ final class ActivityDetailViewController: UIViewController, UIGestureRecognizerD
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
+        setupCustomNavigationBar()
         setupGestures()
         bind()
         loadData()
@@ -52,9 +52,16 @@ final class ActivityDetailViewController: UIViewController, UIGestureRecognizerD
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
+        // 기본 내비게이션 숨기기 (커스텀 내비게이션 사용)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // 다른 화면으로 이동 시 기본 내비게이션 복원
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     // MARK: - UIGestureRecognizerDelegate
@@ -67,32 +74,10 @@ final class ActivityDetailViewController: UIViewController, UIGestureRecognizerD
 // MARK: - Setup
 
 extension ActivityDetailViewController {
-    private func setupNavigationBar() {
-        title = "내 활동 보기"
-
-        // Back button with custom chevronLeft icon
-        let backButton = UIBarButtonItem(
-            image: .Icon.chevronLeft,
-            style: .plain,
-            target: self,
-            action: #selector(backButtonTapped)
-        )
-        backButton.tintColor = .label
-        navigationItem.leftBarButtonItem = backButton
-
-        // Hide the default back button
-        navigationItem.hidesBackButton = true
-
-        // More button with 3dot icon
-        let moreButton = UIBarButtonItem(
-            image: .Icon.threeDot,
-            style: .plain,
-            target: self,
-            action: #selector(moreButtonTapped)
-        )
-        moreButton.tintColor = .label
-
-        navigationItem.rightBarButtonItem = moreButton
+    private func setupCustomNavigationBar() {
+        // 커스텀 내비게이션 버튼 액션 연결
+        detailView.backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        detailView.moreButton.addTarget(self, action: #selector(moreButtonTapped), for: .touchUpInside)
     }
 
     @objc private func backButtonTapped() {
@@ -221,19 +206,18 @@ extension ActivityDetailViewController {
     }
 
     private func showDropdown() {
-        guard dropdownView == nil,
-              let moreButton = navigationItem.rightBarButtonItem,
-              let barButtonView = moreButton.value(forKey: "view") as? UIView else {
-            return
-        }
+        guard dropdownView == nil else { return }
 
-        let dropdown = ActivityDetailDropdownView()
+        // 이미지 유무에 따라 드롭다운 옵션 구성
+        let hasImage = detailView.hasImage
+        let dropdown = ActivityDetailDropdownView(showCoverImageOption: hasImage)
         dropdown.onOptionSelected = { [weak self] option in
             self?.handleDropdownOption(option)
             self?.dismissDropdown()
         }
 
-        dropdown.show(in: view, below: barButtonView)
+        // 커스텀 내비게이션의 more 버튼 아래에 표시
+        dropdown.show(in: view, below: detailView.moreButton)
         dropdownView = dropdown
     }
 
