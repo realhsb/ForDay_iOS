@@ -128,7 +128,7 @@ extension HobbySelectionViewController {
     }
 
     private func showCustomInputPopup() {
-        let popup = HobbyInputPopupViewController()
+        let popup = TextInputPopupViewController(title: "취미 입력", placeholder: "취미를 입력해 주세요.")
         popup.initialText = viewModel.customHobbyText
         popup.onSubmit = { [weak self] hobbyName in
             guard let self else { return }
