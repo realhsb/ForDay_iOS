@@ -14,4 +14,5 @@ protocol AuthRepositoryInterface {
     func loginAsGuest(guestUserId: String?) async throws -> AuthToken
     func refreshToken(refreshToken: String) async throws -> AuthToken
     func logout() async throws
+    func switchAccount(socialType: SocialType, socialCode: String) async throws -> AuthToken
 }

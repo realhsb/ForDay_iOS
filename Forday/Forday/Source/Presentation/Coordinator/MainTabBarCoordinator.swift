@@ -278,4 +278,8 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         //     storiesNav.pushViewController(profileVC, animated: true)
         // }
     }
+
+    func switchToHomeTab() {
+        tabBarController.selectedIndex = 0
+    }
 }

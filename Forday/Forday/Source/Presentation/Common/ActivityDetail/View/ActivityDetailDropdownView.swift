@@ -25,12 +25,11 @@ enum ActivityDetailDropdownOption: CaseIterable {
     var icon: UIImage? {
         switch self {
         case .setCoverImage:
-            // meteor-icons:image에 대한 커스텀 이미지가 필요할 수 있음
-            return UIImage(systemName: "photo")
+            return .Icon.image
         case .edit:
-            return UIImage(named: "ic_edit")
+            return .Icon.edit
         case .delete:
-            return UIImage(named: "ic_trash")
+            return .Icon.trash
         }
     }
 }
@@ -40,14 +39,31 @@ final class ActivityDetailDropdownView: UIView {
     // MARK: - Properties
 
     private let tableView = UITableView()
-    private let options = ActivityDetailDropdownOption.allCases
+    private var options: [ActivityDetailDropdownOption] = []
 
     var onOptionSelected: ((ActivityDetailDropdownOption) -> Void)?
 
     // MARK: - Initialization
 
+    init(showCoverImageOption: Bool = true) {
+        super.init(frame: .zero)
+
+        // 이미지 유무에 따라 옵션 구성
+        if showCoverImageOption {
+            options = ActivityDetailDropdownOption.allCases
+        } else {
+            // 이미지 없으면 대표사진 설정 제외
+            options = ActivityDetailDropdownOption.allCases.filter { $0 != .setCoverImage }
+        }
+
+        style()
+        layout()
+        setupTableView()
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
+        options = ActivityDetailDropdownOption.allCases
         style()
         layout()
         setupTableView()

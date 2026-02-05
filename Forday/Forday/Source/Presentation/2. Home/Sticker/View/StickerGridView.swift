@@ -51,26 +51,28 @@ final class StickerGridView: UIView {
         addSubview(collectionView)
 
         collectionView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(16)
+            $0.edges.equalToSuperview().inset(12)
         }
     }
 
     private func createLayout() -> UICollectionViewLayout {
+        // 스티커 크기: Figma 기준 40x39px, 간격 최소화
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0 / 7.0),
             heightDimension: .fractionalHeight(1.0)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
 
+        // 그룹 높이를 조금 더 크게 설정하여 스티커 크기 증가
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalWidth(1.0 / 7.0)
+            heightDimension: .absolute(48) // 스티커 크기 증가
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 4
+        section.interGroupSpacing = 6 // 스티커 간 세로 간격 줄이기
 
         return UICollectionViewCompositionalLayout(section: section)
     }
@@ -124,7 +126,13 @@ final class StickerGridView: UIView {
         // 실제 스티커가 있으면 표시
         if index < board.stickers.count {
             let sticker = board.stickers[index]
-            return .filled(sticker.sticker)
+
+            // 삭제되었거나 sticker가 nil이면 빈 칸
+            guard let stickerType = sticker.stickerType else {
+                return .empty
+            }
+
+            return .filled(stickerType.rawValue)
         }
 
         // 오늘 활동 기록 안 함 && 채워진 스티커 바로 다음 칸 → 핑크 외곽선

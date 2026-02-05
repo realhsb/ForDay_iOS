@@ -22,7 +22,13 @@ final class AuthService {
     func loginWithKakao(request: DTO.KakaoLoginRequest) async throws -> DTO.LoginResponse {
         return try await provider.request(.kakaoLogin(request: request))
     }
-    
+
+    // MARK: - Apple Login
+
+    func loginWithApple(request: DTO.AppleLoginRequest) async throws -> DTO.LoginResponse {
+        return try await provider.request(.appleLogin(request: request))
+    }
+
     // MARK: - Guest Login
 
     func loginAsGuest(request: DTO.GuestLoginRequest) async throws -> DTO.LoginResponse {
@@ -39,5 +45,11 @@ final class AuthService {
 
     func validateToken() async throws -> DTO.TokenValidateResponse {
         return try await provider.request(.validateToken)
+    }
+
+    // MARK: - Switch Account (Guest → Social)
+
+    func switchAccount(request: DTO.SwitchAccountRequest) async throws -> DTO.SwitchAccountResponse {
+        return try await provider.request(.switchAccount(request: request))
     }
 }

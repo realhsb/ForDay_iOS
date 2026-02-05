@@ -29,7 +29,8 @@ extension DTO {
 
     struct StickerItem: Decodable {
         let activityRecordId: Int
-        let sticker: String
+        let sticker: String?
+        let deleted: Bool
     }
 }
 
@@ -60,7 +61,8 @@ extension DTO.StickerBoardResponse {
         let stickerItems = data.stickers.map { item in
             StickerBoardItem(
                 activityRecordId: item.activityRecordId,
-                sticker: item.sticker
+                sticker: item.sticker,
+                deleted: item.deleted
             )
         }
 

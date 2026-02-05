@@ -95,6 +95,11 @@ enum ServerErrorCode {
     /// - Status: 401
     static let loginExpired = "LOGIN_EXPIRED"
 
+    /// 게스트가 아닌 유저가 계정 전환 시도
+    /// - API: POST /auth/switch-account
+    /// - Status: 400
+    static let noGuestAccess = "NO_GUEST_ACCESS"
+
     // MARK: - User Errors
 
     /// 닉네임 중복
@@ -299,6 +304,17 @@ enum HobbyAPIError {
     ]
 }
 
+/// 인증 API 에러 매핑 (계정 전환)
+enum AuthAPIError {
+    static let metadata: [String: APIErrorMetadata] = [
+        ServerErrorCode.noGuestAccess: APIErrorMetadata(
+            code: ServerErrorCode.noGuestAccess,
+            title: "게스트 전용 기능",
+            action: .dismiss
+        )
+    ]
+}
+
 // MARK: - Helper Extensions
 
 extension ServerError {
@@ -335,5 +351,10 @@ extension ServerError {
     /// 스크랩 API 메타데이터
     var scrapMetadata: APIErrorMetadata? {
         return ScrapAPIError.metadata[errorClassName]
+    }
+
+    /// 인증 API 메타데이터
+    var authMetadata: APIErrorMetadata? {
+        return AuthAPIError.metadata[errorClassName]
     }
 }

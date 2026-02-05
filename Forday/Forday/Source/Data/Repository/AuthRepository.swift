@@ -25,10 +25,11 @@ final class AuthRepository: AuthRepositoryInterface {
     }
     
     // MARK: - Apple Login
-    
+
     func loginWithApple(appleIdentityToken: String) async throws -> AuthToken {
-        // TODO: 나중에 구현
-        fatalError("Apple Login not implemented yet")
+        let request = DTO.AppleLoginRequest(code: appleIdentityToken)
+        let response = try await apiService.loginWithApple(request: request)
+        return response.data.toDomain()
     }
     
     // MARK: - Guest Login
@@ -47,9 +48,17 @@ final class AuthRepository: AuthRepositoryInterface {
     }
     
     // MARK: - Logout
-    
+
     func logout() async throws {
         // TODO: 나중에 구현
         fatalError("Logout not implemented yet")
+    }
+
+    // MARK: - Switch Account (Guest → Social)
+
+    func switchAccount(socialType: SocialType, socialCode: String) async throws -> AuthToken {
+        let request = DTO.SwitchAccountRequest(socialType: socialType.rawValue, socialCode: socialCode)
+        let response = try await apiService.switchAccount(request: request)
+        return response.data.toDomain()
     }
 }

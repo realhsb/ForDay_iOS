@@ -22,7 +22,6 @@ final class ActivityGridViewController: UIViewController {
     // UI Components
     private let hobbyFilterView = HobbyFilterView()
     private let activityCollectionView: UICollectionView
-    private let refreshControl = UIRefreshControl()
     private let emptyStateView = EmptyStateView()
 
     // MARK: - Initialization
@@ -65,11 +64,6 @@ extension ActivityGridViewController {
 
         activityCollectionView.do {
             $0.backgroundColor = .systemBackground
-            $0.refreshControl = refreshControl
-        }
-
-        refreshControl.do {
-            $0.addTarget(self, action: #selector(refreshActivities), for: .valueChanged)
         }
     }
 
@@ -131,27 +125,12 @@ extension ActivityGridViewController {
             }
             .store(in: &cancellables)
 
-        // Loading state
-        viewModel.$isLoading
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isLoading in
-                if !isLoading {
-                    self?.refreshControl.endRefreshing()
-                }
-            }
-            .store(in: &cancellables)
     }
 }
 
 // MARK: - Actions
 
 extension ActivityGridViewController {
-    @objc private func refreshActivities() {
-        Task {
-            await viewModel.refreshActivities()
-        }
-    }
-
     private func updateEmptyState(hasActivities: Bool) {
         if hasActivities {
             emptyStateView.removeFromSuperview()
@@ -162,12 +141,14 @@ extension ActivityGridViewController {
                 $0.leading.trailing.bottom.equalToSuperview()
             }
 
-            emptyStateView.configure(
-                icon: UIImage(systemName: "photo.on.rectangle.angled"),
-                message: "아직 기록한 활동이 없습니다.\n취미 활동을 기록해보세요!",
-                actionTitle: nil
-            )
+            emptyStateView.configureForActivities { [weak self] in
+                self?.navigateToActivityRecord()
+            }
         }
+    }
+
+    private func navigateToActivityRecord() {
+        coordinator?.showActivityRecord()
     }
 }
 

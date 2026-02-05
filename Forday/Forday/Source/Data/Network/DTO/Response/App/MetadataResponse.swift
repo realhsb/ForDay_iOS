@@ -17,7 +17,7 @@ extension DTO {
 
     struct Metadata: Codable {
         let appVersion: String
-        let hobbyInfos: [HobbyInfo]
+        let hobbyInfo: [HobbyInfo]
     }
 }
 
@@ -25,7 +25,7 @@ extension DTO.MetadataResponse {
     func toDomain() -> AppMetadata {
         return AppMetadata(
             appVersion: data.appVersion,
-            hobbyCards: data.hobbyInfos.compactMap { $0.toDomain() }
+            hobbyCards: data.hobbyInfo.compactMap { $0.toDomain() }
         )
     }
 }

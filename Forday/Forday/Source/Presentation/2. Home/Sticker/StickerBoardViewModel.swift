@@ -68,18 +68,22 @@ final class StickerBoardViewModel {
         guard let board = stickerBoard else { return }
 
         // 핑크 외곽선 스티커 (오늘 기록 안 함)
-        if index == 0 && !board.activityRecordedToday {
+        if index == board.stickers.count && !board.activityRecordedToday {
             navigateToActivityRecord()
             return
         }
 
-        // 이미 채워진 스티커
+        // 이미 채워진 스티커 (삭제되지 않은 경우만)
         if index < board.stickers.count {
             let sticker = board.stickers[index]
+
+            // 삭제된 스티커는 상세조회 불가
+            guard sticker.stickerType != nil else { return }
+
             navigateToActivityDetail(activityRecordId: sticker.activityRecordId)
         }
 
-        // 회색 빈 스티커는 아무 동작 없음
+        // 회색 빈 스티커 및 삭제된 스티커는 아무 동작 없음
     }
 
     // MARK: - Private Methods
