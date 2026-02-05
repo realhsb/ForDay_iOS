@@ -51,13 +51,11 @@ class HobbyCollectionViewCell: UICollectionViewCell {
         if isSelected {
             contentView.layer.borderWidth = 2
             contentView.layer.borderColor = UIColor.action001.cgColor
-            checkmarkImageView.image = UIImage(systemName: "checkmark.circle.fill")
-            checkmarkImageView.tintColor = .action001
+            checkmarkImageView.image = .Onoff.checkboxTrue
         } else {
             contentView.layer.borderWidth = 1
             contentView.layer.borderColor = UIColor.stroke001.cgColor
-            checkmarkImageView.image = UIImage(systemName: "circle")
-            checkmarkImageView.tintColor = .white.withAlphaComponent(0.7)
+            checkmarkImageView.image = .Onoff.checkboxFalse
         }
     }
 }
@@ -101,8 +99,7 @@ extension HobbyCollectionViewCell {
         }
 
         checkmarkImageView.do {
-            $0.image = UIImage(systemName: "circle")
-            $0.tintColor = .white.withAlphaComponent(0.7)
+            $0.image = .Onoff.checkboxFalse
             $0.contentMode = .scaleAspectFit
         }
     }
