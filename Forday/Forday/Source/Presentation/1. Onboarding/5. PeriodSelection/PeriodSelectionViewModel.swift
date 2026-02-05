@@ -78,6 +78,7 @@ class PeriodSelectionViewModel {
     }
 
     /// 취미 생성 API 호출
+    @MainActor
     func createHobby(with onboardingData: OnboardingData) async {
         isLoading = true
         errorMessage = nil
@@ -85,12 +86,7 @@ class PeriodSelectionViewModel {
         do {
             let hobbyId = try await createHobbyUseCase.execute(onboardingData: onboardingData)
             isLoading = false
-
-            // Notify HomeViewController that a new hobby was created
-            await MainActor.run {
-                AppEventBus.shared.hobbyCreated.send(hobbyId)
-            }
-
+            AppEventBus.shared.hobbyCreated.send(hobbyId)
             onHobbyCreated?(hobbyId)
         } catch {
             isLoading = false

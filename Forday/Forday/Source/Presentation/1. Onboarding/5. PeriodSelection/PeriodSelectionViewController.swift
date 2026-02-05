@@ -61,11 +61,12 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
         autoAdvanceWorkItem?.cancel()
 
         let onboardingData = onboardingCoordinator.getOnboardingData()
+        let viewModel = self.viewModel  // viewModel을 직접 캡처 (weak self 불필요)
 
         // 약간의 딜레이 후 취미 생성
-        let workItem = DispatchWorkItem { [weak self] in
-            Task { [weak self] in
-                await self?.viewModel.createHobby(with: onboardingData)
+        let workItem = DispatchWorkItem {
+            Task { @MainActor in
+                await viewModel.createHobby(with: onboardingData)
             }
         }
         autoAdvanceWorkItem = workItem

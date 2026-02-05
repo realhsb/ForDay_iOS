@@ -9,7 +9,7 @@ import Foundation
 
 struct OnboardingData: Codable {
     var selectedHobbyCard: HobbyCard?
-    var timeMinutes: Int = 0
+    var timeMinutes: Int = 10
     var purpose: String = ""
     var executionCount: Int = 0
     var isDurationSet: Bool = false
