@@ -50,6 +50,7 @@ class TimeSliderView: UIView {
     // Constraint 저장용
     private var thumbCenterXConstraint: Constraint?
     private var progressWidthConstraint: Constraint?
+    private var isPanning = false
     
     // Initialization
     
@@ -63,6 +64,30 @@ class TimeSliderView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if !isPanning {
+            updatePositions()
+        }
+    }
+
+    // Helpers
+
+    private func segmentWidth() -> CGFloat {
+        return trackView.bounds.width / CGFloat(timeOptions.count)
+    }
+
+    private func thumbCenterXOffset(for index: Int) -> CGFloat {
+        let sw = segmentWidth()
+        return sw * CGFloat(index) + sw / 2
+    }
+
+    private func updatePositions() {
+        let target = thumbCenterXOffset(for: selectedIndex)
+        thumbCenterXConstraint?.update(offset: target)
+        progressWidthConstraint?.update(offset: target)
     }
 }
 
@@ -78,32 +103,32 @@ extension TimeSliderView {
         
         leftLabel.do {
             $0.text = "가벼운 시작"
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+            $0.applyTypography(.label12)
+            $0.textColor = .neutral600
         }
         
         rightLabel.do {
             $0.text = "더 몰입"
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+            $0.applyTypography(.label12)
+            $0.textColor = .neutral600
         }
         
         // Track
         trackView.do {
             $0.backgroundColor = .neutralWhite
             $0.layer.cornerRadius = 20
+            $0.clipsToBounds = true
         }
 
         // Progress View
         progressView.do {
             $0.backgroundColor = .primary003
-            $0.layer.cornerRadius = 20
         }
         
         // Time Options StackView
         timeOptionsStackView.do {
             $0.axis = .horizontal
-            $0.distribution = .equalSpacing
+            $0.distribution = .fillEqually
             $0.alignment = .center
         }
         
@@ -112,11 +137,9 @@ extension TimeSliderView {
             let label = UILabel()
             label.do {
                 $0.text = formattedTime(minutes: time)
-                $0.font = .systemFont(ofSize: 16, weight: .medium)
+                $0.font = .systemFont(ofSize: 14, weight: .medium)
                 $0.textColor = .secondaryLabel
                 $0.textAlignment = .center
-                $0.setContentHuggingPriority(.required, for: .horizontal)
-                $0.setContentCompressionResistancePriority(.required, for: .horizontal)
                 $0.isUserInteractionEnabled = true
             }
 
@@ -136,8 +159,8 @@ extension TimeSliderView {
         
         thumbLabel.do {
             $0.text = formattedTime(minutes: timeOptions[0])
-            $0.font = .systemFont(ofSize: 16, weight: .bold)
-            $0.textColor = .white
+            $0.applyTypography(.body14)
+            $0.textColor = .neutral50
             $0.textAlignment = .center
         }
     }
@@ -182,18 +205,15 @@ extension TimeSliderView {
         // Thumb (centerX 사용!)
         thumbView.snp.makeConstraints {
             $0.centerY.equalTo(trackView)
-            // TODO: thumbview 위치 조정
-            thumbCenterXConstraint = $0.centerX.equalTo(trackView.snp.leading).offset(20).constraint
+            $0.height.equalTo(40)
+            thumbCenterXConstraint = $0.centerX.equalTo(trackView.snp.leading).constraint
         }
-        
+
         // Thumb Label
         thumbLabel.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.top.equalToSuperview().offset(8)
-            $0.bottom.equalToSuperview().offset(-8)
+            $0.centerY.equalToSuperview()
             $0.leading.equalToSuperview().offset(17)
             $0.trailing.equalToSuperview().offset(-17)
-            
         }
     }
     
@@ -213,12 +233,7 @@ extension TimeSliderView {
         selectedIndex = index
 
         // Snap animation
-        let trackWidth = trackView.bounds.width
-        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
-        let targetX = optionSpacing * CGFloat(selectedIndex)
-
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-            self.thumbCenterXConstraint?.update(offset: targetX)
             self.layoutIfNeeded()
         }
 
@@ -228,14 +243,15 @@ extension TimeSliderView {
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         let location = gesture.location(in: trackView)
-        
+
         switch gesture.state {
+        case .began:
+            isPanning = true
         case .changed:
             moveThumb(to: location.x)
-            
-        case .ended:
+        case .ended, .cancelled:
+            isPanning = false
             snapToNearestOption()
-            
         default:
             break
         }
@@ -244,41 +260,37 @@ extension TimeSliderView {
     private func moveThumb(to x: CGFloat) {
         let trackWidth = trackView.bounds.width
         let clampedX = max(0, min(x, trackWidth))
-        
-        // 현재 위치에서 가장 가까운 인덱스 계산
-        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
-        let currentIndex = Int(round(clampedX / optionSpacing))
-        let clampedIndex = max(0, min(currentIndex, timeOptions.count - 1))
-        
-        // 인덱스가 바뀌면 업데이트
-        if selectedIndex != clampedIndex {
-            selectedIndex = clampedIndex
+
+        // 현재 위치에서 가장 가까운 인덱스 계산 (segment 기반)
+        let segWidth = segmentWidth()
+        guard segWidth > 0 else { return }
+        let currentIndex = max(0, min(Int(clampedX / segWidth), timeOptions.count - 1))
+
+        // 인덱스가 바뀌면 업데이트 (label 색상, thumb 텍스트)
+        if selectedIndex != currentIndex {
+            selectedIndex = currentIndex
         }
-        
-        // Constraint 업데이트
+
+        // Constraint 업데이트 (thumb은 손가락 따라감)
         thumbCenterXConstraint?.update(offset: clampedX)
+        progressWidthConstraint?.update(offset: clampedX)
     }
     
     private func snapToNearestOption() {
-        let trackWidth = trackView.bounds.width
+        let segWidth = segmentWidth()
+        guard segWidth > 0 else { return }
+
         let thumbCenterX = thumbView.center.x - trackView.frame.minX
-        
-        // 각 옵션의 위치 계산
-        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
-        
-        // 가장 가까운 인덱스
-        let closestIndex = Int(round(thumbCenterX / optionSpacing))
-        let clampedIndex = max(0, min(closestIndex, timeOptions.count - 1))
-        
-        selectedIndex = clampedIndex
-        
-        // 스냅 애니메이션
-        let targetX = optionSpacing * CGFloat(selectedIndex)
+
+        // 가장 가까운 segment 인덱스
+        let closestIndex = max(0, min(Int(thumbCenterX / segWidth), timeOptions.count - 1))
+        selectedIndex = closestIndex
+
+        // 스냅 애니메이션 (segment 중앙으로)
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-            self.thumbCenterXConstraint?.update(offset: targetX)
             self.layoutIfNeeded()
         }
-        
+
         // Callback
         onValueChanged?(formattedTime(minutes: timeOptions[selectedIndex]))
     }
@@ -292,12 +304,8 @@ extension TimeSliderView {
         // Thumb 라벨 업데이트
         thumbLabel.text = formattedTime(minutes: timeOptions[selectedIndex])
 
-        // Progress view 너비 업데이트
-        layoutIfNeeded() // Ensure trackView has correct bounds
-        let trackWidth = trackView.bounds.width
-        let optionSpacing = trackWidth / CGFloat(timeOptions.count - 1)
-        let progressWidth = optionSpacing * CGFloat(selectedIndex)
-        progressWidthConstraint?.update(offset: progressWidth)
+        // Thumb, Progress 위치 업데이트
+        updatePositions()
     }
 }
 

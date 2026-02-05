@@ -55,7 +55,7 @@ class TimeSelectionViewController: BaseOnboardingViewController {
         }
 
         // 아이콘 이미지 설정
-        let icon = hobbyCard.imageAsset.image
+        let icon = hobbyCard.imageAsset.icon
 
         timeView.configureHobbyCard(icon: icon, title: hobbyCard.name)
     }
