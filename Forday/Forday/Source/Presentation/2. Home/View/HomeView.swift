@@ -244,7 +244,8 @@ extension HomeView {
     }
     
     private func layout() {
-        contentView.insertSubview(backgroundImageView, at: 0)
+        // 배경 이미지: self에 직접 추가하여 status bar 영역까지 커버
+        insertSubview(backgroundImageView, at: 0)
 
         addSubview(scrollView)
         scrollView.addSubview(contentView)
