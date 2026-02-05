@@ -9,7 +9,7 @@ import Foundation
 
 extension DTO {
     struct CreateHobbyRequest: BaseRequest {
-        let hobbyInfoId: Int
+        let hobbyInfoId: Int?
         let hobbyName: String
         let hobbyTimeMinutes: Int
         let hobbyPurpose: String
