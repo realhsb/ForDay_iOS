@@ -1,5 +1,5 @@
 //
-//  HobbyInputPopupViewController.swift
+//  TextInputPopupViewController.swift
 //  Forday
 //
 //  Created by Subeen on 2/6/26.
@@ -9,13 +9,15 @@ import UIKit
 import SnapKit
 import Then
 
-class HobbyInputPopupViewController: UIViewController {
+class TextInputPopupViewController: UIViewController {
 
     // MARK: - Properties
 
     var onSubmit: ((String) -> Void)?
     var initialText: String?
 
+    private let popupTitle: String
+    private let placeholderText: String
     private let maxCharacterCount = 10
     private var dialogCenterYConstraint: Constraint?
 
@@ -29,6 +31,18 @@ class HobbyInputPopupViewController: UIViewController {
     private let underlineView = UIView()
     private let characterCountLabel = UILabel()
     private let submitButton = UIButton(type: .system)
+
+    // MARK: - Initialization
+
+    init(title: String, placeholder: String) {
+        self.popupTitle = title
+        self.placeholderText = placeholder
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: - Lifecycle
 
@@ -52,7 +66,7 @@ class HobbyInputPopupViewController: UIViewController {
 
 // MARK: - Setup
 
-extension HobbyInputPopupViewController {
+extension TextInputPopupViewController {
     private func style() {
         view.backgroundColor = .clear
 
@@ -67,7 +81,7 @@ extension HobbyInputPopupViewController {
         }
 
         titleLabel.do {
-            $0.setTextWithTypography("취미 입력", style: .header18)
+            $0.setTextWithTypography(popupTitle, style: .header18)
             $0.textColor = .neutral900
         }
 
@@ -77,7 +91,7 @@ extension HobbyInputPopupViewController {
         }
 
         textField.do {
-            $0.placeholder = "취미를 입력해 주세요."
+            $0.placeholder = placeholderText
             $0.font = TypographyStyle.label14.font
             $0.textColor = .neutral900
             $0.clearButtonMode = .whileEditing
@@ -177,7 +191,7 @@ extension HobbyInputPopupViewController {
 
 // MARK: - Actions
 
-extension HobbyInputPopupViewController {
+extension TextInputPopupViewController {
     @objc private func keyboardWillShow(_ notification: Notification) {
         guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
               let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
@@ -227,7 +241,7 @@ extension HobbyInputPopupViewController {
 
 // MARK: - UITextFieldDelegate
 
-extension HobbyInputPopupViewController: UITextFieldDelegate {
+extension TextInputPopupViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
