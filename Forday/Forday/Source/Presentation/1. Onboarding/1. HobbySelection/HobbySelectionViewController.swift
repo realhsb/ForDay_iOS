@@ -50,6 +50,7 @@ class HobbySelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.2)
+        restoreCustomInputButtonIfNeeded()
     }
 
     // MARK: - Actions
@@ -116,6 +117,12 @@ extension HobbySelectionViewController {
             .store(in: &cancellables)
     }
 
+    private func restoreCustomInputButtonIfNeeded() {
+        if let customText = viewModel.customHobbyText, viewModel.selectedHobby?.id == nil {
+            hobbyView.updateCustomInputButton(hobbyName: customText)
+        }
+    }
+
     @objc private func customInputButtonTapped() {
         showCustomInputPopup()
     }
@@ -127,6 +134,7 @@ extension HobbySelectionViewController {
             guard let self else { return }
             self.viewModel.setCustomHobby(hobbyName)
             self.hobbyView.updateCustomInputButton(hobbyName: hobbyName)
+            self.coordinator?.next(from: .hobby)
         }
         popup.modalPresentationStyle = .overFullScreen
         popup.modalTransitionStyle = .crossDissolve
