@@ -14,6 +14,7 @@ class HobbyInputPopupViewController: UIViewController {
     // MARK: - Properties
 
     var onSubmit: ((String) -> Void)?
+    var initialText: String?
 
     private let maxCharacterCount = 10
     private var dialogCenterYConstraint: Constraint?
@@ -36,6 +37,9 @@ class HobbyInputPopupViewController: UIViewController {
         style()
         layout()
         setupActions()
+        if let initialText {
+            textField.text = initialText
+        }
         updateSubmitButtonState()
         updateCharacterCount()
     }

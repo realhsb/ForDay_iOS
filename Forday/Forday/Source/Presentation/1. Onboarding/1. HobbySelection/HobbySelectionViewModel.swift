@@ -17,6 +17,9 @@ class HobbySelectionViewModel {
     @Published var selectedHobby: HobbyCard?
     @Published var isNextButtonEnabled: Bool = false
     @Published var isLoading: Bool = false
+
+    /// 커스텀 취미 입력값 (셀 선택 시에도 유지)
+    private(set) var customHobbyText: String?
     
     // Coordinator에게 데이터 전달
     var onHobbySelected: ((HobbyCard) -> Void)?
@@ -78,6 +81,7 @@ class HobbySelectionViewModel {
     
     /// 커스텀 취미 설정 (셀 추가 없이 값만 보관)
     func setCustomHobby(_ title: String) {
+        customHobbyText = title
         let customHobby = HobbyCard(
             id: nil,
             name: title,

@@ -122,6 +122,7 @@ extension HobbySelectionViewController {
 
     private func showCustomInputPopup() {
         let popup = HobbyInputPopupViewController()
+        popup.initialText = viewModel.customHobbyText
         popup.onSubmit = { [weak self] hobbyName in
             guard let self else { return }
             self.viewModel.setCustomHobby(hobbyName)
@@ -161,6 +162,7 @@ extension HobbySelectionViewController: UICollectionViewDataSource {
 extension HobbySelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.selectHobby(at: indexPath.item)
+        hobbyView.resetCustomInputButton()
     }
 }
 
