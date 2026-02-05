@@ -90,6 +90,14 @@ class PeriodSelectionViewModel {
             onHobbyCreated?(hobbyId)
         } catch {
             isLoading = false
+
+            // 409 DUPLICATE_HOBBY_REQUEST → 이미 취미 존재, 닉네임 설정으로 이동
+            if case .server(let serverError) = error as? AppError,
+               serverError.statusCode == 409 {
+                onHobbyCreated?(0)
+                return
+            }
+
             errorMessage = error.localizedDescription
             print("❌ 취미 생성 실패: \(error)")
         }
