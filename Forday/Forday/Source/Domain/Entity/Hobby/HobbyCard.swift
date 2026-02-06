@@ -38,6 +38,31 @@ enum HobbyImageAsset: String, Codable {
         }
     }
 
+    /// API metadata imageCode 형식으로 초기화
+    /// e.g., "drawing.png" -> .drawing
+    init?(fromApiImageCode code: String) {
+        // ".png" 확장자 제거 후 매핑
+        let name = code.replacingOccurrences(of: ".png", with: "")
+        let mapping: [String: HobbyImageAsset] = [
+            "drawing": .drawing,
+            "gym": .gym,
+            "reading": .reading,
+            "music": .music,
+            "running": .running,
+            "cooking": .cooking,
+            "cafe": .cafe,
+            "movie": .movie,
+            "photo": .photo,
+            "writing": .writing
+        ]
+
+        if let asset = mapping[name] {
+            self = asset
+        } else {
+            return nil
+        }
+    }
+
     /// 한글 취미명으로 초기화
     init?(hobbyName: String) {
         let mapping: [String: HobbyImageAsset] = [
