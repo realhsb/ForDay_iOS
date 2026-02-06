@@ -149,13 +149,14 @@ extension HomeView {
         }
 
         settingsButton.do {
-            $0.setImage(UIImage(systemName: "gearshape"), for: .normal)
-            $0.tintColor = .label
+            $0.setImage(.Icon.settings, for: .normal)
+            $0.tintColor = .neutral500
         }
 
         notificationButton.do {
-            $0.setImage(UIImage(systemName: "bell"), for: .normal)
-            $0.tintColor = .label
+            $0.setImage(.Icon.notificationOff, for: .normal)
+            $0.tintColor = .neutral500
+            $0.isHidden = true // TODO: 알림 기능 연결 시 활성화
         }
         
         // AI Recommendation Toast
@@ -327,14 +328,15 @@ extension HomeView {
             $0.bottom.equalToSuperview().offset(-12)
         }
 
-        notificationButton.snp.makeConstraints {
+        settingsButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(firstHobbyButton)
             $0.width.height.equalTo(24)
         }
 
-        settingsButton.snp.makeConstraints {
-            $0.trailing.equalTo(notificationButton.snp.leading).offset(-12)
+        // TODO: 알림 기능 연결 시 활성화 후 settingsButton을 notificationButton 왼쪽으로 이동
+        notificationButton.snp.makeConstraints {
+            $0.trailing.equalTo(settingsButton.snp.leading).offset(-12)
             $0.centerY.equalTo(firstHobbyButton)
             $0.width.height.equalTo(24)
         }
