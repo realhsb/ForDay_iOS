@@ -18,9 +18,8 @@ extension DTO {
 
 extension DTO.HobbyInfo {
     func toDomain() -> HobbyCard? {
-        guard let imageAsset = HobbyImageAsset(rawValue: imageCode) else {
-            return nil
-        }
+        // API imageCode 형식: "drawing.png" → HobbyImageAsset
+        let imageAsset = HobbyImageAsset(fromApiImageCode: imageCode) ?? .default
 
         return HobbyCard(
             id: hobbyInfoId,

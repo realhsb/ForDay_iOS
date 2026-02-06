@@ -47,7 +47,8 @@ class HomeViewController: UIViewController {
         // 홈 정보 로드
         Task {
             await viewModel.fetchHomeInfo()
-            await stickerBoardViewModel.loadInitialStickerBoard()
+            // fetchHomeInfo 완료 후 currentHobbyId를 stickerBoardViewModel에 전달
+            await stickerBoardViewModel.loadInitialStickerBoard(hobbyId: viewModel.currentHobbyId)
         }
     }
     
@@ -217,7 +218,7 @@ extension HomeViewController {
                     // 홈 정보 새로고침 (ActivityPreview 포함)
                     await self?.viewModel.fetchHomeInfo()
                     // 스티커 보드 새로고침
-                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard(hobbyId: self?.viewModel.currentHobbyId)
                 }
             }
             .store(in: &cancellables)
@@ -240,7 +241,7 @@ extension HomeViewController {
                 Task {
                     // 홈 정보 및 스티커 보드 새로고침
                     await self?.viewModel.fetchHomeInfo()
-                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard(hobbyId: self?.viewModel.currentHobbyId)
                 }
             }
             .store(in: &cancellables)
@@ -252,7 +253,7 @@ extension HomeViewController {
                 Task {
                     // 홈 정보 및 스티커 보드 새로고침
                     await self?.viewModel.fetchHomeInfo()
-                    await self?.stickerBoardViewModel.loadInitialStickerBoard()
+                    await self?.stickerBoardViewModel.loadInitialStickerBoard(hobbyId: self?.viewModel.currentHobbyId)
                 }
             }
             .store(in: &cancellables)
@@ -365,6 +366,10 @@ extension HomeViewController {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.homeView.expandToast(animated: true)
             }
+        } else {
+            // 취미가 없으면 토스트 접고 터치 비활성화
+            homeView.collapseToast(animated: false)
+            homeView.toastView.setInteractionEnabled(false)
         }
 
         // Update floating button state
@@ -384,6 +389,9 @@ extension HomeViewController {
         homeView.updateAddActivityButtonTitle(hasHobbies: false)
         homeView.collapseToast(animated: false)
         homeView.hideFloatingMenu()
+
+        // Disable AI toast interaction (no dim, just disable tap)
+        homeView.toastView.setInteractionEnabled(false)
 
         // Disable floating button
         updateFloatingButtonState(enabled: false)
@@ -410,7 +418,7 @@ extension HomeViewController {
             }
 
             await viewModel.fetchHomeInfo()
-            await stickerBoardViewModel.loadInitialStickerBoard()
+            await stickerBoardViewModel.loadInitialStickerBoard(hobbyId: viewModel.currentHobbyId)
         }
     }
 

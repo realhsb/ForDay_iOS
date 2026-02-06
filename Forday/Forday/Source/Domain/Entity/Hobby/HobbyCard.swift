@@ -14,21 +14,57 @@ struct HobbyCard: Codable {
     let imageAsset: HobbyImageAsset
 }
 
+/// API imageCode와 1:1 매핑되는 enum
 enum HobbyImageAsset: String, Codable {
-    case drawing = "drawing.png"
-    case gym = "gym.png"
-    case reading = "reading.png"
-    case music = "music.png"
-    case running = "running.png"
-    case cooking = "cooking.png"
-    case cafe = "cafe.png"
-    case movie = "movie.png"
-    case photo = "photo.png"
-    case writing = "writing.png"
+    case drawing = "DRAWING_ICON"
+    case gym = "GYM_ICON"
+    case reading = "READING_ICON"
+    case music = "MUSIC_ICON"
+    case running = "RUNNING_ICON"
+    case cooking = "COOKING_ICON"
+    case cafe = "CAFE_ICON"
+    case movie = "MOVIE_ICON"
+    case photo = "PHOTO_ICON"
+    case writing = "WRITING_ICON"
+    case `default` = "DEFAULT_ICON"
 
-    /// Maps Korean hobby name to HobbyImageAsset
+    /// API imageCode로 초기화 (rawValue 사용)
+    /// e.g., "DRAWING_ICON" -> .drawing
+    init?(imageCode: String) {
+        if let asset = HobbyImageAsset(rawValue: imageCode) {
+            self = asset
+        } else {
+            self = .default
+        }
+    }
+
+    /// API metadata imageCode 형식으로 초기화
+    /// e.g., "drawing.png" -> .drawing
+    init?(fromApiImageCode code: String) {
+        // ".png" 확장자 제거 후 매핑
+        let name = code.replacingOccurrences(of: ".png", with: "")
+        let mapping: [String: HobbyImageAsset] = [
+            "drawing": .drawing,
+            "gym": .gym,
+            "reading": .reading,
+            "music": .music,
+            "running": .running,
+            "cooking": .cooking,
+            "cafe": .cafe,
+            "movie": .movie,
+            "photo": .photo,
+            "writing": .writing
+        ]
+
+        if let asset = mapping[name] {
+            self = asset
+        } else {
+            return nil
+        }
+    }
+
+    /// 한글 취미명으로 초기화
     init?(hobbyName: String) {
-        // Map Korean hobby names to image assets
         let mapping: [String: HobbyImageAsset] = [
             "그림 그리기": .drawing,
             "그림그리기": .drawing,
@@ -55,11 +91,6 @@ enum HobbyImageAsset: String, Codable {
         }
     }
     
-//    var image: UIImage? {
-//        let assetName = self.rawValue.replacingOccurrences(of: ".png", with: "")
-//        return UIImage(named: assetName)
-//    }
-    
     var image: UIImage {
         switch self {
         case .drawing:
@@ -82,6 +113,8 @@ enum HobbyImageAsset: String, Codable {
                 .Hobbycard.pictures
         case .writing:
                 .Hobbycard.writing
+        case .default:
+                .Hobbycard.cafe
         }
     }
     
@@ -107,6 +140,8 @@ enum HobbyImageAsset: String, Codable {
                 .Hobbyicon.pictures
         case .writing:
                 .Hobbyicon.writing
+        case .default:
+                .Hobbyicon.default
         }
     }
 }

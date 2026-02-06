@@ -20,6 +20,8 @@ struct HobbySetting {
     let hobbyTimeMinutes: Int
     let executionCount: Int
     let goalDays: Int?  // nil means 무제한 (기간 미지정)
+    let hobbyInfoId: Int?
+    let imageCode: String
 
     var timeDisplayText: String {
         if hobbyTimeMinutes >= 60 {
@@ -44,5 +46,10 @@ struct HobbySetting {
 
     var infoDisplayText: String {
         return "\(timeDisplayText) · \(executionDisplayText) · \(goalDaysDisplayText)"
+    }
+
+    /// imageCode를 HobbyImageAsset으로 변환
+    var imageAsset: HobbyImageAsset {
+        return HobbyImageAsset(imageCode: imageCode) ?? .reading
     }
 }

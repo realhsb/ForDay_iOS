@@ -58,7 +58,7 @@ class HobbyActivityInputView: UIView {
 
 extension HobbyActivityInputView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .bg001
         
         scrollView.do {
             $0.showsVerticalScrollIndicator = false

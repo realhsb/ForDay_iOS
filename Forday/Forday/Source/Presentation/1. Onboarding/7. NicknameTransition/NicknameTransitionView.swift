@@ -35,7 +35,7 @@ class NicknameTransitionView: UIView {
 
 extension NicknameTransitionView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .neutralWhite
 
         titleLabel.do {
             $0.text = "주신 정보 너무 감사해요!"

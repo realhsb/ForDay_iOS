@@ -21,12 +21,12 @@ class FloatingActionMenu: UIView {
     private let containerView = UIView()
     private let stackView = UIStackView()
     private let addActivityButton = MenuItemView(
-        iconImage: .Icon.storageIn,
+        iconImage: .Icon.plus,
         title: "활동 추가"
     )
     private let viewListButton = MenuItemView(
-        iconImage: UIImage(systemName: "list.bullet"),
-        title: "활동 리스트 조회"
+        iconImage: .Icon.storage,
+        title: "활동 리스트"
     )
 
     var onActionSelected: ((ActionType) -> Void)?

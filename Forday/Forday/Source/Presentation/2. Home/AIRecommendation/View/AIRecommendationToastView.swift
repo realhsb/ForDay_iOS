@@ -90,18 +90,16 @@ extension AIRecommendationToastView {
             containerWidthConstraint = $0.width.equalTo(collapsedSize).constraint
         }
 
-        // Icon - 오른쪽에 위치
+        // Icon
         iconImageView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-8)
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(iconSize)
         }
 
-        // Message - 아이콘 왼쪽에 위치
+        // Message
         messageLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalTo(iconImageView.snp.leading).offset(-8)
-            $0.centerY.equalToSuperview()
+            $0.center.equalToSuperview()
         }
 
         // Self height

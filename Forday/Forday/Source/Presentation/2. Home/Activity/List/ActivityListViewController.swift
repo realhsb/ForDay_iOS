@@ -5,14 +5,13 @@
 //  Created by Subeen on 1/16/26.
 //
 
-
 import UIKit
 import Combine
 import SnapKit
 
 class ActivityListViewController: UIViewController {
-    
-    // Properties
+
+    // MARK: - Properties
 
     private let listView = ActivityListView()
     private let viewModel: ActivityListViewModel
@@ -30,28 +29,28 @@ class ActivityListViewController: UIViewController {
     // Modal Presentation
     var isPresentedModally = false
 
-    // Initialization
-    
+    // MARK: - Initialization
+
     init(hobbyId: Int, viewModel: ActivityListViewModel = ActivityListViewModel()) {
         self.hobbyId = hobbyId
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // Lifecycle
-    
+
+    // MARK: - Lifecycle
+
     override func loadView() {
         view = listView
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
         setupTableView()
+        setupActions()
         bind()
         loadActivities()
     }
@@ -68,52 +67,43 @@ class ActivityListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        // HomeViewController로 돌아갈 때 네비게이션 바 숨기기
-        if isMovingFromParent {
-            navigationController?.setNavigationBarHidden(true, animated: animated)
-        }
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 }
 
-// Setup
+// MARK: - Setup
 
 extension ActivityListViewController {
-    private func setupNavigationBar() {
-        title = "활동 리스트"
-
-        // Close button (when presented modally)
-        if isPresentedModally {
-            let closeButton = UIBarButtonItem(
-                image: UIImage(systemName: "xmark"),
-                style: .plain,
-                target: self,
-                action: #selector(closeButtonTapped)
-            )
-            closeButton.tintColor = .neutral800
-            navigationItem.leftBarButtonItem = closeButton
-        }
-
-        // + 버튼
-        let addButton = UIBarButtonItem(
-            image: .Icon.plus,
-            style: .plain,
-            target: self,
-            action: #selector(addButtonTapped)
-        )
-        addButton.tintColor = .neutral800
-        navigationItem.rightBarButtonItem = addButton
-    }
-    
     private func setupTableView() {
         listView.tableView.delegate = self
         listView.tableView.dataSource = self
     }
-    
+
+    private func setupActions() {
+        // Custom Navigation Buttons
+        listView.backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        listView.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+
+        // Empty State Button
+        listView.onCreateActivityTapped = { [weak self] in
+            self?.navigateToActivityInput()
+        }
+    }
+
+    private func navigateToActivityInput() {
+        let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+        inputVC.aiCallRemaining = aiCallRemaining
+        inputVC.onActivityCreated = { [weak self] in
+            self?.dismiss(animated: true) {
+                self?.navigationController?.popToRootViewController(animated: true)
+            }
+        }
+
+        let nav = UINavigationController(rootViewController: inputVC)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+
     private func bind() {
         // 활동 목록 업데이트
         viewModel.$activities
@@ -142,23 +132,27 @@ extension ActivityListViewController {
             }
             .store(in: &cancellables)
     }
-    
+
     private func loadActivities() {
         Task {
             await viewModel.fetchActivities(hobbyId: hobbyId)
         }
     }
-    
+
     private func updateEmptyState() {
         listView.setEmptyState(viewModel.activities.isEmpty)
     }
 }
 
-// Actions
+// MARK: - Actions
 
 extension ActivityListViewController {
-    @objc private func closeButtonTapped() {
-        dismiss(animated: true)
+    @objc private func backButtonTapped() {
+        if isPresentedModally {
+            dismiss(animated: true)
+        } else {
+            navigationController?.popViewController(animated: true)
+        }
     }
 
     @objc private func addButtonTapped() {
@@ -175,43 +169,38 @@ extension ActivityListViewController {
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
     }
-    
-    private func showEditAlert(for activity: Activity) {
-        let alert = UIAlertController(
+
+    private func showEditPopup(for activity: Activity) {
+        let popup = TextInputPopupViewController(
             title: "활동 수정",
-            message: nil,
-            preferredStyle: .alert
+            placeholder: "활동 내용을 입력해주세요"
         )
-        
-        alert.addTextField { textField in
-            textField.text = activity.content
-            textField.placeholder = "활동 내용"
+        popup.initialText = activity.content
+        popup.modalPresentationStyle = .overFullScreen
+        popup.modalTransitionStyle = .crossDissolve
+
+        popup.onSubmit = { [weak self] newContent in
+            self?.updateActivity(activityId: activity.activityId, content: newContent)
         }
-        
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "수정", style: .default) { [weak self] _ in
-            guard let content = alert.textFields?.first?.text, !content.isEmpty else { return }
-            self?.updateActivity(activityId: activity.activityId, content: content)
-        })
-        
-        present(alert, animated: true)
+
+        present(popup, animated: true)
     }
-    
-    private func showDeleteAlert(for activity: Activity) {
-        let alert = UIAlertController(
-            title: "활동 삭제",
-            message: "정말 삭제하시겠습니까?",
-            preferredStyle: .alert
+
+    private func showDeletePopup(for activity: Activity) {
+        let popup = CommonPopupViewController(
+            title: "이 활동을 삭제하시겠어요?",
+            message: "삭제 시 복구는 안돼요!",
+            primaryButtonTitle: "삭제하기",
+            secondaryButtonTitle: "닫기"
         )
-        
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+
+        popup.onPrimaryAction = { [weak self] in
             self?.deleteActivity(activityId: activity.activityId)
-        })
-        
-        present(alert, animated: true)
+        }
+
+        present(popup, animated: true)
     }
-    
+
     private func updateActivity(activityId: Int, content: String) {
         Task {
             do {
@@ -246,7 +235,7 @@ extension ActivityListViewController {
             }
         }
     }
-    
+
     private func handleError(_ error: AppError) {
         let title: String
         let message = error.userMessage
@@ -398,13 +387,13 @@ extension ActivityListViewController {
     }
 }
 
-// UITableViewDataSource
+// MARK: - UITableViewDataSource
 
 extension ActivityListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.activities.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ActivityCardCell.identifier, for: indexPath) as? ActivityCardCell else {
             return UITableViewCell()
@@ -414,38 +403,27 @@ extension ActivityListViewController: UITableViewDataSource {
         cell.configure(with: activity)
 
         cell.onEditTapped = { [weak self] in
-            self?.showEditAlert(for: activity)
+            self?.showEditPopup(for: activity)
         }
 
         cell.onDeleteTapped = { [weak self] in
-            self?.showDeleteAlert(for: activity)
+            self?.showDeletePopup(for: activity)
         }
 
         return cell
     }
 }
 
-// UITableViewDelegate
+// MARK: - UITableViewDelegate
 
 extension ActivityListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let isExpanded = viewModel.isExpanded(at: indexPath.row)
-        return isExpanded ? ActivityCardCell.expandedHeight : ActivityCardCell.collapsedHeight
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-
-        viewModel.toggleExpansion(at: indexPath.row)
-
-        // 애니메이션과 함께 셀 높이 업데이트
-        tableView.beginUpdates()
-        tableView.endUpdates()
+        return ActivityCardCell.cellHeight
     }
 }
 
+#if DEBUG
 #Preview {
-    let listVC = ActivityListViewController(hobbyId: 1)
-    let nav = UINavigationController(rootViewController: listVC)
-    return nav
+    ActivityListViewController(hobbyId: 1)
 }
+#endif

@@ -11,45 +11,87 @@ import Combine
 
 class FrequencySelectionViewController: BaseOnboardingViewController {
 
-    // Properties
+    // MARK: - Properties
 
     private let frequencyView = FrequencySelectionView()
     let viewModel: FrequencySelectionViewModel
-    
-    // Initialization
-    
+
+    // Edit Mode Properties
+    var isEditMode: Bool = false
+    var hobbyId: Int?
+    var onChangeComplete: (() -> Void)?
+
+    private let updateExecutionCountUseCase = UpdateExecutionCountUseCase()
+
+    // MARK: - Initialization
+
     init(viewModel: FrequencySelectionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // Lifecycle
-    
+
+    // MARK: - Lifecycle
+
     override func loadView() {
         view = frequencyView
     }
-    
+
     override func viewDidLoad() {
+        // 수정 모드일 때 프로그래스바 생성 스킵
+        shouldSkipProgressBar = isEditMode
         super.viewDidLoad()
         setNavigationTitle("취미 정보")
         hideNextButton()
         setupCollectionView()
+        setupEditMode()
         bind()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateProgress(0.8)  // 4/5 = 80%
+        if !isEditMode {
+            updateProgress(0.8)  // 4/5 = 80%
+        }
         setupHobbyCard()
     }
 
-    // Actions
+    private func setupEditMode() {
+        guard isEditMode else { return }
+
+        // Enable edit mode on view
+        frequencyView.setEditMode(true)
+
+        // Hide base onboarding navigation
+        hideProgressBar()
+        navigationController?.setNavigationBarHidden(true, animated: false)
+
+        // Setup callbacks
+        frequencyView.onCloseButtonTapped = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+
+        frequencyView.onChangeButtonTapped = { [weak self] in
+            self?.handleChangeButtonTapped()
+        }
+    }
+
+    // MARK: - Edit Mode Configuration
+
+    func configureForEditMode(hobbyId: Int, icon: UIImage?, title: String, time: String?, purpose: String?) {
+        self.isEditMode = true
+        self.hobbyId = hobbyId
+        frequencyView.configureHobbyCard(icon: icon, title: title, time: time, purpose: purpose)
+    }
+
+    // MARK: - Actions
 
     private func autoAdvance() {
+        // Skip auto-advance in edit mode
+        guard !isEditMode else { return }
         guard let selectedFrequency = viewModel.selectedFrequency else { return }
         guard !isTransitioning else { return }
 
@@ -69,6 +111,37 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
         autoAdvanceWorkItem = workItem
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
+    }
+
+    private func handleChangeButtonTapped() {
+        guard let hobbyId = hobbyId,
+              let selectedFrequency = viewModel.selectedFrequency else { return }
+
+        Task {
+            do {
+                _ = try await updateExecutionCountUseCase.execute(hobbyId: hobbyId, executionCount: selectedFrequency.count)
+
+                await MainActor.run {
+                    self.dismiss(animated: true) {
+                        self.onChangeComplete?()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.showError(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func showError(_ message: String) {
+        let alert = UIAlertController(
+            title: "오류",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
 

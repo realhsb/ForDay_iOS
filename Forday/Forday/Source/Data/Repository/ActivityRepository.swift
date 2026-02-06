@@ -108,25 +108,26 @@ final class ActivityRepository: ActivityRepositoryInterface {
     // MARK: - Result Enum Pattern: Repository interprets business states
 
     func fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?) async throws -> StickerBoardResult {
-        #if DEBUG
-        let fallbackProvider = DefaultStickerBoardFallbackProvider()
-        #endif
-
         do {
             let response = try await activityService.fetchStickerBoard(hobbyId: hobbyId, page: page, size: size)
 
             // DTO가 자동으로 domain mapping 처리
             return response.toDomain()
 
+        } catch let appError as AppError {
+            // INVALID_HOBBY_STATUS (400): 취미가 보관처리됨 → noHobbyInProgress 반환
+            if case .server(let serverError) = appError,
+               serverError.errorClassName == "INVALID_HOBBY_STATUS" {
+                print("ℹ️ 스티커판 - 진행 중인 취미 없음 (INVALID_HOBBY_STATUS)")
+                return .noHobbyInProgress
+            }
+
+            // 그 외 서버 에러는 throw
+            throw appError
+
         } catch {
-            // 진짜 에러 (네트워크, 디코딩 실패)만 fallback
-            #if DEBUG
-            print("⚠️ 스티커판 API 네트워크 에러 - fallback 사용")
-            print("⚠️ 에러 내용: \(error)")
-            return .loaded(fallbackProvider.fallbackStickerBoard())
-            #else
+            // 네트워크 에러 등은 throw
             throw error
-            #endif
         }
     }
 }

@@ -166,15 +166,34 @@ final class StickerBoardView: UIView {
     }
 
     func showNoHobby() {
-        stickerGridView.isHidden = true
-        emptyStateLabel.setTextWithTypography("아직 시작한 취미가 없어요", style: .body16)
-        emptyStateLabel.isHidden = false
-        activityIndicator.stopAnimating()
-        titleLabel.setTextWithTypography("스티커 수집", style: .header14)
+        // 빈 스티커 보드 생성 (28칸 모두 회색, 터치 불가)
+        let emptyBoard = StickerBoard(
+            hobbyId: 0,
+            durationSet: true, // 66일 기준
+            activityRecordedToday: true, // 핑크 외곽선 안 보이게
+            currentPage: 1,
+            totalPage: 1,
+            pageSize: 28,
+            totalStickerNum: 0,
+            hasPrevious: false,
+            hasNext: false,
+            stickers: []
+        )
+
+        // 헤더 텍스트
+        titleLabel.setTextWithTypography("현재까지 0개의 스티커 수집", style: .header14)
+
+        // 페이지네이션 버튼 비활성화
         previousButton.isEnabled = false
         previousButton.alpha = 0.3
         nextButton.isEnabled = false
         nextButton.alpha = 0.3
+
+        // 그리드 표시 (터치 비활성화)
+        stickerGridView.configure(with: emptyBoard, interactionEnabled: false, onStickerTap: { _ in })
+        stickerGridView.isHidden = false
+        emptyStateLabel.isHidden = true
+        activityIndicator.stopAnimating()
     }
 
     func showEmpty(board: StickerBoard) {

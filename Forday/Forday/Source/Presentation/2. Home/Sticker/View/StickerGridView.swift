@@ -28,6 +28,7 @@ final class StickerGridView: UIView {
 
     private var board: StickerBoard?
     private var onStickerTap: ((Int) -> Void)?
+    private var interactionEnabled: Bool = true
 
     // MARK: - Initialization
 
@@ -79,8 +80,9 @@ final class StickerGridView: UIView {
 
     // MARK: - Configuration
 
-    func configure(with board: StickerBoard, onStickerTap: @escaping (Int) -> Void) {
+    func configure(with board: StickerBoard, interactionEnabled: Bool = true, onStickerTap: @escaping (Int) -> Void) {
         self.board = board
+        self.interactionEnabled = interactionEnabled
         self.onStickerTap = onStickerTap
         collectionView.reloadData()
     }
@@ -174,6 +176,7 @@ extension StickerGridView: UICollectionViewDataSource {
 extension StickerGridView: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard interactionEnabled else { return }
         onStickerTap?(indexPath.item)
     }
 }

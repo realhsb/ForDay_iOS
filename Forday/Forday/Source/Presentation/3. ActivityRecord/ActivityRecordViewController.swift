@@ -114,6 +114,13 @@ extension ActivityRecordViewController {
             for: .touchUpInside
         )
 
+        // 취미활동 추가하기 버튼 (활동이 없을 때)
+        recordView.addActivityButton.addTarget(
+            self,
+            action: #selector(addActivityButtonTapped),
+            for: .touchUpInside
+        )
+
         // 사진 추가
         recordView.photoAddButton.addTarget(
             self,
@@ -178,6 +185,14 @@ extension ActivityRecordViewController {
                 self?.recordView.updatePhotoImage(image)
             }
             .store(in: &cancellables)
+
+        // 활동 목록 변경 시 UI 업데이트
+        viewModel.$activities
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] activities in
+                self?.recordView.showAddActivityButton(activities.isEmpty)
+            }
+            .store(in: &cancellables)
     }
 
     private func setupForEditMode() {
@@ -215,6 +230,26 @@ extension ActivityRecordViewController {
             dismissActivityDropdown()
         } else {
             showActivityDropdown()
+        }
+    }
+
+    @objc private func addActivityButtonTapped() {
+        // 현재 화면 dismiss 후 HobbyActivityInputViewController 표시
+        let hobbyId = viewModel.currentHobbyId
+        let presentingVC = presentingViewController
+
+        dismiss(animated: true) {
+            guard let presenter = presentingVC else { return }
+
+            let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
+            inputVC.onActivityCreated = { [weak inputVC] in
+                // 활동 생성 완료 시 dismiss
+                inputVC?.dismiss(animated: true)
+            }
+
+            let nav = UINavigationController(rootViewController: inputVC)
+            nav.modalPresentationStyle = .fullScreen
+            presenter.present(nav, animated: true)
         }
     }
 
