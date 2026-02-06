@@ -24,9 +24,17 @@ class AppCoordinator: Coordinator {
     func start() {
         print("🟣 AppCoordinator start")
 
-        // 앱 시작 시 항상 로그인 화면으로 이동
-        // 사용자가 직접 로그인 버튼을 눌러야 함
-        showAuth()
+        // 스플래시 화면 표시
+        showSplash()
+    }
+
+    // 스플래시 화면
+    private func showSplash() {
+        let splashVC = SplashViewController()
+        splashVC.onSplashComplete = { [weak self] in
+            self?.showAuth()
+        }
+        window.rootViewController = splashVC
     }
 
     // 자동 로그인 처리
