@@ -31,6 +31,9 @@ class BaseOnboardingViewController: UIViewController {
     // Coordinator
     weak var coordinator: OnboardingCoordinator?
 
+    /// 프로그래스바 스킵 여부 (수정 모드용)
+    var shouldSkipProgressBar: Bool = false
+
     // Layout Constants
     var horizontalPadding: CGFloat = 16
     var nextButtonVerticalPadding: CGFloat = 18
@@ -116,6 +119,8 @@ extension BaseOnboardingViewController {
     }
     
     private func setupProgressBarIfNeeded() {
+        // 수정 모드에서는 프로그래스바 생성 스킵
+        guard !shouldSkipProgressBar else { return }
         guard let navigationBar = navigationController?.navigationBar else { return }
 
         // 이미 프로그래스바가 있으면 재사용

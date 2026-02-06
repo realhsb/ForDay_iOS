@@ -282,20 +282,17 @@ extension ActivityDetailViewController {
     private func showDeleteConfirmation() {
         print("🗑️ 삭제 확인 팝업 표시")
 
-        let alertVC = CommonAlertViewController(
+        let popupVC = CommonPopupViewController(
             title: "활동 기록 삭제",
             message: "정말 이 활동 기록을\n삭제하시겠어요?",
-            cancelButtonTitle: "취소",
-            confirmButtonTitle: "삭제",
-            onCancel: {
-                print("취소 선택")
-            },
-            onConfirm: { [weak self] in
-                self?.deleteActivity()
-            }
+            primaryButtonTitle: "삭제",
+            secondaryButtonTitle: "취소"
         )
+        popupVC.onPrimaryAction = { [weak self] in
+            self?.deleteActivity()
+        }
 
-        present(alertVC, animated: true)
+        present(popupVC, animated: true)
     }
 
     private func deleteActivity() {

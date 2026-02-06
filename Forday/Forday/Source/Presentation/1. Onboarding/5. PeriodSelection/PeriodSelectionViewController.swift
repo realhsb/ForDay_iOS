@@ -11,45 +11,87 @@ import Combine
 
 class PeriodSelectionViewController: BaseOnboardingViewController {
 
-    // Properties
+    // MARK: - Properties
 
     private let periodView = PeriodSelectionView()
     let viewModel: PeriodSelectionViewModel
-    
-    // Initialization
-    
+
+    // Edit Mode Properties
+    var isEditMode: Bool = false
+    var hobbyId: Int?
+    var onChangeComplete: (() -> Void)?
+
+    private let updateGoalDaysUseCase = UpdateGoalDaysUseCase()
+
+    // MARK: - Initialization
+
     init(viewModel: PeriodSelectionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // Lifecycle
-    
+
+    // MARK: - Lifecycle
+
     override func loadView() {
         view = periodView
     }
-    
+
     override func viewDidLoad() {
+        // 수정 모드일 때 프로그래스바 생성 스킵
+        shouldSkipProgressBar = isEditMode
         super.viewDidLoad()
         setNavigationTitle("취미 정보")
         hideNextButton()
         setupCollectionView()
+        setupEditMode()
         bind()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateProgress(1.0)  // 5/5 = 100%
+        if !isEditMode {
+            updateProgress(1.0)  // 5/5 = 100%
+        }
         setupHobbyCard()
     }
 
-    // Actions
+    private func setupEditMode() {
+        guard isEditMode else { return }
+
+        // Enable edit mode on view
+        periodView.setEditMode(true)
+
+        // Hide base onboarding navigation
+        hideProgressBar()
+        navigationController?.setNavigationBarHidden(true, animated: false)
+
+        // Setup callbacks
+        periodView.onCloseButtonTapped = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+
+        periodView.onChangeButtonTapped = { [weak self] in
+            self?.handleChangeButtonTapped()
+        }
+    }
+
+    // MARK: - Edit Mode Configuration
+
+    func configureForEditMode(hobbyId: Int, icon: UIImage?, title: String, time: String?, frequency: String?, purpose: String?) {
+        self.isEditMode = true
+        self.hobbyId = hobbyId
+        periodView.configureHobbyCard(icon: icon, title: title, time: time, frequency: frequency, purpose: purpose)
+    }
+
+    // MARK: - Actions
 
     private func autoAdvance() {
+        // Skip auto-advance in edit mode
+        guard !isEditMode else { return }
         print("Selected period: \(viewModel.selectedPeriod?.title ?? "None")")
 
         guard let onboardingCoordinator = coordinator as? OnboardingCoordinator else {
@@ -75,6 +117,46 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
         autoAdvanceWorkItem = workItem
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
+    }
+
+    private func handleChangeButtonTapped() {
+        guard let hobbyId = hobbyId,
+              let selectedPeriod = viewModel.selectedPeriod else { return }
+
+        // Convert PeriodType to isDurationSet
+        let isDurationSet: Bool
+        switch selectedPeriod.type {
+        case .flexible:
+            isDurationSet = false
+        case .fixed:
+            isDurationSet = true
+        }
+
+        Task {
+            do {
+                _ = try await updateGoalDaysUseCase.execute(hobbyId: hobbyId, isDurationSet: isDurationSet)
+
+                await MainActor.run {
+                    self.dismiss(animated: true) {
+                        self.onChangeComplete?()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.showError(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func showError(_ message: String) {
+        let alert = UIAlertController(
+            title: "오류",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
 

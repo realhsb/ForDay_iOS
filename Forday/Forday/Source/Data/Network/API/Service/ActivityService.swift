@@ -23,6 +23,12 @@ final class ActivityService {
         return try await provider.request(.createHobby(request: request))
     }
 
+    // MARK: - 취미 정보 재조회 (취미 추가 시)
+
+    func fetchHobbyInfoRecheck() async throws -> DTO.HobbyInfoRecheckResponse {
+        return try await provider.request(.fetchHobbyInfoRecheck)
+    }
+
     // MARK: - 홈 정보 조회
 
     func fetchHomeInfo(hobbyId: Int?) async throws -> DTO.HomeInfoResponse {

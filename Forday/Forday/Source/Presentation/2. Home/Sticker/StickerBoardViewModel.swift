@@ -39,10 +39,10 @@ final class StickerBoardViewModel {
     // MARK: - Public Methods
 
     /// 초기 로드: 페이지 번호 없이 조회 (마지막 페이지 반환)
+    /// - Parameter hobbyId: 취미 ID (nil이면 진행 중인 취미 없음으로 처리)
     func loadInitialStickerBoard(hobbyId: Int? = nil) async {
-        if let hobbyId = hobbyId {
-            currentHobbyId = hobbyId
-        }
+        // hobbyId가 nil이든 아니든 항상 갱신 (nil도 유효한 상태)
+        currentHobbyId = hobbyId
         await loadStickerBoard(page: nil)
     }
 
@@ -89,6 +89,15 @@ final class StickerBoardViewModel {
     // MARK: - Private Methods
 
     private func loadStickerBoard(page: Int?) async {
+        // hobbyId가 nil이면 API 호출 없이 바로 noHobby 상태 반환
+        guard currentHobbyId != nil else {
+            await MainActor.run {
+                self.stickerBoard = nil
+                self.viewState = .noHobby
+            }
+            return
+        }
+
         await MainActor.run {
             self.viewState = .loading
         }

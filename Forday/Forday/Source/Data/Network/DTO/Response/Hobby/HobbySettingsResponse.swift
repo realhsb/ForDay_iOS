@@ -18,15 +18,17 @@ extension DTO {
         let currentHobbyStatus: String
         let inProgressHobbyCount: Int
         let archivedHobbyCount: Int
-        let hobbies: [HobbyInfoDTO]
+        let hobbies: [HobbySettingDTO]
     }
 
-    struct HobbyInfoDTO: Codable {
+    struct HobbySettingDTO: Codable {
         let hobbyId: Int
         let hobbyName: String
         let hobbyTimeMinutes: Int
         let executionCount: Int
         let goalDays: Int?
+        let hobbyInfoId: Int?
+        let imageCode: String
     }
 }
 
@@ -40,7 +42,9 @@ extension DTO.HobbySettingsResponse {
                 hobbyName: dto.hobbyName,
                 hobbyTimeMinutes: dto.hobbyTimeMinutes,
                 executionCount: dto.executionCount,
-                goalDays: dto.goalDays
+                goalDays: dto.goalDays,
+                hobbyInfoId: dto.hobbyInfoId,
+                imageCode: dto.imageCode
             )
         }
 

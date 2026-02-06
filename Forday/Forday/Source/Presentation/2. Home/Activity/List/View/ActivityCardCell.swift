@@ -5,7 +5,6 @@
 //  Created by Subeen on 1/16/26.
 //
 
-
 import UIKit
 import SnapKit
 import Then
@@ -13,33 +12,28 @@ import Then
 class ActivityCardCell: UITableViewCell {
 
     static let identifier = "ActivityCardCell"
+    static let cellHeight: CGFloat = 62  // 52 (content) + 10 (bottom spacing)
 
-    // Height Constants
-    static let collapsedHeight: CGFloat = 48
-    static let expandedHeight: CGFloat = 48 + 1 + 80 // topSection + separator + collection
+    // MARK: - UI Components
 
-    private let cardCellView = UIView()
-    private let activityView = UIView()
+    private let cardView = UIView()
+    private let contentStackView = UIStackView()
+    private let aiIconImageView = UIImageView()
     private let activityLabel = UILabel()
-    private let aiRecommendBadge = UIImageView()
     private let stickerImageView = UIImageView()
-    private let stickerNumberLabel = UILabel()
-    private let editButton = UIButton()
-    private let deleteButton = UIButton()
+    private let stickerCountLabel = UILabel()
+    private let buttonStackView = UIStackView()
+    private let editButton = UIButton(type: .system)
+    private let deleteButton = UIButton(type: .system)
 
-    // Callbacks
+    // MARK: - Callbacks
+
     var onEditTapped: (() -> Void)?
     var onDeleteTapped: (() -> Void)?
 
-    // Initialization
+    // MARK: - Initialization
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        // CollectionView Layout
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.scrollDirection = .horizontal
-        flowLayout.minimumInteritemSpacing = 10
-        flowLayout.minimumLineSpacing = 10
-
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupStyle()
         setupLayout()
@@ -54,62 +48,71 @@ class ActivityCardCell: UITableViewCell {
         super.prepareForReuse()
         onEditTapped = nil
         onDeleteTapped = nil
+        aiIconImageView.isHidden = true
+        deleteButton.isHidden = true
     }
 
     // MARK: - Configuration
 
     func configure(with activity: Activity) {
-        activityLabel.text = activity.content
-        stickerNumberLabel.setTextWithTypography("\(activity.collectedStickerNum)", style: .label12)
+        activityLabel.setTextWithTypography(activity.content, style: .body14)
+        stickerCountLabel.setTextWithTypography("\(activity.collectedStickerNum)", style: .label12)
 
         // Show/hide AI badge
-        aiRecommendBadge.isHidden = !activity.aiRecommended
+        aiIconImageView.isHidden = !activity.aiRecommended
 
         // Show/hide delete button based on deletable flag
         deleteButton.isHidden = !activity.deletable
     }
 }
 
-// Setup
+// MARK: - Setup
 
 extension ActivityCardCell {
     private func setupStyle() {
         selectionStyle = .none
         backgroundColor = .clear
+        contentView.backgroundColor = .clear
 
-        // Selected Background View
-        let selectedBgView = UIView()
-        selectedBgView.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0) // neutral100
-        selectedBgView.layer.cornerRadius = 8
-        selectedBackgroundView = selectedBgView
-
-        // Top Section
-        cardCellView.do {
-            $0.backgroundColor = .clear
+        cardView.do {
+            $0.backgroundColor = .bg001
+            $0.layer.cornerRadius = 16
+            $0.layer.borderWidth = 1
+            $0.layer.borderColor = UIColor.stroke001.cgColor
+            $0.clipsToBounds = true
         }
 
-        // Activity Stack
-        activityLabel.do {
-            $0.font = .systemFont(ofSize: 16, weight: .medium)
-            $0.textColor = .label
-            $0.numberOfLines = 1
+        contentStackView.do {
+            $0.axis = .horizontal
+            $0.spacing = 4
+            $0.alignment = .center
         }
 
-        aiRecommendBadge.do {
-            $0.image = UIImage(systemName: "sparkles") // TODO: 실제 AI 아이콘으로 교체
-            $0.tintColor = .systemOrange
+        aiIconImageView.do {
+            $0.image = .Ai.small
             $0.contentMode = .scaleAspectFit
             $0.isHidden = true
         }
-        
+
+        activityLabel.do {
+            $0.textColor = .neutral900
+            $0.numberOfLines = 1
+        }
+
         stickerImageView.do {
             $0.image = .My.stickerCountMy
             $0.contentMode = .scaleAspectFit
-            $0.frame.size = CGSize(width: 20, height: 20)
         }
-        
-        stickerNumberLabel.do {
+
+        stickerCountLabel.do {
             $0.textColor = .neutral500
+            $0.textAlignment = .center
+        }
+
+        buttonStackView.do {
+            $0.axis = .horizontal
+            $0.spacing = 8
+            $0.alignment = .center
         }
 
         editButton.do {
@@ -120,73 +123,60 @@ extension ActivityCardCell {
         deleteButton.do {
             $0.setImage(.Icon.trash, for: .normal)
             $0.tintColor = .neutral400
+            $0.isHidden = true
         }
     }
 
     private func setupLayout() {
-        contentView.addSubview(cardCellView)
+        contentView.addSubview(cardView)
 
-        // Top Section Subviews
-        cardCellView.addSubview(activityView)
-        cardCellView.addSubview(editButton)
-        cardCellView.addSubview(deleteButton)
+        cardView.addSubview(contentStackView)
+        cardView.addSubview(buttonStackView)
 
-        activityView.addSubview(activityLabel)
-        activityView.addSubview(aiRecommendBadge)
-        activityView.addSubview(stickerImageView)
-        activityView.addSubview(stickerNumberLabel)
+        contentStackView.addArrangedSubview(aiIconImageView)
+        contentStackView.addArrangedSubview(activityLabel)
+        contentStackView.addArrangedSubview(stickerImageView)
+        contentStackView.addArrangedSubview(stickerCountLabel)
 
-        // Top Section
-        cardCellView.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
-            $0.height.equalTo(Self.collapsedHeight)
+        buttonStackView.addArrangedSubview(editButton)
+        buttonStackView.addArrangedSubview(deleteButton)
+
+        cardView.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalToSuperview().offset(-10)
         }
 
-        // Activity Stack (왼쪽)
-        activityView.snp.makeConstraints {
+        contentStackView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
-            $0.top.equalToSuperview().offset(8)
-            $0.bottom.equalToSuperview().offset(-8)
-            $0.trailing.lessThanOrEqualTo(editButton.snp.leading).offset(-8)
+            $0.trailing.lessThanOrEqualTo(buttonStackView.snp.leading).offset(-8)
         }
 
-        aiRecommendBadge.snp.makeConstraints {
-            $0.leading.equalToSuperview()
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(14)
-        }
-
-        activityLabel.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.leading.equalTo(aiRecommendBadge.snp.trailing).offset(4)
+        aiIconImageView.snp.makeConstraints {
+            $0.size.equalTo(14)
         }
 
         stickerImageView.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.leading.equalTo(activityLabel.snp.trailing).offset(8)
-            $0.width.height.equalTo(20)
+            $0.size.equalTo(20)
         }
 
-        stickerNumberLabel.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.leading.equalTo(stickerImageView.snp.trailing).offset(2)
-            $0.trailing.lessThanOrEqualToSuperview()
-        }
-
-        // Edit Button (오른쪽)
-        editButton.snp.makeConstraints {
-            $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
-            $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(20)
-        }
-
-        // Delete Button (오른쪽 끝)
-        deleteButton.snp.makeConstraints {
+        buttonStackView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(20)
         }
+
+        editButton.snp.makeConstraints {
+            $0.size.equalTo(24)
+        }
+
+        deleteButton.snp.makeConstraints {
+            $0.size.equalTo(24)
+        }
+
+        // Set content hugging/compression priorities
+        activityLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        activityLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
 
     private func setupActions() {
@@ -203,14 +193,25 @@ extension ActivityCardCell {
     }
 }
 
-// UICollectionViewDelegateFlowLayout
-
-extension ActivityCardCell: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 60, height: 60)
-    }
+#if DEBUG
+#Preview("ActivityCardCell - AI Recommended") {
+    let cell = ActivityCardCell()
+    cell.configure(with: .preview)
+    cell.frame = CGRect(x: 0, y: 0, width: 360, height: ActivityCardCell.cellHeight)
+    return cell
 }
 
-#Preview {
-    ActivityCardCell()
+#Preview("ActivityCardCell - Deletable") {
+    let cell = ActivityCardCell()
+    cell.configure(with: .previewDeletable)
+    cell.frame = CGRect(x: 0, y: 0, width: 360, height: ActivityCardCell.cellHeight)
+    return cell
 }
+
+#Preview("ActivityCardCell - AI + Deletable") {
+    let cell = ActivityCardCell()
+    cell.configure(with: .previewAIDeletable)
+    cell.frame = CGRect(x: 0, y: 0, width: 360, height: ActivityCardCell.cellHeight)
+    return cell
+}
+#endif

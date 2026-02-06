@@ -10,9 +10,17 @@ import Foundation
 import Combine
 
 class HobbySelectionViewModel {
-    
+
+    // MARK: - Mode
+
+    /// 취미 선택 모드
+    enum Mode {
+        case firstCreation   /// 첫 취미 생성 (온보딩)
+        case addHobby        /// 취미 추가 (이미 생성한 취미 제외)
+    }
+
     // MARK: - Published Properties
-    
+
     @Published var hobbies: [HobbyCard] = []
     @Published var selectedHobby: HobbyCard?
     @Published var isNextButtonEnabled: Bool = false
@@ -20,34 +28,54 @@ class HobbySelectionViewModel {
 
     /// 커스텀 취미 입력값 (셀 선택 시에도 유지)
     private(set) var customHobbyText: String?
-    
+
     // Coordinator에게 데이터 전달
     var onHobbySelected: ((HobbyCard) -> Void)?
-    
+
+    // Mode
+    private let mode: Mode
+
     // UseCase
     private let fetchAppMetadataUseCase: FetchAppMetadataUseCase
-    
+    private let fetchAvailableHobbiesUseCase: FetchAvailableHobbiesUseCase
+
     // MARK: - Initialization
-    
-    init(fetchAppMetadataUseCase: FetchAppMetadataUseCase = FetchAppMetadataUseCase()) {
+
+    init(
+        mode: Mode = .firstCreation,
+        fetchAppMetadataUseCase: FetchAppMetadataUseCase = FetchAppMetadataUseCase(),
+        fetchAvailableHobbiesUseCase: FetchAvailableHobbiesUseCase = FetchAvailableHobbiesUseCase()
+    ) {
+        self.mode = mode
         self.fetchAppMetadataUseCase = fetchAppMetadataUseCase
+        self.fetchAvailableHobbiesUseCase = fetchAvailableHobbiesUseCase
     }
     
     // MARK: - Methods
-    
+
     /// 취미 목록 가져오기
     func fetchHobbies() async {
-        
+
         await MainActor.run {
             isLoading = true
         }
-        
+
         do {
-            let metadata = try await fetchAppMetadataUseCase.execute()
-            
+            let hobbyCards: [HobbyCard]
+
+            switch mode {
+            case .firstCreation:
+                // 첫 생성: 전체 취미 목록
+                let metadata = try await fetchAppMetadataUseCase.execute()
+                hobbyCards = metadata.hobbyCards
+
+            case .addHobby:
+                // 추가: 이미 생성한 취미 제외
+                hobbyCards = try await fetchAvailableHobbiesUseCase.execute()
+            }
+
             await MainActor.run {
-                self.hobbies = metadata.hobbyCards
-                print("✅ 취미 목록 로드 완료: \(metadata.hobbyCards.count)개")
+                self.hobbies = hobbyCards
                 self.isLoading = false
             }
         } catch {

@@ -64,7 +64,7 @@ class PurposeSelectionView: UIView {
 
 extension PurposeSelectionView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .neutral50
 
         scrollView.do {
             $0.showsVerticalScrollIndicator = false
