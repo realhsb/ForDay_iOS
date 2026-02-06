@@ -45,7 +45,7 @@ class OnboardingCompleteView: UIView {
 
 extension OnboardingCompleteView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .neutralWhite
         
         titleLabel.do {
             $0.setTextWithTypography("그리고.. 포데이를 함께 할 포비들이에요!", style: .header20)

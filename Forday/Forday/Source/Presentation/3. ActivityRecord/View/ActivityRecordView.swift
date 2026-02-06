@@ -67,7 +67,7 @@ class ActivityRecordView: UIView {
 
 extension ActivityRecordView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .neutralWhite
 
         // 활동 (필수)
         activityLabel.do {
