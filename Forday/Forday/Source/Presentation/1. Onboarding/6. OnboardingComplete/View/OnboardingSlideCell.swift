@@ -17,6 +17,8 @@ class OnboardingSlideCell: UICollectionViewCell {
 
     private let containerView = UIView()
     private let characterImageView = UIImageView()
+    private var gradientLayer: CAGradientLayer?
+    private var currentCharacter: IntroCharacter?
 
     // Initialization
 
@@ -24,6 +26,7 @@ class OnboardingSlideCell: UICollectionViewCell {
         super.init(frame: frame)
         style()
         layout()
+        setupGradientLayer()
     }
 
     required init?(coder: NSCoder) {
@@ -32,28 +35,41 @@ class OnboardingSlideCell: UICollectionViewCell {
 
     // Configuration
 
-    func configure(image: UIImage) {
-        characterImageView.image = image
+    func configure(with character: IntroCharacter) {
+        currentCharacter = character
+        characterImageView.image = character.image
 
-        // 그라데이션 배경 설정
-        containerView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
+        // 테두리 색상 설정
+        containerView.layer.borderColor = character.borderColor.cgColor
 
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = containerView.bounds
-//        gradientLayer.colors = gradientColors.map { $0.cgColor }
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        // 그라디언트 색상 업데이트
+        gradientLayer?.colors = [
+            character.gradientStartColor.multiplyingAlpha(0.2).cgColor,
+            character.gradientMediumColor.multiplyingAlpha(0.2).cgColor,
+            character.gradientEndColor.multiplyingAlpha(0.2).cgColor
+        ]
 
-        containerView.layer.insertSublayer(gradientLayer, at: 0)
+        // 레이아웃 강제 업데이트
+        setNeedsLayout()
+        layoutIfNeeded()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        // 그라데이션 레이어 크기 업데이트
-        if let gradientLayer = containerView.layer.sublayers?.first(where: { $0 is CAGradientLayer }) as? CAGradientLayer {
-            gradientLayer.frame = containerView.bounds
-        }
+        // 그라디언트 레이어 크기 업데이트
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        gradientLayer?.frame = containerView.bounds
+        CATransaction.commit()
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        characterImageView.image = nil
+        currentCharacter = nil
+        gradientLayer?.colors = nil
+        containerView.layer.borderColor = UIColor.clear.cgColor
     }
 }
 
@@ -64,7 +80,6 @@ extension OnboardingSlideCell {
         containerView.do {
             $0.layer.cornerRadius = 20
             $0.layer.borderWidth = 1
-            $0.layer.borderColor = UIColor.systemOrange.withAlphaComponent(0.2).cgColor
             $0.clipsToBounds = true
         }
 
@@ -81,8 +96,20 @@ extension OnboardingSlideCell {
             $0.edges.equalToSuperview()
         }
 
+        // 캐릭터 이미지: 정가운데 정렬 (Figma 기준 112x110)
         characterImageView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(16)
+            $0.center.equalToSuperview()
+            $0.width.equalTo(112)
+            $0.height.equalTo(110)
         }
+    }
+
+    private func setupGradientLayer() {
+        let gradient = CAGradientLayer()
+        gradient.startPoint = CGPoint(x: 0, y: 0)
+        gradient.endPoint = CGPoint(x: 1, y: 1)
+        gradient.cornerRadius = 20
+        containerView.layer.insertSublayer(gradient, at: 0)
+        gradientLayer = gradient
     }
 }

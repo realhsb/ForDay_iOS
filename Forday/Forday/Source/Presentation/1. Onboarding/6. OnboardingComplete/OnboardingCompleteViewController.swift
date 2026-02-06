@@ -35,6 +35,12 @@ class OnboardingCompleteViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // 그라디언트 즉시 표시를 위해 셀 리로드
+        completeView.collectionView.reloadData()
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         // 다음 화면을 위해 네비게이션 바 다시 보이기

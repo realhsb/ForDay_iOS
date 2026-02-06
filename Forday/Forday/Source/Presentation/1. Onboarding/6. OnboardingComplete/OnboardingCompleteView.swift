@@ -26,7 +26,7 @@ class OnboardingCompleteView: UIView {
     let startButton = UIButton()
 
     // Data
-    let slideData: [UIImage] = [.OnboardingCard.smile, .OnboardingCard.laugh, .OnboardingCard.angry, .OnboardingCard.sad]
+    let slideData: [IntroCharacter] = IntroCharacter.allCases
     
     // Initialization
     
@@ -48,18 +48,16 @@ extension OnboardingCompleteView {
         backgroundColor = .systemBackground
         
         titleLabel.do {
-            $0.text = "포데이를 함께 할 포비들이에요!"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .label
-            $0.textAlignment = .center
+            $0.setTextWithTypography("그리고.. 포데이를 함께 할 포비들이에요!", style: .header20)
+            $0.textColor = .neutral900
+            $0.textAlignment = .left
             $0.numberOfLines = 0
         }
         
         subtitleLabel.do {
-            $0.text = "취미 스티커 콜렉션을 꾸며요 채워보세요.\n뿌듯하실걸요?"
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
-            $0.textAlignment = .center
+            $0.setTextWithTypography("취미 스티커 콜렉션을 포비로 채워보세요.\n뿌듯하실걸요?", style: .label14)
+            $0.textColor = .neutral800
+            $0.textAlignment = .left
             $0.numberOfLines = 0
         }
         
@@ -74,22 +72,22 @@ extension OnboardingCompleteView {
         }
 
         pageControl.do {
-            $0.numberOfPages = 4  // 4개의 슬라이드
+            $0.numberOfPages = slideData.count
             $0.currentPage = 0
-            $0.pageIndicatorTintColor = .systemGray4
-            $0.currentPageIndicatorTintColor = .systemOrange
+            $0.pageIndicatorTintColor = .neutral200
+            $0.currentPageIndicatorTintColor = .neutral600
             $0.isUserInteractionEnabled = false
         }
         
         startButton.do {
             var config = UIButton.Configuration.filled()
-            config.title = "포비와 함께 시작하기"
-            config.baseBackgroundColor = .systemOrange
-            config.baseForegroundColor = .white
+            config.baseBackgroundColor = .action001
+            config.baseForegroundColor = .neutralWhite
             config.cornerStyle = .medium
             config.contentInsets = NSDirectionalEdgeInsets(top: 18, leading: 0, bottom: 18, trailing: 0)
             
             $0.configuration = config
+            $0.setTitleWithTypography("포비와 함께 시작하기", style: .header16)
         }
     }
     
@@ -102,7 +100,7 @@ extension OnboardingCompleteView {
 
         // Title
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(40)
+            $0.top.equalTo(safeAreaLayoutGuide).offset(60)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
 
@@ -114,9 +112,10 @@ extension OnboardingCompleteView {
 
         // CollectionView (슬라이드)
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(32)
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(80)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(280)
+            $0.width.equalTo(240)
         }
 
         // PageControl
@@ -149,8 +148,8 @@ extension OnboardingCompleteView: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
 
-        let data = slideData[indexPath.item]
-        cell.configure(image: data)
+        let character = slideData[indexPath.item]
+        cell.configure(with: character)
 
         return cell
     }
@@ -160,8 +159,12 @@ extension OnboardingCompleteView: UICollectionViewDataSource {
 
 extension OnboardingCompleteView: UICollectionViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let pageWidth: CGFloat = 240 + 10 // cell width + spacing
-        let currentPage = Int((scrollView.contentOffset.x + scrollView.frame.width / 2) / pageWidth)
+        let cellWidth: CGFloat = 240
+        let spacing: CGFloat = 10
+        let pageWidth = cellWidth + spacing
+
+        // 현재 페이지 계산 (반올림)
+        let currentPage = Int(round(scrollView.contentOffset.x / pageWidth))
         pageControl.currentPage = min(max(currentPage, 0), slideData.count - 1)
     }
 
@@ -170,17 +173,22 @@ extension OnboardingCompleteView: UICollectionViewDelegate {
         let spacing: CGFloat = 10
         let pageWidth = cellWidth + spacing
 
-        let collectionViewWidth = scrollView.frame.width
-        let leftInset = (collectionViewWidth - cellWidth) / 2
+        // 현재 오프셋 기반으로 페이지 계산
+        let currentOffset = scrollView.contentOffset.x
+        var targetPage = round(currentOffset / pageWidth)
 
-        let targetX = targetContentOffset.pointee.x
-        let offsetX = targetX + leftInset
+        // 빠른 스와이프 시 velocity 기반으로 페이지 이동
+        if velocity.x > 0.3 {
+            targetPage = ceil(currentOffset / pageWidth)
+        } else if velocity.x < -0.3 {
+            targetPage = floor(currentOffset / pageWidth)
+        }
 
-        var page = round(offsetX / pageWidth)
-        page = max(0, min(page, CGFloat(slideData.count - 1)))
+        // 페이지 범위 제한
+        targetPage = max(0, min(targetPage, CGFloat(slideData.count - 1)))
 
-        let newTargetX = page * pageWidth - leftInset
-        targetContentOffset.pointee.x = newTargetX
+        // 새 타겟 오프셋 설정
+        targetContentOffset.pointee.x = targetPage * pageWidth
     }
 }
 
