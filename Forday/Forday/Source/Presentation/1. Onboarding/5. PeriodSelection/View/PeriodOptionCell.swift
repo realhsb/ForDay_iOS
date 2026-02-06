@@ -11,59 +11,49 @@ import SnapKit
 import Then
 
 class PeriodOptionCell: UICollectionViewCell {
-    
+
     static let identifier = "PeriodOptionCell"
-    
+
     // Properties
-    
+
     private let containerView = UIView()
-    private let iconView = UIView()
-    private let iconLabel = UILabel()
-    
-    private let titleView = UIView()
+    private let checkboxImageView = UIImageView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    private let checkmarkImageView = UIImageView()
-    
+    private let recommendLabel = UILabel()
+
     // Initialization
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         style()
         layout()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // Configuration
 
     func configure(with period: PeriodModel, isSelected: Bool) {
-        titleLabel.text = period.title
-        subtitleLabel.text = period.subtitle
-        
-        // 아이콘 설정 (Enum 활용)
-        switch period.type {
-        case .flexible:
-            iconLabel.text = "∞"
-        case .fixed:
-            iconLabel.text = "😊"
-        }
-        
+        titleLabel.setTextWithTypography(period.title, style: .header16)
+        subtitleLabel.setTextWithTypography(period.subtitle, style: .label12)
+
+        // 추천 라벨: fixed(66일) 타입만 표시
+        recommendLabel.isHidden = period.type != .fixed
+
         // 선택 상태에 따른 스타일 변경
         if isSelected {
-            containerView.backgroundColor = .systemBackground
-            containerView.layer.borderColor = UIColor.systemOrange.cgColor
-            containerView.layer.borderWidth = 2
-            checkmarkImageView.image = UIImage(systemName: "checkmark.circle.fill")
-            checkmarkImageView.tintColor = .systemOrange
-        } else {
-            containerView.backgroundColor = .systemBackground
-            containerView.layer.borderColor = UIColor.systemGray5.cgColor
+            containerView.backgroundColor = .bg004
+            containerView.layer.borderColor = UIColor.primary001.cgColor
             containerView.layer.borderWidth = 1
-            checkmarkImageView.image = UIImage(systemName: "circle")
-            checkmarkImageView.tintColor = .systemGray4
+            checkboxImageView.image = .Onoff.checkboxTrue
+        } else {
+            containerView.backgroundColor = .bg001
+            containerView.layer.borderColor = UIColor.stroke001.cgColor
+            containerView.layer.borderWidth = 1
+            checkboxImageView.image = .Onoff.checkboxFalse
         }
     }
 }
@@ -73,114 +63,112 @@ class PeriodOptionCell: UICollectionViewCell {
 extension PeriodOptionCell {
     private func style() {
         containerView.do {
-            $0.backgroundColor = .systemBackground
-            $0.layer.cornerRadius = 16
+            $0.backgroundColor = .bg001
+            $0.layer.cornerRadius = 12
             $0.layer.borderWidth = 1
-            $0.layer.borderColor = UIColor.systemGray5.cgColor
+            $0.layer.borderColor = UIColor.stroke001.cgColor
         }
-        
-        iconView.do {
-            $0.backgroundColor = UIColor(hex: "FFF4E6")
-            $0.layer.cornerRadius = 26  // 52 / 2
-        }
-        
-        iconLabel.do {
-            $0.font = .systemFont(ofSize: 28)
-            $0.textAlignment = .center
-        }
-        
-        titleLabel.do {
-            $0.font = .systemFont(ofSize: 18, weight: .bold)
-            $0.textColor = .label
-            $0.numberOfLines = 0
-        }
-        
-        subtitleLabel.do {
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
-            $0.numberOfLines = 0
-        }
-        
-        checkmarkImageView.do {
+
+        checkboxImageView.do {
             $0.contentMode = .scaleAspectFit
-            $0.tintColor = .systemGray4
+            $0.image = .Onoff.checkboxFalse
+        }
+
+        titleLabel.do {
+            $0.applyTypography(.header16)
+            $0.textColor = .neutral900
+            $0.numberOfLines = 0
+        }
+
+        subtitleLabel.do {
+            $0.applyTypography(.label12)
+            $0.textColor = .neutral600
+            $0.numberOfLines = 0
+        }
+
+        recommendLabel.do {
+            $0.setTextWithTypography("추천", style: .body12)
+            $0.textColor = .action001
+            $0.isHidden = true
         }
     }
-    
+
     private func layout() {
         contentView.addSubview(containerView)
-        containerView.addSubview(iconView)
-        iconView.addSubview(iconLabel)
-        
-        // StackView 생성
-        let titleStackView = UIStackView()
-        titleStackView.axis = .vertical
-        titleStackView.spacing = 4
-        titleStackView.alignment = .leading
-        titleStackView.addArrangedSubview(titleLabel)
-        titleStackView.addArrangedSubview(subtitleLabel)
-        
-        containerView.addSubview(titleStackView)
-        containerView.addSubview(checkmarkImageView)
-        
+        containerView.addSubview(checkboxImageView)
+        containerView.addSubview(titleLabel)
+        containerView.addSubview(subtitleLabel)
+        containerView.addSubview(recommendLabel)
+
         // Container
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
-        // Icon
-        iconView.snp.makeConstraints {
+
+        // Checkbox (왼쪽)
+        checkboxImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalToSuperview()
-            $0.top.greaterThanOrEqualToSuperview().offset(20)
-            $0.bottom.lessThanOrEqualToSuperview().offset(-20)
-            $0.width.height.equalTo(52)
+            $0.top.equalToSuperview().offset(12)
+            $0.width.height.equalTo(24)
         }
-        
-        iconLabel.snp.makeConstraints {
-            $0.center.equalToSuperview()
-        }
-        
-        // TitleStackView
-        titleStackView.snp.makeConstraints {
-            $0.leading.equalTo(iconView.snp.trailing).offset(16)
-            $0.centerY.equalToSuperview()
-            $0.trailing.lessThanOrEqualTo(checkmarkImageView.snp.leading).offset(-8)
-            $0.top.greaterThanOrEqualToSuperview().offset(20)
-            $0.bottom.lessThanOrEqualToSuperview().offset(-20)
-        }
-        
-        // Checkmark
-        checkmarkImageView.snp.makeConstraints {
+
+        // 추천 라벨 (오른쪽 상단)
+        recommendLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().offset(-16)
-            $0.width.height.equalTo(24)
+        }
+
+        // Title
+        titleLabel.snp.makeConstraints {
+            $0.leading.equalTo(checkboxImageView.snp.leading)
+            $0.top.equalTo(checkboxImageView.snp.bottom).offset(8)
+        }
+
+        // Subtitle
+        subtitleLabel.snp.makeConstraints {
+            $0.leading.equalTo(checkboxImageView.snp.leading)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(4)
+//            $0.bottom.equalToSuperview().offset(-36)
         }
     }
 }
 
-#Preview("선택 안 됨") {
+#if DEBUG
+#Preview("선택 안 됨 - 자율") {
     let cell = PeriodOptionCell()
     cell.configure(
-        with: PeriodModel(
-            id: "1",
-            title: "기간 미지정 (자율 모드)",
-            subtitle: "정해두지 않고, 흐름대로",
-            type: .flexible
-        ),
+        with: PeriodModel(id: "1", type: .flexible),
         isSelected: false
     )
-    
+
     let container = UIView()
-    container.backgroundColor = .systemGray6
+    container.backgroundColor = .bg002
     container.addSubview(cell)
-    
-    // SnapKit으로 정가운데 + 크기 지정
+
     cell.snp.makeConstraints {
         $0.center.equalToSuperview()
         $0.leading.trailing.equalToSuperview().inset(20)
-        $0.height.equalTo(160)
     }
-    
+
     return container
 }
+
+#Preview("선택됨 - 추천") {
+    let cell = PeriodOptionCell()
+    cell.configure(
+        with: PeriodModel(id: "2", type: .fixed),
+        isSelected: true
+    )
+
+    let container = UIView()
+    container.backgroundColor = .bg002
+    container.addSubview(cell)
+
+    cell.snp.makeConstraints {
+        $0.center.equalToSuperview()
+        $0.leading.trailing.equalToSuperview().inset(20)
+    }
+
+    return container
+}
+#endif

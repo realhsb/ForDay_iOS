@@ -9,9 +9,6 @@
 import Foundation
 import Combine
 
-import Foundation
-import Combine
-
 class PurposeSelectionViewModel {
 
     // Published Properties
@@ -19,6 +16,7 @@ class PurposeSelectionViewModel {
     @Published var purposes: [PurposeModel] = []
     @Published var selectedPurpose: PurposeModel?
     @Published var isNextButtonEnabled: Bool = false
+    var customPurposeText: String?
 
     // Coordinator에게 데이터 전달
     var onPurposeSelected: ((String) -> Void)?
@@ -47,6 +45,7 @@ class PurposeSelectionViewModel {
 
         let purpose = purposes[index]
         selectedPurpose = purpose
+        customPurposeText = nil
         isNextButtonEnabled = true
 
         // 클로저 호출
@@ -58,6 +57,14 @@ class PurposeSelectionViewModel {
         guard index < purposes.count else { return false }
         let purpose = purposes[index]
         return selectedPurpose?.id == purpose.id
+    }
+
+    /// 커스텀 목적 설정
+    func setCustomPurpose(_ text: String) {
+        customPurposeText = text
+        selectedPurpose = nil
+        isNextButtonEnabled = true
+        onPurposeSelected?(text)
     }
 
     /// 초기 목적 설정 (온보딩 재개 시)

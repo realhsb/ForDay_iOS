@@ -32,8 +32,8 @@ class TimeSelectionViewModel {
     
     private func convertToMinutes(_ time: String) -> Int {
         switch time {
-        case "10": return 10
-        case "20": return 20
+        case "10분": return 10
+        case "20분": return 20
         case "30분": return 30
         case "1시간": return 60
         case "2시간": return 120
@@ -51,8 +51,8 @@ class TimeSelectionViewModel {
 
     private func convertMinutesToString(_ minutes: Int) -> String {
         switch minutes {
-        case 10: return "10"
-        case 20: return "20"
+        case 10: return "10분"
+        case 20: return "20분"
         case 30: return "30분"
         case 60: return "1시간"
         case 120: return "2시간"

@@ -105,7 +105,7 @@ final class StickerBoardView: UIView {
         stickerGridView.snp.makeConstraints {
             $0.top.equalTo(headerView.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalToSuperview().inset(20)
+            $0.height.equalTo(234) // 4행(48pt) + 3간격(6pt) + 상하패딩(12pt×2)
         }
 
         emptyStateLabel.snp.makeConstraints {

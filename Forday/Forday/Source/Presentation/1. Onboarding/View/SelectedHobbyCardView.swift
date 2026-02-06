@@ -54,12 +54,12 @@ class SelectedHobbyCardView: UIView {
             infoItems.append(time)
         }
 
-        if let frequency = frequency, !frequency.isEmpty {
-            infoItems.append(frequency)
-        }
-
         if let purpose = purpose, !purpose.isEmpty {
             infoItems.append(purpose)
+        }
+
+        if let frequency = frequency, !frequency.isEmpty {
+            infoItems.append(frequency)
         }
 
         // 정보가 있으면 infoStackView 표시
@@ -68,16 +68,14 @@ class SelectedHobbyCardView: UIView {
 
             for (index, item) in infoItems.enumerated() {
                 let label = UILabel()
-                label.font = .systemFont(ofSize: 10, weight: .regular)
+                label.setTextWithTypography(item, style: .label10)
                 label.textColor = .neutral600
-                label.text = item
                 infoStackView.addArrangedSubview(label)
 
                 // 마지막 아이템이 아니면 점(•) 추가
                 if index < infoItems.count - 1 {
                     let dotLabel = UILabel()
-                    dotLabel.text = "•"
-                    dotLabel.font = .systemFont(ofSize: 10, weight: .regular)
+                    dotLabel.setTextWithTypography("•", style: .label10)
                     dotLabel.textColor = .neutral600
                     infoStackView.addArrangedSubview(dotLabel)
                 }
@@ -123,7 +121,7 @@ extension SelectedHobbyCardView {
         }
 
         titleLabel.do {
-            $0.font = .systemFont(ofSize: 16, weight: .medium)
+            $0.applyTypography(.body16)
             $0.textColor = .neutral800
         }
 

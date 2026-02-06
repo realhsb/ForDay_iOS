@@ -32,6 +32,17 @@ class LoginView: UIView {
 
     let guestLoginButton = UIButton()
 
+    // MARK: - Properties
+
+    /// 로그인 진행 중 버튼 중복 탭 방지
+    var isLoginInProgress: Bool = false {
+        didSet {
+            kakaoLoginButton.isEnabled = !isLoginInProgress
+            appleLoginButton.isEnabled = !isLoginInProgress
+            guestLoginButton.isEnabled = !isLoginInProgress
+        }
+    }
+
     // MARK: - Initialization
 
     override init(frame: CGRect) {

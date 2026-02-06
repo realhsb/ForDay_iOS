@@ -21,8 +21,9 @@ class PeriodSelectionView: UIView {
     let selectedHobbyCard = SelectedHobbyCardView()
     let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal  // 가로 스크롤로 변경
-        layout.minimumLineSpacing = 16
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 8  // 셀 사이 간격
+        layout.minimumInteritemSpacing = 8
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
     
@@ -50,19 +51,17 @@ class PeriodSelectionView: UIView {
 
 extension PeriodSelectionView {
     private func style() {
-        backgroundColor = .systemBackground
+        backgroundColor = .bg001
         
         titleLabel.do {
-            $0.text = "이 취미, 어떻게 이어가볼까요?"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .label
+            $0.setTextWithTypography("이 취미, 어떻게 이어가볼까요?", style: .header20)
+            $0.textColor = .neutral900
             $0.numberOfLines = 0
         }
-        
+
         subtitleLabel.do {
-            $0.text = "며칠동안 해볼까요?\n하루에 1개씩 꾸준히 기록을 남겨봐요."
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.textColor = .secondaryLabel
+            $0.setTextWithTypography("며칠동안 해볼까요?\n하루에 1개씩 꾸준히 기록을 남겨봐요.", style: .label14)
+            $0.textColor = .neutral800
             $0.numberOfLines = 0
         }
         
@@ -107,11 +106,15 @@ extension PeriodSelectionView {
             $0.leading.trailing.equalToSuperview()
         }
         
-        // CollectionView (가로 스크롤, 단일 셀 높이)
+        // CollectionView (정사각형 셀)
+        // 셀 크기: (화면 너비 - 20 - 8 - 20) / 2
+        let screenWidth = UIScreen.main.bounds.width
+        let cellSize = (screenWidth - 20 - 8 - 20) / 2
+
         collectionView.snp.makeConstraints {
             $0.top.equalTo(selectedHobbyCard.snp.bottom).offset(32)
             $0.leading.trailing.equalToSuperview()
-            $0.height.equalTo(160)  // 단일 셀 높이
+            $0.height.equalTo(cellSize)
         }
     }
 }

@@ -12,18 +12,25 @@ import Then
 import Combine
 
 class BaseOnboardingViewController: UIViewController {
-    
+
     // Properties
     let nextButton = UIButton()
-    
+
     // Static으로 공유 (모든 VC가 같은 프로그래스바 사용)
+    private static var sharedProgressContainer: UIView?
     private static var sharedProgressBar: GradientProgressView?
-    
+
+    /// 화면 전환 중 여부 (중복 탭 방지)
+    private(set) var isTransitioning: Bool = false
+
+    /// 자동 진행 작업 (중복 탭 시 취소용)
+    var autoAdvanceWorkItem: DispatchWorkItem?
+
     var cancellables = Set<AnyCancellable>()
-    
+
     // Coordinator
     weak var coordinator: OnboardingCoordinator?
-    
+
     // Layout Constants
     var horizontalPadding: CGFloat = 16
     var nextButtonVerticalPadding: CGFloat = 18
@@ -40,13 +47,15 @@ class BaseOnboardingViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // viewWillAppear에서는 아무것도 안 함 (이미 viewDidLoad에서 처리)
+        // 화면이 다시 나타날 때 전환 상태 초기화 (뒤로가기 시 재활성화)
+        resetTransition()
     }
     
     deinit {
         // 마지막 VC가 사라질 때 프로그래스바도 제거
         if navigationController?.viewControllers.isEmpty == true {
-            BaseOnboardingViewController.sharedProgressBar?.removeFromSuperview()
+            BaseOnboardingViewController.sharedProgressContainer?.removeFromSuperview()
+            BaseOnboardingViewController.sharedProgressContainer = nil
             BaseOnboardingViewController.sharedProgressBar = nil
         }
     }
@@ -56,19 +65,28 @@ class BaseOnboardingViewController: UIViewController {
 
 extension BaseOnboardingViewController {
     private func style() {
-        view.backgroundColor = .systemBackground
-        
-        // 내비게이션 바
+        view.backgroundColor = .neutral50
+
+        // 내비게이션 바 커스텀
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .neutral50
+        appearance.shadowColor = nil
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.neutral900]
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.prefersLargeTitles = false
+
+        // 뒤로가기 버튼
         let backButton = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.left"),
+            image: .Icon.chevronLeft,
             style: .plain,
             target: self,
             action: #selector(backButtonTapped)
         )
-        backButton.tintColor = .label
+        backButton.tintColor = .neutral900
         navigationItem.leftBarButtonItem = backButton
-        navigationController?.navigationBar.prefersLargeTitles = false
-        
+
         // 다음 버튼
         nextButton.do {
             var config = UIButton.Configuration.filled()
@@ -99,19 +117,31 @@ extension BaseOnboardingViewController {
     
     private func setupProgressBarIfNeeded() {
         guard let navigationBar = navigationController?.navigationBar else { return }
-        
+
         // 이미 프로그래스바가 있으면 재사용
         if BaseOnboardingViewController.sharedProgressBar == nil {
+            let container = UIView()
+            container.backgroundColor = .neutral50
+            container.isUserInteractionEnabled = false
+
             let progressBar = GradientProgressView()
+            BaseOnboardingViewController.sharedProgressContainer = container
             BaseOnboardingViewController.sharedProgressBar = progressBar
-            
-            navigationBar.addSubview(progressBar)
-            
+
+            navigationBar.addSubview(container)
+            container.addSubview(progressBar)
+
+            container.snp.makeConstraints {
+                $0.top.equalTo(navigationBar.snp.bottom)
+                $0.leading.trailing.equalToSuperview()
+            }
+
             progressBar.snp.makeConstraints {
+                $0.top.equalToSuperview().offset(8)
                 $0.leading.equalToSuperview().offset(20)
                 $0.trailing.equalToSuperview().offset(-20)
-                $0.bottom.equalToSuperview().offset(16)
                 $0.height.equalTo(8)
+                $0.bottom.equalToSuperview().offset(-16)
             }
         }
     }
@@ -149,14 +179,29 @@ extension BaseOnboardingViewController {
 
     /// 프로그래스바 숨기기 (닉네임 설정 화면용)
     func hideProgressBar() {
-        BaseOnboardingViewController.sharedProgressBar?.isHidden = true
+        BaseOnboardingViewController.sharedProgressContainer?.isHidden = true
     }
 
     /// 프로그래스바 초기화 (새로운 온보딩 시작 시)
     static func resetProgressBar() {
-        sharedProgressBar?.removeFromSuperview()
+        sharedProgressContainer?.removeFromSuperview()
+        sharedProgressContainer = nil
         sharedProgressBar = nil
         print("✅ 프로그래스바 초기화 완료")
+    }
+
+    /// 화면 전환 시작 (중복 탭 방지)
+    func startTransition() {
+        isTransitioning = true
+        view.isUserInteractionEnabled = false
+    }
+
+    /// 화면 전환 상태 초기화
+    func resetTransition() {
+        autoAdvanceWorkItem?.cancel()
+        autoAdvanceWorkItem = nil
+        isTransitioning = false
+        view.isUserInteractionEnabled = true
     }
 }
 
@@ -174,6 +219,8 @@ extension BaseOnboardingViewController {
     }
 }
 
+#if DEBUG
 #Preview {
     UINavigationController(rootViewController: HobbySelectionViewController(viewModel: .init()))
 }
+#endif

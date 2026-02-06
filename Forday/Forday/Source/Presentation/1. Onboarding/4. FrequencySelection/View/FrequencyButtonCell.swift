@@ -62,7 +62,7 @@ extension FrequencyButtonCell {
         }
         
         numberLabel.do {
-            $0.font = .systemFont(ofSize: 20, weight: .semibold)
+            $0.applyTypography(.header20)
             $0.textColor = .neutralBlack
             $0.textAlignment = .center
         }
