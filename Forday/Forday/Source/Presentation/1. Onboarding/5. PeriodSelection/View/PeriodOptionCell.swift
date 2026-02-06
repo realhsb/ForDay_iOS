@@ -134,15 +134,10 @@ extension PeriodOptionCell {
 }
 
 #if DEBUG
-#Preview("선택 안 됨") {
+#Preview("선택 안 됨 - 자율") {
     let cell = PeriodOptionCell()
     cell.configure(
-        with: PeriodModel(
-            id: "1",
-            title: "기간 미지정\n(자율 모드)",
-            subtitle: "정해두지 않고, 흐름대로",
-            type: .flexible
-        ),
+        with: PeriodModel(id: "1", type: .flexible),
         isSelected: false
     )
 
@@ -153,7 +148,6 @@ extension PeriodOptionCell {
     cell.snp.makeConstraints {
         $0.center.equalToSuperview()
         $0.leading.trailing.equalToSuperview().inset(20)
-//        $0.height.equalTo(100)
     }
 
     return container
@@ -162,12 +156,7 @@ extension PeriodOptionCell {
 #Preview("선택됨 - 추천") {
     let cell = PeriodOptionCell()
     cell.configure(
-        with: PeriodModel(
-            id: "2",
-            title: "66일\n(포데이 모드)",
-            subtitle: "생활에 자연스럽게 스며드는 기간",
-            type: .fixed
-        ),
+        with: PeriodModel(id: "2", type: .fixed),
         isSelected: true
     )
 
@@ -178,7 +167,6 @@ extension PeriodOptionCell {
     cell.snp.makeConstraints {
         $0.center.equalToSuperview()
         $0.leading.trailing.equalToSuperview().inset(20)
-//        $0.height.equalTo(100)
     }
 
     return container
