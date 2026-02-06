@@ -88,6 +88,7 @@ extension CommonPopupViewController {
             $0.textColor = .neutral800
             $0.textAlignment = .center
             $0.numberOfLines = 0
+            $0.isHidden = popupMessage.isEmpty
         }
 
         buttonStackView.do {
@@ -140,18 +141,28 @@ extension CommonPopupViewController {
             $0.trailing.equalToSuperview().offset(-20)
         }
 
-        messageLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-        }
+        if popupMessage.isEmpty {
+            buttonStackView.snp.makeConstraints {
+                $0.top.equalTo(titleLabel.snp.bottom).offset(20)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.height.equalTo(40)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
+        } else {
+            messageLabel.snp.makeConstraints {
+                $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+            }
 
-        buttonStackView.snp.makeConstraints {
-            $0.top.equalTo(messageLabel.snp.bottom).offset(20)
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.height.equalTo(40)
-            $0.bottom.equalToSuperview().offset(-24)
+            buttonStackView.snp.makeConstraints {
+                $0.top.equalTo(messageLabel.snp.bottom).offset(20)
+                $0.leading.equalToSuperview().offset(20)
+                $0.trailing.equalToSuperview().offset(-20)
+                $0.height.equalTo(40)
+                $0.bottom.equalToSuperview().offset(-24)
+            }
         }
     }
 
