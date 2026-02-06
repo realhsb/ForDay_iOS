@@ -37,7 +37,6 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
         super.viewDidLoad()
         setNavigationTitle("취미 목적")
         hideNextButton()
-        setupHobbyCard()
         setupCollectionView()
         setupActions()
         bind()
@@ -46,6 +45,7 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.6)  // 3/5 = 60%
+        setupHobbyCard()
     }
 
     // Actions
