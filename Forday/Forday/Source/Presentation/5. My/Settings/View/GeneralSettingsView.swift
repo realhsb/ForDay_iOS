@@ -33,7 +33,7 @@ final class GeneralSettingsView: UIView {
     // Section 2: 계정
     private let accountSectionView = UIView()
     let logoutRow = SettingsRowView(title: "로그아웃", hasChevron: true)
-    private let deleteAccountButton = UIButton(type: .system)
+    let deleteAccountButton = UIButton(type: .system)
 
     // MARK: - Initialization
 

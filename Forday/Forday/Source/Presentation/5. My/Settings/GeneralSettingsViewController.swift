@@ -31,12 +31,12 @@ final class GeneralSettingsViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 }
 
@@ -60,6 +60,13 @@ extension GeneralSettingsViewController {
 
         let logoutGesture = UITapGestureRecognizer(target: self, action: #selector(logoutTapped))
         settingsView.logoutRow.addGestureRecognizer(logoutGesture)
+
+        // Delete account button
+        settingsView.deleteAccountButton.addTarget(
+            self,
+            action: #selector(deleteAccountTapped),
+            for: .touchUpInside
+        )
     }
 
     private func setupAppVersion() {
@@ -77,34 +84,39 @@ extension GeneralSettingsViewController {
     }
 
     @objc private func termsOfServiceTapped() {
-        // TODO: Open terms of service URL
-        print("📄 Terms of service tapped")
-        showComingSoonAlert(feature: "서비스 이용약관")
+        let vc = TermsViewController(termsType: .termsOfService)
+        present(vc, animated: true)
     }
 
     @objc private func privacyPolicyTapped() {
-        // TODO: Open privacy policy URL
-        print("🔒 Privacy policy tapped")
-        showComingSoonAlert(feature: "개인정보 보호정책")
+        let vc = TermsViewController(termsType: .privacyPolicy)
+        present(vc, animated: true)
     }
 
     @objc private func logoutTapped() {
-        showLogoutAlert()
+        showLogoutPopup()
     }
 
-    private func showLogoutAlert() {
-        let alert = UIAlertController(
-            title: "로그아웃",
-            message: "정말 로그아웃 하시겠습니까?",
-            preferredStyle: .alert
+    @objc private func deleteAccountTapped() {
+        let vc = DeleteAccountViewController()
+        vc.coordinator = coordinator
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+
+    private func showLogoutPopup() {
+        let popup = CommonPopupViewController(
+            title: "로그아웃 하시겠습니까?",
+            message: "",
+            primaryButtonTitle: "로그아웃",
+            secondaryButtonTitle: "닫기"
         )
 
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "로그아웃", style: .destructive) { [weak self] _ in
+        popup.onPrimaryAction = { [weak self] in
             self?.performLogout()
-        })
+        }
 
-        present(alert, animated: true)
+        present(popup, animated: true)
     }
 
     private func performLogout() {
@@ -124,16 +136,6 @@ extension GeneralSettingsViewController {
             print("❌ Logout failed: \(error)")
             showError(error.localizedDescription)
         }
-    }
-
-    private func showComingSoonAlert(feature: String) {
-        let alert = UIAlertController(
-            title: "준비 중",
-            message: "\(feature) 기능은 곧 제공될 예정입니다.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
-        present(alert, animated: true)
     }
 
     private func showError(_ message: String) {
