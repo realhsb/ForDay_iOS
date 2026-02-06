@@ -72,7 +72,7 @@ extension PeriodSelectionView {
 
         // Edit Mode Navigation (initially hidden)
         editNavigationView.do {
-            $0.backgroundColor = .bg001
+            $0.backgroundColor = .neutral50
             $0.isHidden = true
         }
 
@@ -113,10 +113,14 @@ extension PeriodSelectionView {
         }
 
         changeButton.do {
-            $0.backgroundColor = .primary001
+            var config = UIButton.Configuration.filled()
+            config.baseBackgroundColor = .primary001
+            config.baseForegroundColor = .neutralWhite
+            config.contentInsets = NSDirectionalEdgeInsets(top: 18, leading: 0, bottom: 18, trailing: 0)
+            $0.configuration = config
+            
             $0.layer.cornerRadius = 12
             $0.setTitleWithTypography("변경하기", style: .header16)
-            $0.setTitleColor(.white, for: .normal)
             $0.addTarget(self, action: #selector(changeButtonTapped), for: .touchUpInside)
         }
     }
