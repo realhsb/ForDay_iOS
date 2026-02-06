@@ -26,6 +26,9 @@ final class ProfileView: UIView {
     let segmentedControlView = ProfileSegmentedControlView()
     let contentContainerView = UIView()
 
+    // Dynamic height constraint for content
+    private var contentHeightConstraint: Constraint?
+
     // MARK: - Initialization
 
     override init(frame: CGRect) {
@@ -149,9 +152,18 @@ extension ProfileView {
             $0.top.equalTo(segmentedControlView.snp.bottom)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
-            // 최소 높이 설정 - 화면 나머지 공간 채우기
-            $0.height.greaterThanOrEqualTo(400)
+            // Dynamic height - will be updated by child content
+            contentHeightConstraint = $0.height.equalTo(400).constraint
         }
+    }
+
+    /// Updates the content container height for dynamic child content
+    func updateContentHeight(_ height: CGFloat) {
+        // Ensure minimum height to fill screen
+        let screenHeight = UIScreen.main.bounds.height
+        let minHeight = screenHeight - 56 - 80 - 44 - 100 // nav + header + segment + tabbar
+        let finalHeight = max(height, minHeight)
+        contentHeightConstraint?.update(offset: finalHeight)
     }
 }
 

@@ -21,8 +21,13 @@ final class ScrapGridViewController: UIViewController {
 
     // UI Components
     private let scrapCollectionView: UICollectionView
-    private let refreshControl = UIRefreshControl()
     private let emptyStateView = EmptyStateView()
+
+    // Height constraint for dynamic sizing
+    private var collectionViewHeightConstraint: Constraint?
+
+    // Callback for content height change (for parent scroll adjustment)
+    var onContentHeightChanged: ((CGFloat) -> Void)?
 
     // MARK: - Initialization
 
@@ -63,11 +68,7 @@ extension ScrapGridViewController {
 
         scrapCollectionView.do {
             $0.backgroundColor = .systemBackground
-            $0.refreshControl = refreshControl
-        }
-
-        refreshControl.do {
-            $0.addTarget(self, action: #selector(refreshScraps), for: .valueChanged)
+            $0.isScrollEnabled = false  // Disable scroll - parent scrollView handles it
         }
     }
 
@@ -75,7 +76,10 @@ extension ScrapGridViewController {
         view.addSubview(scrapCollectionView)
 
         scrapCollectionView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.leading.trailing.equalToSuperview()
+            $0.bottom.lessThanOrEqualToSuperview()
+            // Store height constraint for dynamic updates
+            collectionViewHeightConstraint = $0.height.equalTo(0).priority(.high).constraint
         }
     }
 
@@ -86,6 +90,22 @@ extension ScrapGridViewController {
             ActivityPhotoCell.self,
             forCellWithReuseIdentifier: ActivityPhotoCell.identifier
         )
+
+        // Observe contentSize changes for dynamic height
+        scrapCollectionView.publisher(for: \.contentSize)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] contentSize in
+                self?.updateCollectionViewHeight(contentSize.height)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateCollectionViewHeight(_ height: CGFloat) {
+        guard height > 0 else { return }
+        collectionViewHeightConstraint?.update(offset: height)
+
+        // Notify parent about height change
+        onContentHeightChanged?(height)
     }
 
     private func bind() {
@@ -97,28 +117,12 @@ extension ScrapGridViewController {
                 self?.updateEmptyState(hasScraps: !scraps.isEmpty)
             }
             .store(in: &cancellables)
-
-        // Loading state
-        viewModel.$isLoading
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isLoading in
-                if !isLoading {
-                    self?.refreshControl.endRefreshing()
-                }
-            }
-            .store(in: &cancellables)
     }
 }
 
 // MARK: - Actions
 
 extension ScrapGridViewController {
-    @objc private func refreshScraps() {
-        Task {
-            await viewModel.refreshScraps()
-        }
-    }
-
     private func updateEmptyState(hasScraps: Bool) {
         if hasScraps {
             emptyStateView.removeFromSuperview()
@@ -179,7 +183,8 @@ extension ScrapGridViewController: UICollectionViewDelegate {
         }
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    /// Called by parent scrollView to trigger infinite scroll
+    func checkLoadMoreIfNeeded(scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height
