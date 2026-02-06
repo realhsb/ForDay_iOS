@@ -165,18 +165,17 @@ class HobbySettingsViewController: UIViewController {
             return
         }
 
-        let alertVC = CommonAlertViewController(
+        let popupVC = CommonPopupViewController(
             title: "'\(hobby.hobbyName)' 취미를 보관하시겠어요?",
             message: "저장된 기록과 함께 보관함에서 다시 꺼낼 수 있어요!",
-            cancelButtonTitle: "닫기",
-            confirmButtonTitle: "보관",
-            onCancel: nil,
-            onConfirm: { [weak self] in
-                self?.performArchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
-            }
+            primaryButtonTitle: "보관",
+            secondaryButtonTitle: "닫기"
         )
+        popupVC.onPrimaryAction = { [weak self] in
+            self?.performArchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
+        }
 
-        present(alertVC, animated: true)
+        present(popupVC, animated: true)
     }
 
     private func performArchive(hobbyId: Int, hobbyName: String) {
@@ -216,18 +215,17 @@ class HobbySettingsViewController: UIViewController {
             return
         }
 
-        let alertVC = CommonAlertViewController(
+        let popupVC = CommonPopupViewController(
             title: "'\(hobby.hobbyName)' 취미를 꺼내시겠어요?",
             message: "저장된 기록으로 다시 '\(hobby.hobbyName)' 취미를 시작할 수 있어요!",
-            cancelButtonTitle: "닫기",
-            confirmButtonTitle: "꺼내기",
-            onCancel: nil,
-            onConfirm: { [weak self] in
-                self?.performUnarchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
-            }
+            primaryButtonTitle: "꺼내기",
+            secondaryButtonTitle: "닫기"
         )
+        popupVC.onPrimaryAction = { [weak self] in
+            self?.performUnarchive(hobbyId: hobbyId, hobbyName: hobby.hobbyName)
+        }
 
-        present(alertVC, animated: true)
+        present(popupVC, animated: true)
     }
 
     private func performUnarchive(hobbyId: Int, hobbyName: String) {
