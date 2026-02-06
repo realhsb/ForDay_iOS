@@ -101,7 +101,7 @@ extension ActivityListView {
         }
 
         emptyLabel.do {
-            $0.setTextWithTypography("진행 중인 취미가 없어요.", style: .body14)
+            $0.setTextWithTypography("진행 중인 취미활동이 없어요.", style: .body14)
             $0.textColor = .neutral600
         }
 
@@ -114,7 +114,7 @@ extension ActivityListView {
 
             $0.backgroundColor = .primary003
             $0.layer.cornerRadius = 12
-            $0.setTitleWithTypography("취미 추가하기", style: .header14)
+            $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
             $0.setTitleColor(.action001, for: .normal)
             $0.addTarget(self, action: #selector(createActivityButtonTapped), for: .touchUpInside)
         }
