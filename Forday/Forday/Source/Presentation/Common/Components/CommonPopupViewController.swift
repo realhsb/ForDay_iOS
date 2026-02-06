@@ -137,6 +137,7 @@ extension CommonPopupViewController {
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(24)
             $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
         }
 
         messageLabel.snp.makeConstraints {

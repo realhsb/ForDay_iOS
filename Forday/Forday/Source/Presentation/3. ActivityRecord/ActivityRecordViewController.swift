@@ -242,9 +242,9 @@ extension ActivityRecordViewController {
             guard let presenter = presentingVC else { return }
 
             let inputVC = HobbyActivityInputViewController(hobbyId: hobbyId)
-            inputVC.onActivityCreated = {
+            inputVC.onActivityCreated = { [weak inputVC] in
                 // 활동 생성 완료 시 dismiss
-                inputVC.dismiss(animated: true)
+                inputVC?.dismiss(animated: true)
             }
 
             let nav = UINavigationController(rootViewController: inputVC)

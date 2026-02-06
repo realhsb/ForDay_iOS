@@ -106,16 +106,14 @@ extension ActivityListView {
         }
 
         createActivityButton.do {
-            
-            var config = UIButton.Configuration.plain()
+            var config = UIButton.Configuration.filled()
+            config.baseBackgroundColor = .primary003
             config.baseForegroundColor = .action001
+            config.background.cornerRadius = 12
             config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 40, bottom: 12, trailing: 40)
             $0.configuration = config
 
-            $0.backgroundColor = .primary003
-            $0.layer.cornerRadius = 12
             $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
-            $0.setTitleColor(.action001, for: .normal)
             $0.addTarget(self, action: #selector(createActivityButtonTapped), for: .touchUpInside)
         }
     }

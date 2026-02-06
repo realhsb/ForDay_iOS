@@ -413,16 +413,18 @@ class HobbySettingsViewController: UIViewController {
 
         // Set completion handler to pop back to HobbySettings
         onboardingCoordinator?.onHobbyCreationCompleted = { [weak self] in
+            guard let self = self else { return }
+
             // Pop all onboarding screens and return to HobbySettings
-            self?.navigationController?.popToViewController(self!, animated: true)
+            self.navigationController?.popToViewController(self, animated: true)
 
             // Clear onboarding coordinator reference
-            self?.onboardingCoordinator = nil
+            self.onboardingCoordinator = nil
 
             // Refresh hobby list
             Task {
                 do {
-                    try await self?.viewModel.fetchHobbies(status: self?.viewModel.currentStatus ?? .inProgress)
+                    try await self.viewModel.fetchHobbies(status: self.viewModel.currentStatus)
                 } catch {
                     // Error already handled via binding
                 }
