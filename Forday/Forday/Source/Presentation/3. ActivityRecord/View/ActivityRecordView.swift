@@ -20,6 +20,7 @@ class ActivityRecordView: UIView {
     // 활동 선택
     private let activityLabel = UILabel()
     let activityDropdownButton = UIButton()
+    let addActivityButton = UIButton()  // 활동이 없을 때 표시
     
     // 스티커 선택
     private let stickerLabel = UILabel()
@@ -85,9 +86,21 @@ extension ActivityRecordView {
             config.background.backgroundColor = .systemGray6
             config.background.cornerRadius = 12
             config.baseForegroundColor = .label
-            
+
             $0.configuration = config
             $0.contentHorizontalAlignment = .leading
+        }
+
+        addActivityButton.do {
+            var config = UIButton.Configuration.filled()
+            config.baseBackgroundColor = .primary003
+            config.baseForegroundColor = .action001
+            config.background.cornerRadius = 12
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 110, bottom: 12, trailing: 110)
+
+            $0.configuration = config
+            $0.setTitleWithTypography("취미활동 추가하기", style: .header14)
+            $0.isHidden = true  // 기본적으로 숨김
         }
         
         // 스티커 선택 (필수)
@@ -192,6 +205,7 @@ extension ActivityRecordView {
         
         contentView.addSubview(activityLabel)
         contentView.addSubview(activityDropdownButton)
+        contentView.addSubview(addActivityButton)
         contentView.addSubview(stickerLabel)
         contentView.addSubview(stickerCollectionView)
         contentView.addSubview(memoLabel)
@@ -223,7 +237,12 @@ extension ActivityRecordView {
             $0.top.equalTo(activityLabel.snp.bottom).offset(12)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
+        addActivityButton.snp.makeConstraints {
+            $0.top.equalTo(activityLabel.snp.bottom).offset(12)
+            $0.centerX.equalToSuperview()
+        }
+
         // 스티커
         stickerLabel.snp.makeConstraints {
             $0.top.equalTo(activityDropdownButton.snp.bottom).offset(24)
@@ -306,6 +325,11 @@ extension ActivityRecordView {
         var config = activityDropdownButton.configuration
         config?.title = title ?? "활동을 선택해주세요"
         activityDropdownButton.configuration = config
+    }
+
+    func showAddActivityButton(_ show: Bool) {
+        addActivityButton.isHidden = !show
+        activityDropdownButton.isHidden = show
     }
     
     func setSubmitButtonEnabled(_ isEnabled: Bool) {
