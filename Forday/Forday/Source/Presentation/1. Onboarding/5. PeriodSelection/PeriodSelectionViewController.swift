@@ -15,7 +15,6 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 
     private let periodView = PeriodSelectionView()
     let viewModel: PeriodSelectionViewModel
-    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -56,9 +55,13 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
         guard let onboardingCoordinator = coordinator as? OnboardingCoordinator else {
             return
         }
+        guard !isTransitioning else { return }
 
         // 이전 자동 진행 작업 취소
         autoAdvanceWorkItem?.cancel()
+
+        // 화면 전환 시작
+        startTransition()
 
         let onboardingData = onboardingCoordinator.getOnboardingData()
         let viewModel = self.viewModel  // viewModel을 직접 캡처 (weak self 불필요)

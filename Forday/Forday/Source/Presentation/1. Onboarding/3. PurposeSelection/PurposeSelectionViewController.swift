@@ -52,14 +52,24 @@ class PurposeSelectionViewController: BaseOnboardingViewController {
 
     private func autoAdvance() {
         guard let selectedPurpose = viewModel.selectedPurpose else { return }
+        guard !isTransitioning else { return }
+
+        // 이전 자동 진행 작업 취소
+        autoAdvanceWorkItem?.cancel()
 
         // Coordinator에게 데이터 전달
         viewModel.onPurposeSelected?(selectedPurpose.title)
 
+        // 화면 전환 시작
+        startTransition()
+
         // 다음 화면으로 (약간의 딜레이 후)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
             self?.coordinator?.next(from: .purpose)
         }
+        autoAdvanceWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
     }
 }
 
@@ -116,6 +126,8 @@ extension PurposeSelectionViewController {
     }
 
     private func showCustomInputPopup() {
+        guard !isTransitioning else { return }
+
         let popup = TextInputPopupViewController(title: "목적 입력", placeholder: "목적을 입력해 주세요.")
         popup.initialText = viewModel.customPurposeText
         popup.onSubmit = { [weak self] purposeText in
@@ -124,6 +136,7 @@ extension PurposeSelectionViewController {
             self.purposeView.updateCustomInputButton(purposeName: purposeText)
             self.purposeView.selectedHobbyCard.setSelected(true)
             self.purposeView.collectionView.reloadData()
+            self.startTransition()
             self.coordinator?.next(from: .purpose)
         }
         popup.modalPresentationStyle = .overFullScreen

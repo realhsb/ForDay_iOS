@@ -57,6 +57,8 @@ class HobbySelectionViewController: BaseOnboardingViewController {
 
     override func nextButtonTapped() {
         guard let selectedHobby = viewModel.selectedHobby else { return }
+        guard !isTransitioning else { return }
+        startTransition()
         viewModel.onHobbySelected?(selectedHobby)
         coordinator?.next(from: .hobby)
     }
@@ -128,12 +130,15 @@ extension HobbySelectionViewController {
     }
 
     private func showCustomInputPopup() {
+        guard !isTransitioning else { return }
+
         let popup = TextInputPopupViewController(title: "취미 입력", placeholder: "취미를 입력해 주세요.")
         popup.initialText = viewModel.customHobbyText
         popup.onSubmit = { [weak self] hobbyName in
             guard let self else { return }
             self.viewModel.setCustomHobby(hobbyName)
             self.hobbyView.updateCustomInputButton(hobbyName: hobbyName)
+            self.startTransition()
             self.coordinator?.next(from: .hobby)
         }
         popup.modalPresentationStyle = .overFullScreen

@@ -12,19 +12,25 @@ import Then
 import Combine
 
 class BaseOnboardingViewController: UIViewController {
-    
+
     // Properties
     let nextButton = UIButton()
-    
+
     // Static으로 공유 (모든 VC가 같은 프로그래스바 사용)
     private static var sharedProgressContainer: UIView?
     private static var sharedProgressBar: GradientProgressView?
-    
+
+    /// 화면 전환 중 여부 (중복 탭 방지)
+    private(set) var isTransitioning: Bool = false
+
+    /// 자동 진행 작업 (중복 탭 시 취소용)
+    var autoAdvanceWorkItem: DispatchWorkItem?
+
     var cancellables = Set<AnyCancellable>()
-    
+
     // Coordinator
     weak var coordinator: OnboardingCoordinator?
-    
+
     // Layout Constants
     var horizontalPadding: CGFloat = 16
     var nextButtonVerticalPadding: CGFloat = 18
@@ -41,7 +47,8 @@ class BaseOnboardingViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // viewWillAppear에서는 아무것도 안 함 (이미 viewDidLoad에서 처리)
+        // 화면이 다시 나타날 때 전환 상태 초기화 (뒤로가기 시 재활성화)
+        resetTransition()
     }
     
     deinit {
@@ -181,6 +188,20 @@ extension BaseOnboardingViewController {
         sharedProgressContainer = nil
         sharedProgressBar = nil
         print("✅ 프로그래스바 초기화 완료")
+    }
+
+    /// 화면 전환 시작 (중복 탭 방지)
+    func startTransition() {
+        isTransitioning = true
+        view.isUserInteractionEnabled = false
+    }
+
+    /// 화면 전환 상태 초기화
+    func resetTransition() {
+        autoAdvanceWorkItem?.cancel()
+        autoAdvanceWorkItem = nil
+        isTransitioning = false
+        view.isUserInteractionEnabled = true
     }
 }
 

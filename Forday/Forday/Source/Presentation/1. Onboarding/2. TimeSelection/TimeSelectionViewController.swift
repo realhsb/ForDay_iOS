@@ -15,7 +15,6 @@ class TimeSelectionViewController: BaseOnboardingViewController {
 
     private let timeView = TimeSelectionView()
     let viewModel: TimeSelectionViewModel
-    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -64,12 +63,16 @@ class TimeSelectionViewController: BaseOnboardingViewController {
 
     private func autoAdvance() {
         guard let selectedTime = viewModel.selectedTime else { return }
+        guard !isTransitioning else { return }
 
         // 이전 자동 진행 작업 취소
         autoAdvanceWorkItem?.cancel()
 
         // Coordinator에게 데이터 전달
         viewModel.selectTime(selectedTime)
+
+        // 화면 전환 시작
+        startTransition()
 
         // 다음 화면으로 (약간의 딜레이 후)
         let workItem = DispatchWorkItem { [weak self] in
