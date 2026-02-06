@@ -31,7 +31,7 @@ final class MyPageViewController: UIViewController {
 
     // Settings dropdown
     private var settingsDropdownBackgroundView: UIView?
-    private var settingsDropdownView: DropdownMenuView<MySettingsMenuItem>?
+    private var settingsDropdownView: UIView?  // Either DropdownMenuView<MySettingsMenuItem> or DropdownMenuView<GuestSettingsMenuItem>
 
     // Guest login bottom sheet
     private var hasShownGuestLoginSheet = false
@@ -397,25 +397,46 @@ extension MyPageViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissSettingsDropdown))
         backgroundView.addGestureRecognizer(tapGesture)
 
-        // Create dropdown
-        let dropdownView = DropdownMenuView(items: MySettingsMenuItem.allCases)
-        dropdownView.onItemSelected = { [weak self] menuItem in
-            self?.handleSettingsMenuSelection(menuItem)
+        // Create dropdown based on user type (guest vs social login)
+        let isGuest = TokenStorage.shared.loadGuestUserId() != nil
+
+        if isGuest {
+            // Guest user: Show only "전체설정" in neutral color
+            let dropdownView = DropdownMenuView(items: GuestSettingsMenuItem.menuItems)
+            dropdownView.onItemSelected = { [weak self] _ in
+                self?.handleGuestSettingsMenuSelection()
+            }
+            dropdownView.showInParent(view, below: myPageView.settingsButton)
+            settingsDropdownView = dropdownView
+        } else {
+            // Social login user: Show full menu with styled "전체설정"
+            let dropdownView = DropdownMenuView(items: MySettingsMenuItem.socialLoginMenuItems)
+            dropdownView.onItemSelected = { [weak self] menuItem in
+                self?.handleSettingsMenuSelection(menuItem)
+            }
+            dropdownView.showInParent(view, below: myPageView.settingsButton)
+            settingsDropdownView = dropdownView
         }
 
-        // Show dropdown below custom navigation (settings button)
-        dropdownView.showInParent(view, below: myPageView.settingsButton)
-
-        // Store references
+        // Store reference
         settingsDropdownBackgroundView = backgroundView
-        settingsDropdownView = dropdownView
     }
 
     @objc private func dismissSettingsDropdown() {
-        settingsDropdownView?.dismiss()
+        // Dismiss dropdown (handle both types)
+        if let dropdown = settingsDropdownView as? DropdownMenuView<MySettingsMenuItem> {
+            dropdown.dismiss()
+        } else if let dropdown = settingsDropdownView as? DropdownMenuView<GuestSettingsMenuItem> {
+            dropdown.dismiss()
+        }
         settingsDropdownBackgroundView?.removeFromSuperview()
         settingsDropdownView = nil
         settingsDropdownBackgroundView = nil
+    }
+
+    private func handleGuestSettingsMenuSelection() {
+        dismissSettingsDropdown()
+        showGeneralSettings()
     }
 
     private func handleSettingsMenuSelection(_ menuItem: MySettingsMenuItem) {
@@ -432,11 +453,7 @@ extension MyPageViewController {
 
         case .generalSettings:
             print("⚙️ General settings")
-            showComingSoonAlert(feature: "전체설정")
-
-        case .logout:
-            print("🚪 Logout")
-            showLogoutAlert()
+            showGeneralSettings()
         }
     }
 
@@ -451,6 +468,12 @@ extension MyPageViewController {
         // Pass all hobbies to the viewModel (진행 중 + 보관)
         viewModel.setHobbies(self.viewModel.myHobbies)
 
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func showGeneralSettings() {
+        let vc = GeneralSettingsViewController()
+        vc.coordinator = coordinator
         navigationController?.pushViewController(vc, animated: true)
     }
 
