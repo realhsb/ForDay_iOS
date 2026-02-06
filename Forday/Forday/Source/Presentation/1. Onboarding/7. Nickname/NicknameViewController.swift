@@ -63,8 +63,6 @@ class NicknameViewController: BaseOnboardingViewController {
     // Actions
 
     override func nextButtonTapped() {
-        print("닉네임 설정 완료: \(viewModel.nickname)")
-
         // 다음 버튼 비활성화 (중복 클릭 방지)
         setNextButtonEnabled(false)
 
@@ -72,8 +70,6 @@ class NicknameViewController: BaseOnboardingViewController {
             do {
                 // 닉네임 설정 API 호출
                 try await viewModel.setNickname()
-
-                print("✅ 닉네임 설정 API 성공")
 
                 // 성공 시 홈으로
                 await MainActor.run {
@@ -123,16 +119,14 @@ extension NicknameViewController {
     }
     
     private func bind() {
-        // 유효성 검사 결과
+        // 유효성 검사 결과 → 메시지 + 버튼 상태 업데이트
         viewModel.$validationResult
             .receive(on: DispatchQueue.main)
             .sink { [weak self] result in
-                self?.nicknameView.showValidationMessage(
-                    result.message
-                )
+                self?.nicknameView.updateValidationState(result)
             }
             .store(in: &cancellables)
-        
+
         // 다음 버튼 활성화
         viewModel.$isNextButtonEnabled
             .receive(on: DispatchQueue.main)
@@ -170,37 +164,15 @@ extension NicknameViewController: UITextFieldDelegate {
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-        
+
         // 10자 제한만 체크 (일단 입력은 허용)
         if updatedText.count > 10 {
             return false
         }
-        
-        // 입력 후 검증 (비동기로 처리)
-        DispatchQueue.main.async { [weak self] in
-            self?.validateInput(updatedText)
-        }
-        
-        return true  // 모든 입력 허용
+
+        return true  // 모든 입력 허용, ViewModel이 validation 처리
     }
-    
-    private func validateInput(_ text: String) {
-        // 한글, 영어, 숫자만 있는지 검사
-        let allowedPattern = "^[가-힣a-zA-Z0-9]*$"
-        let regex = try? NSRegularExpression(pattern: allowedPattern)
-        let range = NSRange(location: 0, length: text.utf16.count)
-        
-        if let match = regex?.firstMatch(in: text, range: range), match.range == range {
-            // 유효한 문자만 있음 - 경고 제거
-            if viewModel.validationResult == .invalidCharacters {
-                viewModel.nickname = text  // ViewModel 업데이트 (자동 검증)
-            }
-        } else {
-            // 유효하지 않은 문자 포함 - 경고 표시
-            viewModel.validationResult = .invalidCharacters
-        }
-    }
-    
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true

@@ -244,7 +244,8 @@ extension HomeView {
     }
     
     private func layout() {
-        contentView.insertSubview(backgroundImageView, at: 0)
+        // 배경 이미지: self에 직접 추가하여 status bar 영역까지 커버
+        insertSubview(backgroundImageView, at: 0)
 
         addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -286,8 +287,7 @@ extension HomeView {
             $0.width.height.equalTo(UIScreen.main.bounds.height)
         }
 
-        backgroundImageView.clipsToBounds = true
-        contentView.clipsToBounds = false // 스티커판 shadow가 잘리지 않도록
+        contentView.clipsToBounds = true
 
         // ScrollView
         scrollView.snp.makeConstraints {
@@ -298,6 +298,7 @@ extension HomeView {
         contentView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.width.equalToSuperview()
+            $0.height.greaterThanOrEqualTo(scrollView) // 최소 화면 높이 보장
         }
         
         // Header
@@ -390,7 +391,7 @@ extension HomeView {
         stickerBoardView.snp.makeConstraints {
             $0.top.equalTo(activityCardView.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview() // 양옆 간격 제거
-            $0.height.equalTo(320) // 고정 높이: 헤더(44) + 갭(8) + 그리드(~240) + 패딩(28)
+            $0.height.greaterThanOrEqualTo(320) // 최소 높이: 헤더(44) + 갭(8) + 그리드(~240) + 패딩(28)
             $0.bottom.equalToSuperview() // 하단까지 확장 (탭바 아래까지)
         }
 

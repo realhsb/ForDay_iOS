@@ -15,7 +15,6 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
 
     private let periodView = PeriodSelectionView()
     let viewModel: PeriodSelectionViewModel
-    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -36,9 +35,8 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavigationTitle("여정일")
+        setNavigationTitle("취미 정보")
         hideNextButton()
-        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -46,6 +44,7 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(1.0)  // 5/5 = 100%
+        setupHobbyCard()
     }
 
     // Actions
@@ -56,16 +55,21 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
         guard let onboardingCoordinator = coordinator as? OnboardingCoordinator else {
             return
         }
+        guard !isTransitioning else { return }
 
         // 이전 자동 진행 작업 취소
         autoAdvanceWorkItem?.cancel()
 
+        // 화면 전환 시작
+        startTransition()
+
         let onboardingData = onboardingCoordinator.getOnboardingData()
+        let viewModel = self.viewModel  // viewModel을 직접 캡처 (weak self 불필요)
 
         // 약간의 딜레이 후 취미 생성
-        let workItem = DispatchWorkItem { [weak self] in
-            Task { [weak self] in
-                await self?.viewModel.createHobby(with: onboardingData)
+        let workItem = DispatchWorkItem {
+            Task { @MainActor in
+                await viewModel.createHobby(with: onboardingData)
             }
         }
         autoAdvanceWorkItem = workItem
@@ -145,6 +149,8 @@ extension PeriodSelectionViewController {
             .sink { [weak self] errorMessage in
                 if let error = errorMessage {
                     print("❌ 에러: \(error)")
+                    // 에러 시 화면 전환 상태 초기화
+                    self?.resetTransition()
                     // TODO: 에러 얼럿 표시
                 }
             }
@@ -188,14 +194,12 @@ extension PeriodSelectionViewController: UICollectionViewDelegate {
 
 extension PeriodSelectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        // 가로 배치: 셀을 가로로 나란히 배치 (스페이싱 고려)
-        let spacing: CGFloat = 16  // minimumLineSpacing
-        let numberOfItems = CGFloat(viewModel.periods.count)
-        let totalSpacing = spacing * (numberOfItems - 1)
-        let width = (collectionView.bounds.width - totalSpacing) / numberOfItems
-        let height = collectionView.bounds.height
+        // 정사각형 셀: (화면 너비 - 20 - 8 - 20) / 2
+        let spacing: CGFloat = 8
+        let horizontalPadding: CGFloat = 20 * 2  // leading + trailing
+        let cellSize = (collectionView.bounds.width - spacing) / 2
 
-        return CGSize(width: width, height: height)
+        return CGSize(width: cellSize, height: cellSize)
     }
 }
 

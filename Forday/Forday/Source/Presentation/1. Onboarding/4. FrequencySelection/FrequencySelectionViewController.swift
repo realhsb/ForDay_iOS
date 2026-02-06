@@ -15,7 +15,6 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
 
     private let frequencyView = FrequencySelectionView()
     let viewModel: FrequencySelectionViewModel
-    private var autoAdvanceWorkItem: DispatchWorkItem?
     
     // Initialization
     
@@ -36,9 +35,8 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavigationTitle("실행 횟수")
+        setNavigationTitle("취미 정보")
         hideNextButton()
-        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -46,18 +44,23 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.8)  // 4/5 = 80%
+        setupHobbyCard()
     }
 
     // Actions
 
     private func autoAdvance() {
         guard let selectedFrequency = viewModel.selectedFrequency else { return }
+        guard !isTransitioning else { return }
 
         // 이전 자동 진행 작업 취소
         autoAdvanceWorkItem?.cancel()
 
         // Coordinator에게 데이터 전달
         viewModel.onFrequencySelected?(selectedFrequency.count)
+
+        // 화면 전환 시작
+        startTransition()
 
         // 다음 화면으로 (약간의 딜레이 후)
         let workItem = DispatchWorkItem { [weak self] in
