@@ -86,7 +86,7 @@ extension TextInputPopupViewController {
         }
 
         closeButton.do {
-            $0.setImage(UIImage(systemName: "xmark"), for: .normal)
+            $0.setImage(.Icon.closeRound, for: .normal)
             $0.tintColor = .neutral900
         }
 
