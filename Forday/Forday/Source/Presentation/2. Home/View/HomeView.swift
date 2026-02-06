@@ -24,7 +24,8 @@ class HomeView: UIView {
     // Header
     private let headerView = UIView()
     let firstHobbyButton = UIButton()
-    private let dividerLabel = UILabel()
+    private let dividerImage = UIImageView()
+//    private let dividerLabel = UILabel()
     let secondHobbyButton = UIButton()
     let addHobbyButton = UIButton() // For no-hobby state
     let settingsButton = UIButton()
@@ -111,12 +112,11 @@ extension HomeView {
                 button.configuration = config
             }
         }
-
-        dividerLabel.do {
-            $0.text = " | "
-            $0.setTextWithTypography(" | ", style: .header22)
-            $0.textColor = .neutral500
-            $0.isHidden = true // 기본적으로 숨김 (취미가 2개일 때만 표시)
+        
+        dividerImage.do {
+            $0.image = .Icon.divider
+            $0.contentMode = .scaleAspectFit
+            $0.isHidden = true
         }
 
         secondHobbyButton.do {
@@ -265,7 +265,7 @@ extension HomeView {
         
         // Header
         headerView.addSubview(firstHobbyButton)
-        headerView.addSubview(dividerLabel)
+        headerView.addSubview(dividerImage)
         headerView.addSubview(secondHobbyButton)
         headerView.addSubview(addHobbyButton)
         headerView.addSubview(settingsButton)
@@ -313,13 +313,13 @@ extension HomeView {
             $0.bottom.equalToSuperview().offset(-12)
         }
 
-        dividerLabel.snp.makeConstraints {
-            $0.leading.equalTo(firstHobbyButton.snp.trailing)
+        dividerImage.snp.makeConstraints {
+            $0.leading.equalTo(firstHobbyButton.snp.trailing).offset(10)
             $0.centerY.equalTo(firstHobbyButton)
         }
 
         secondHobbyButton.snp.makeConstraints {
-            $0.leading.equalTo(dividerLabel.snp.trailing)
+            $0.leading.equalTo(dividerImage.snp.trailing).offset(10)
             $0.centerY.equalTo(firstHobbyButton)
         }
 
@@ -424,7 +424,7 @@ extension HomeView {
         if hobbies.isEmpty {
             // 취미가 없는 경우 - "취미 추가" 버튼 표시
             firstHobbyButton.isHidden = true
-            dividerLabel.isHidden = true
+            dividerImage.isHidden = true
             secondHobbyButton.isHidden = true
             addHobbyButton.isHidden = false
 
@@ -446,7 +446,7 @@ extension HomeView {
             }
 
             firstHobbyButton.isHidden = false
-            dividerLabel.isHidden = true
+            dividerImage.isHidden = true
             secondHobbyButton.isHidden = true
             addHobbyButton.isHidden = true
 
@@ -505,7 +505,7 @@ extension HomeView {
             }
 
             firstHobbyButton.isHidden = false
-            dividerLabel.isHidden = false
+            dividerImage.isHidden = false
             secondHobbyButton.isHidden = false
             addHobbyButton.isHidden = true
 
