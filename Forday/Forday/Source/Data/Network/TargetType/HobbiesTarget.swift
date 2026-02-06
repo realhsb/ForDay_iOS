@@ -11,6 +11,7 @@ import Alamofire
 
 enum HobbiesTarget {
     case createHobby(request: DTO.CreateHobbyRequest)
+    case fetchHobbyInfoRecheck
     case fetchHomeInfo(hobbyId: Int?)
     case fetchStickerBoard(hobbyId: Int?, page: Int?, size: Int?)
     case fetchOthersActivities(hobbyId: Int)
@@ -35,6 +36,9 @@ extension HobbiesTarget: BaseTargetType {
         switch self {
         case .createHobby(_):
             return HobbiesAPI.createHobby.endpoint
+
+        case .fetchHobbyInfoRecheck:
+            return HobbiesAPI.fetchHobbyInfoRecheck.endpoint
 
         case .fetchHomeInfo:
             return HobbiesAPI.fetchHomeInfo.endpoint
@@ -90,6 +94,8 @@ extension HobbiesTarget: BaseTargetType {
         switch self {
         case .createHobby:
             return .post
+        case .fetchHobbyInfoRecheck:
+            return .get
         case .fetchHomeInfo:
             return .get
         case .fetchStickerBoard:
@@ -127,10 +133,13 @@ extension HobbiesTarget: BaseTargetType {
     
     var task: Moya.Task {
         switch self {
-            
+
         case .createHobby(let request):
             return .requestJSONEncodable(request)
-            
+
+        case .fetchHobbyInfoRecheck:
+            return .requestPlain
+
         case .fetchHomeInfo(let hobbyId):
             if let hobbyId = hobbyId {
                 return .requestParameters(parameters: ["hobbyId": hobbyId], encoding: URLEncoding.queryString)
