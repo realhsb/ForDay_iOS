@@ -54,14 +54,21 @@ extension UIColor {
     convenience init(hex: String) {
         let scanner = Scanner(string: hex)
         _ = scanner.scanString("#")
-        
+
         var rgb: UInt64 = 0
         scanner.scanHexInt64(&rgb)
-        
+
         let r = CGFloat((rgb >> 16) & 0xFF) / 255.0
         let g = CGFloat((rgb >> 8) & 0xFF) / 255.0
         let b = CGFloat((rgb >> 0) & 0xFF) / 255.0
-        
+
         self.init(red: r, green: g, blue: b, alpha: 1.0)
+    }
+
+    /// 기존 알파값에 multiplier를 곱함 (이중 알파 적용)
+    func multiplyingAlpha(_ multiplier: CGFloat) -> UIColor {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return UIColor(red: r, green: g, blue: b, alpha: a * multiplier)
     }
 }
