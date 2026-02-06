@@ -55,4 +55,9 @@ final class AppEventBus {
     /// Published when an activity is deleted
     /// Payload: hobbyId that the activity belongs to
     let activityDeleted = PassthroughSubject<Int, Never>()
+
+    // MARK: - Scrap Events
+
+    /// Published when scrap status changes (added or removed)
+    let scrapDidUpdate = PassthroughSubject<Void, Never>()
 }

@@ -198,6 +198,15 @@ extension MyPageViewController {
                 }
             }
             .store(in: &cancellables)
+
+        // Listen to scrap updates (add/remove)
+        AppEventBus.shared.scrapDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshScraps()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func bind() {
