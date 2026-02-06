@@ -408,6 +408,9 @@ class HobbySettingsViewController: UIViewController {
         // Store as property to prevent deallocation
         onboardingCoordinator = OnboardingCoordinator(navigationController: navigationController)
 
+        // 취미 추가 모드로 설정 (이미 생성한 취미 제외)
+        onboardingCoordinator?.hobbySelectionMode = .addHobby
+
         // Set completion handler to pop back to HobbySettings
         onboardingCoordinator?.onHobbyCreationCompleted = { [weak self] in
             // Pop all onboarding screens and return to HobbySettings

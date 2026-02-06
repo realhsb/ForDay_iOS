@@ -22,6 +22,9 @@ class OnboardingCoordinator: Coordinator {
 
     // Completion handler for hobby creation (used when called from HobbySettings)
     var onHobbyCreationCompleted: (() -> Void)?
+
+    /// 취미 선택 모드 (첫 생성 vs 추가)
+    var hobbySelectionMode: HobbySelectionViewModel.Mode = .firstCreation
     
     // Initialization
     
@@ -44,7 +47,7 @@ class OnboardingCoordinator: Coordinator {
         
         switch step {
         case .hobby:
-            let viewModel = HobbySelectionViewModel()
+            let viewModel = HobbySelectionViewModel(mode: hobbySelectionMode)
             viewModel.onHobbySelected = { [weak self] hobbyCard in
                 self?.updateHobby(hobbyCard)
             }

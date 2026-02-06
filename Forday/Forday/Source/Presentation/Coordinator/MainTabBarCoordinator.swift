@@ -241,6 +241,9 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         // Create onboarding coordinator
         onboardingCoordinator = OnboardingCoordinator(navigationController: onboardingNav)
 
+        // 취미 추가 모드로 설정 (이미 생성한 취미 제외)
+        onboardingCoordinator?.hobbySelectionMode = .addHobby
+
         // Set completion handler to dismiss and refresh home
         onboardingCoordinator?.onHobbyCreationCompleted = { [weak self] in
             // Dismiss onboarding
