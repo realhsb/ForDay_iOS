@@ -26,6 +26,7 @@ enum HobbyImageAsset: String, Codable {
     case movie = "MOVIE_ICON"
     case photo = "PHOTO_ICON"
     case writing = "WRITING_ICON"
+    case `default` = "DEFAULT_ICON"
 
     /// API imageCode로 초기화 (rawValue 사용)
     /// e.g., "DRAWING_ICON" -> .drawing
@@ -87,6 +88,8 @@ enum HobbyImageAsset: String, Codable {
                 .Hobbycard.pictures
         case .writing:
                 .Hobbycard.writing
+        case .default:
+                .Hobbycard.cafe
         }
     }
     
@@ -112,6 +115,8 @@ enum HobbyImageAsset: String, Codable {
                 .Hobbyicon.pictures
         case .writing:
                 .Hobbyicon.writing
+        case .default:
+                .Hobbyicon.default
         }
     }
 }
