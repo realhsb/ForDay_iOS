@@ -273,83 +273,34 @@ class HobbySettingsViewController: UIViewController {
         let timeString = convertMinutesToTimeString(hobby.hobbyTimeMinutes)
         timeViewModel.selectTime(timeString)
 
-        // Create ViewController
+        // Create ViewController with edit mode
         let timeVC = TimeSelectionViewController(viewModel: timeViewModel)
+        timeVC.isEditMode = true
+        timeVC.hobbyId = hobbyId
+        timeVC.onChangeComplete = { [weak self] in
+            guard let self = self else { return }
+            // Notify HomeViewController to refresh hobby info
+            AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+            // Refresh current list
+            self.refreshCurrentList()
+        }
+
+        // Configure hobby card for edit mode
+        timeVC.configureForEditMode(
+            hobbyId: hobbyId,
+            icon: nil,  // Icon not available in HobbySetting
+            title: hobby.hobbyName
+        )
+
         let nav = UINavigationController(rootViewController: timeVC)
         nav.modalPresentationStyle = .fullScreen
-
-        // Present first, then configure
-        present(nav, animated: true) { [weak self, weak timeVC] in
-            guard let self = self, let timeVC = timeVC else { return }
-
-            // Hide progress bar from navigation bar
-            self.hideProgressBar(in: timeVC)
-
-            // Change to X mark button on right side
-            timeVC.navigationItem.leftBarButtonItem = nil
-            timeVC.navigationItem.rightBarButtonItem = UIBarButtonItem(
-                image: UIImage(systemName: "xmark"),
-                style: .plain,
-                target: self,
-                action: #selector(self.dismissPresentedViewController)
-            )
-            timeVC.navigationItem.rightBarButtonItem?.tintColor = .label
-
-            // Change button text to "변경"
-            var config = timeVC.nextButton.configuration
-            config?.title = "변경"
-            timeVC.nextButton.configuration = config
-
-            // Override next button action
-            timeVC.nextButton.removeTarget(nil, action: nil, for: .allEvents)
-            timeVC.nextButton.addTarget(self, action: #selector(self.timeChangeButtonTapped(_:)), for: .touchUpInside)
-            timeVC.nextButton.tag = hobbyId
-        }
-    }
-
-    @objc private func timeChangeButtonTapped(_ sender: UIButton) {
-        let hobbyId = sender.tag
-
-        // Get selected time from presented ViewController
-        guard let nav = presentedViewController as? UINavigationController,
-              let timeVC = nav.viewControllers.first as? TimeSelectionViewController,
-              let selectedTimeString = timeVC.viewModel.selectedTime else {
-            return
-        }
-
-        // Convert string to minutes
-        let minutes = convertTimeStringToMinutes(selectedTimeString)
-
-        Task {
-            do {
-                try await viewModel.updateTime(hobbyId: hobbyId, minutes: minutes)
-                await MainActor.run {
-                    // Notify HomeViewController to refresh hobby info
-                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
-
-                    dismissPresentedViewController()
-                }
-            } catch {
-                // Error already handled via binding
-            }
-        }
-    }
-
-    private func convertTimeStringToMinutes(_ time: String) -> Int {
-        switch time {
-        case "10": return 10
-        case "20": return 20
-        case "30분": return 30
-        case "1시간": return 60
-        case "2시간": return 120
-        default: return 0
-        }
+        present(nav, animated: true)
     }
 
     private func convertMinutesToTimeString(_ minutes: Int) -> String {
         switch minutes {
-        case 10: return "10"
-        case 20: return "20"
+        case 10: return "10분"
+        case 20: return "20분"
         case 30: return "30분"
         case 60: return "1시간"
         case 120: return "2시간"
@@ -371,63 +322,30 @@ class HobbySettingsViewController: UIViewController {
             frequencyViewModel.selectFrequency(at: index)
         }
 
-        // Create ViewController
+        // Create ViewController with edit mode
         let frequencyVC = FrequencySelectionViewController(viewModel: frequencyViewModel)
+        frequencyVC.isEditMode = true
+        frequencyVC.hobbyId = hobbyId
+        frequencyVC.onChangeComplete = { [weak self] in
+            guard let self = self else { return }
+            // Notify HomeViewController to refresh hobby info
+            AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+            // Refresh current list
+            self.refreshCurrentList()
+        }
+
+        // Configure hobby card for edit mode
+        frequencyVC.configureForEditMode(
+            hobbyId: hobbyId,
+            icon: nil,
+            title: hobby.hobbyName,
+            time: hobby.timeDisplayText,
+            purpose: nil
+        )
+
         let nav = UINavigationController(rootViewController: frequencyVC)
         nav.modalPresentationStyle = .fullScreen
-
-        // Present first, then configure
-        present(nav, animated: true) { [weak self, weak frequencyVC] in
-            guard let self = self, let frequencyVC = frequencyVC else { return }
-
-            // Hide progress bar from navigation bar
-            self.hideProgressBar(in: frequencyVC)
-
-            // Change to X mark button on right side
-            frequencyVC.navigationItem.leftBarButtonItem = nil
-            frequencyVC.navigationItem.rightBarButtonItem = UIBarButtonItem(
-                image: UIImage(systemName: "xmark"),
-                style: .plain,
-                target: self,
-                action: #selector(self.dismissPresentedViewController)
-            )
-            frequencyVC.navigationItem.rightBarButtonItem?.tintColor = .label
-
-            // Change button text to "변경"
-            var config = frequencyVC.nextButton.configuration
-            config?.title = "변경"
-            frequencyVC.nextButton.configuration = config
-
-            // Override next button action
-            frequencyVC.nextButton.removeTarget(nil, action: nil, for: .allEvents)
-            frequencyVC.nextButton.addTarget(self, action: #selector(self.frequencyChangeButtonTapped(_:)), for: .touchUpInside)
-            frequencyVC.nextButton.tag = hobbyId
-        }
-    }
-
-    @objc private func frequencyChangeButtonTapped(_ sender: UIButton) {
-        let hobbyId = sender.tag
-
-        // Get selected frequency from presented ViewController
-        guard let nav = presentedViewController as? UINavigationController,
-              let frequencyVC = nav.viewControllers.first as? FrequencySelectionViewController,
-              let selectedFrequency = frequencyVC.viewModel.selectedFrequency?.count else {
-            return
-        }
-
-        Task {
-            do {
-                try await viewModel.updateExecutionCount(hobbyId: hobbyId, count: selectedFrequency)
-                await MainActor.run {
-                    // Notify HomeViewController to refresh hobby info
-                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
-
-                    dismissPresentedViewController()
-                }
-            } catch {
-                // Error already handled via binding
-            }
-        }
+        present(nav, animated: true)
     }
 
     private func handleGoalDaysEdit(hobbyId: Int) {
@@ -447,69 +365,41 @@ class HobbySettingsViewController: UIViewController {
             periodViewModel.selectPeriod(at: index)
         }
 
-        // Create ViewController
+        // Create ViewController with edit mode
         let periodVC = PeriodSelectionViewController(viewModel: periodViewModel)
+        periodVC.isEditMode = true
+        periodVC.hobbyId = hobbyId
+        periodVC.onChangeComplete = { [weak self] in
+            guard let self = self else { return }
+            // Notify HomeViewController to refresh hobby info
+            AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
+            // Refresh current list
+            self.refreshCurrentList()
+        }
+
+        // Configure hobby card for edit mode
+        periodVC.configureForEditMode(
+            hobbyId: hobbyId,
+            icon: nil,
+            title: hobby.hobbyName,
+            time: hobby.timeDisplayText,
+            frequency: hobby.executionDisplayText,
+            purpose: nil
+        )
+
         let nav = UINavigationController(rootViewController: periodVC)
         nav.modalPresentationStyle = .fullScreen
-
-        // Present first, then configure
-        present(nav, animated: true) { [weak self, weak periodVC] in
-            guard let self = self, let periodVC = periodVC else { return }
-
-            // Hide progress bar from navigation bar
-            self.hideProgressBar(in: periodVC)
-
-            // Change to X mark button on right side
-            periodVC.navigationItem.leftBarButtonItem = nil
-            periodVC.navigationItem.rightBarButtonItem = UIBarButtonItem(
-                image: UIImage(systemName: "xmark"),
-                style: .plain,
-                target: self,
-                action: #selector(self.dismissPresentedViewController)
-            )
-            periodVC.navigationItem.rightBarButtonItem?.tintColor = .label
-
-            // Change button text to "변경"
-            var config = periodVC.nextButton.configuration
-            config?.title = "변경"
-            periodVC.nextButton.configuration = config
-
-            // Override next button action
-            periodVC.nextButton.removeTarget(nil, action: nil, for: .allEvents)
-            periodVC.nextButton.addTarget(self, action: #selector(self.periodChangeButtonTapped(_:)), for: .touchUpInside)
-            periodVC.nextButton.tag = hobbyId
-        }
+        present(nav, animated: true)
     }
 
-    @objc private func periodChangeButtonTapped(_ sender: UIButton) {
-        let hobbyId = sender.tag
-
-        // Get selected period from presented ViewController
-        guard let nav = presentedViewController as? UINavigationController,
-              let periodVC = nav.viewControllers.first as? PeriodSelectionViewController,
-              let selectedPeriod = periodVC.viewModel.selectedPeriod else {
-            return
-        }
-
-        let isDurationSet = selectedPeriod.type == .fixed
-
+    private func refreshCurrentList() {
         Task {
             do {
-                try await viewModel.updateGoalDays(hobbyId: hobbyId, isDurationSet: isDurationSet)
-                await MainActor.run {
-                    // Notify HomeViewController to refresh hobby info
-                    AppEventBus.shared.hobbySettingsUpdated.send(hobbyId)
-
-                    dismissPresentedViewController()
-                }
+                try await viewModel.fetchHobbies(status: viewModel.currentStatus)
             } catch {
                 // Error already handled via binding
             }
         }
-    }
-
-    @objc private func dismissPresentedViewController() {
-        presentedViewController?.dismiss(animated: true)
     }
 
     private func handleAddHobbyTapped() {
@@ -550,22 +440,6 @@ class HobbySettingsViewController: UIViewController {
         )
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
-    }
-
-    // MARK: - Helper Methods
-
-    /// Progress bar를 네비게이션 바에서 찾아서 숨김 처리
-    private func hideProgressBar(in viewController: UIViewController) {
-        guard let navigationBar = viewController.navigationController?.navigationBar else { return }
-
-        // 네비게이션 바의 subviews에서 GradientProgressView 찾기
-        for subview in navigationBar.subviews {
-            if let progressBar = subview as? GradientProgressView {
-                progressBar.isHidden = true
-                progressBar.removeFromSuperview()
-                break
-            }
-        }
     }
 }
 
