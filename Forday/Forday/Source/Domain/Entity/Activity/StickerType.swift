@@ -43,9 +43,31 @@ enum StickerType: String, Codable, CaseIterable {
     }
 
     /// Initialize from a filename string
-    /// - Parameter fileName: The sticker filename (e.g., "smile.jpg")
+    /// - Parameter fileName: The sticker filename (e.g., "smile.jpg" or "smile")
     /// - Returns: The corresponding StickerType, or nil if not recognized
     init?(fileName: String) {
-        self.init(rawValue: fileName)
+        // Try exact match first (with .jpg extension)
+        if let type = StickerType(rawValue: fileName) {
+            self = type
+            return
+        }
+
+        // Try matching without extension
+        let normalizedName = fileName.lowercased()
+            .replacingOccurrences(of: ".jpg", with: "")
+            .replacingOccurrences(of: ".png", with: "")
+
+        switch normalizedName {
+        case "smile":
+            self = .smile
+        case "sad":
+            self = .sad
+        case "laugh":
+            self = .laugh
+        case "angry":
+            self = .angry
+        default:
+            return nil
+        }
     }
 }
