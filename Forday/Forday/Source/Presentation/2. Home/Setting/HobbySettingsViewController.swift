@@ -288,7 +288,7 @@ class HobbySettingsViewController: UIViewController {
         // Configure hobby card for edit mode
         timeVC.configureForEditMode(
             hobbyId: hobbyId,
-            icon: nil,  // Icon not available in HobbySetting
+            icon: hobby.imageAsset.icon,
             title: hobby.hobbyName
         )
 
@@ -337,7 +337,7 @@ class HobbySettingsViewController: UIViewController {
         // Configure hobby card for edit mode
         frequencyVC.configureForEditMode(
             hobbyId: hobbyId,
-            icon: nil,
+            icon: hobby.imageAsset.icon,
             title: hobby.hobbyName,
             time: hobby.timeDisplayText,
             purpose: nil
@@ -380,7 +380,7 @@ class HobbySettingsViewController: UIViewController {
         // Configure hobby card for edit mode
         periodVC.configureForEditMode(
             hobbyId: hobbyId,
-            icon: nil,
+            icon: hobby.imageAsset.icon,
             title: hobby.hobbyName,
             time: hobby.timeDisplayText,
             frequency: hobby.executionDisplayText,

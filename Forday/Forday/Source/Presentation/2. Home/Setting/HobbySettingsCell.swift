@@ -227,8 +227,8 @@ extension HobbySettingsCell {
         self.hobbyId = hobby.hobbyId
         self.isArchived = isArchived
 
-        // Icon
-        hobbyIconView.image = .Hobbyicon.reading
+        // Icon - imageCode에 따라 적절한 아이콘 표시
+        hobbyIconView.image = hobby.imageAsset.icon
 
         // Info text (label/10)
         infoLabel.setTextWithTypography(hobby.infoDisplayText, style: .label10)
