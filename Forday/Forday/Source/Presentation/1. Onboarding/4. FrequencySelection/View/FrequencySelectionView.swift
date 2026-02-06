@@ -14,7 +14,6 @@ class FrequencySelectionView: UIView {
     
     // Properties
     
-//    private let scrollView = UIScrollView()
     private let contentView = UIView()
     
     let titleLabel = UILabel()
@@ -23,7 +22,6 @@ class FrequencySelectionView: UIView {
     let recommendLabel = UILabel()
     let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-//        layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 0
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
@@ -104,7 +102,7 @@ extension FrequencySelectionView {
 
         // ContentView
         contentView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(48)
+            $0.top.equalTo(safeAreaLayoutGuide).offset(24)
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalToSuperview()
