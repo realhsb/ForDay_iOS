@@ -56,8 +56,7 @@ extension FrequencySelectionView {
         backgroundColor = .systemBackground
 
         titleLabel.do {
-            $0.text = "주 몇 회 하실 거예요?"
-            $0.applyTypography(.header20)
+            $0.setTextWithTypography("주 몇 회 하실 거예요?", style: .header20)
             $0.textColor = .neutral900
             $0.numberOfLines = 0
         }
@@ -114,11 +113,13 @@ extension FrequencySelectionView {
         // Title
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(48)
+            $0.leading.trailing.equalToSuperview()
         }
-        
+
         // Subtitle
         subtitleLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.leading.trailing.equalToSuperview()
         }
         
         // Selected Hobby Card

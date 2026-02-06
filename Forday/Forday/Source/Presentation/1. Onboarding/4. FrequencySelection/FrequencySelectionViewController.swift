@@ -36,9 +36,8 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavigationTitle("실행 횟수")
+        setNavigationTitle("취미 정보")
         hideNextButton()
-        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -46,6 +45,7 @@ class FrequencySelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(0.8)  // 4/5 = 80%
+        setupHobbyCard()
     }
 
     // Actions
