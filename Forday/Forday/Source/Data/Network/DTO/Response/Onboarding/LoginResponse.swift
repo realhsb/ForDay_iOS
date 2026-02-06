@@ -32,17 +32,6 @@ extension DTO {
         let hobbyTimeMinutes: Int
         let executionCount: Int
         let durationSet: Bool
-
-        // TODO: 서버에서 hobbyInfoId로 수정되면 CodingKeys 제거
-        enum CodingKeys: String, CodingKey {
-            case id
-            #if DEBUG
-            case hobbyInfoId = "hobbyCardId"
-            #else
-            case hobbyInfoId
-            #endif
-            case hobbyName, hobbyPurpose, hobbyTimeMinutes, executionCount, durationSet
-        }
     }
 }
 
