@@ -36,9 +36,8 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavigationTitle("여정일")
+        setNavigationTitle("취미 정보")
         hideNextButton()
-        setupHobbyCard()
         setupCollectionView()
         bind()
     }
@@ -46,6 +45,7 @@ class PeriodSelectionViewController: BaseOnboardingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateProgress(1.0)  // 5/5 = 100%
+        setupHobbyCard()
     }
 
     // Actions
@@ -189,14 +189,12 @@ extension PeriodSelectionViewController: UICollectionViewDelegate {
 
 extension PeriodSelectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        // 가로 배치: 셀을 가로로 나란히 배치 (스페이싱 고려)
-        let spacing: CGFloat = 16  // minimumLineSpacing
-        let numberOfItems = CGFloat(viewModel.periods.count)
-        let totalSpacing = spacing * (numberOfItems - 1)
-        let width = (collectionView.bounds.width - totalSpacing) / numberOfItems
-        let height = collectionView.bounds.height
+        // 정사각형 셀: (화면 너비 - 20 - 8 - 20) / 2
+        let spacing: CGFloat = 8
+        let horizontalPadding: CGFloat = 20 * 2  // leading + trailing
+        let cellSize = (collectionView.bounds.width - spacing) / 2
 
-        return CGSize(width: width, height: height)
+        return CGSize(width: cellSize, height: cellSize)
     }
 }
 

@@ -35,21 +35,11 @@ class PeriodSelectionViewModel {
     
     // Methods
     
-    /// Mock 데이터 로드
+    /// 기간 옵션 로드
     private func loadMockData() {
         periods = [
-            PeriodModel(
-                id: "1",
-                title: "기간 미지정 (자율 모드)",
-                subtitle: "정해두지 않고, 흐름대로",
-                type: .flexible
-            ),
-            PeriodModel(
-                id: "2",
-                title: "66일 (포데이 모드)",
-                subtitle: "생활에 자연스럽게 스며드는 기간",
-                type: .fixed
-            )
+            PeriodModel(id: "1", type: .flexible),
+            PeriodModel(id: "2", type: .fixed)
         ]
     }
     
