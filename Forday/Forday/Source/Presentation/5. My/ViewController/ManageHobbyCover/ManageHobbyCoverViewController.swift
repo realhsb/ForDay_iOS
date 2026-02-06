@@ -17,7 +17,6 @@ class ManageHobbyCoverViewController: UIViewController {
     private let viewModel: ManageHobbyCoverViewModel
     private var cancellables = Set<AnyCancellable>()
 
-    private var doneButton: UIBarButtonItem!
     private var pendingGalleryHobbyId: Int?
 
     // MARK: - Initialization
@@ -25,6 +24,7 @@ class ManageHobbyCoverViewController: UIViewController {
     init(viewModel: ManageHobbyCoverViewModel = ManageHobbyCoverViewModel()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -39,25 +39,36 @@ class ManageHobbyCoverViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
+        setupCustomNavigation()
         setupCollectionViews()
         bind()
         loadInitialData()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
     // MARK: - Setup
 
-    private func setupNavigationBar() {
-        title = "취미 대표사진 관리"
+    private func setupCustomNavigation() {
+        // Back button callback
+        manageCoverView.onBackButtonTapped = { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
 
-        doneButton = UIBarButtonItem(
-            title: "완료",
-            style: .done,
-            target: self,
-            action: #selector(doneButtonTapped)
+        // Done button action
+        manageCoverView.doneButton.addTarget(
+            self,
+            action: #selector(doneButtonTapped),
+            for: .touchUpInside
         )
-        doneButton.isHidden = true
-        navigationItem.rightBarButtonItem = doneButton
     }
 
     private func setupCollectionViews() {
@@ -74,8 +85,7 @@ class ManageHobbyCoverViewController: UIViewController {
         // Hobbies
         viewModel.$hobbies
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] hobbies in
-                self?.manageCoverView.updateHobbyCount(hobbies.count)
+            .sink { [weak self] _ in
                 self?.manageCoverView.hobbyCollectionView.reloadData()
             }
             .store(in: &cancellables)
@@ -84,6 +94,7 @@ class ManageHobbyCoverViewController: UIViewController {
         viewModel.$feedItems
             .receive(on: DispatchQueue.main)
             .sink { [weak self] items in
+                self?.manageCoverView.updateFeedCount(items.count)
                 self?.manageCoverView.showEmptyState(items.isEmpty)
                 self?.manageCoverView.feedCollectionView.reloadData()
             }
@@ -93,7 +104,7 @@ class ManageHobbyCoverViewController: UIViewController {
         viewModel.$isSelectionMode
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isSelectionMode in
-                self?.doneButton.isHidden = !isSelectionMode
+                self?.manageCoverView.setDoneButtonHidden(!isSelectionMode)
                 self?.manageCoverView.feedCollectionView.reloadData()
             }
             .store(in: &cancellables)
@@ -102,7 +113,7 @@ class ManageHobbyCoverViewController: UIViewController {
         viewModel.$selectedRecordId
             .receive(on: DispatchQueue.main)
             .sink { [weak self] selectedId in
-                self?.doneButton.isEnabled = selectedId != nil
+                self?.manageCoverView.setDoneButtonEnabled(selectedId != nil)
                 self?.manageCoverView.feedCollectionView.reloadData()
             }
             .store(in: &cancellables)
@@ -154,6 +165,7 @@ class ManageHobbyCoverViewController: UIViewController {
     private func showCoverImageOptions(for hobby: MyPageHobby) {
         CoverImageOptionSheet.present(
             on: self,
+            hobbyName: hobby.hobbyName,
             onGallerySelected: { [weak self] in
                 self?.handleGallerySelection(for: hobby)
             },
@@ -273,11 +285,54 @@ extension ManageHobbyCoverViewController: UICollectionViewDelegateFlowLayout {
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
         if collectionView == manageCoverView.hobbyCollectionView {
-            return CGSize(width: 80, height: 100)
+            // HobbyFilterView와 동일: 48pt width, 66pt height
+            return CGSize(width: 48, height: 66)
         } else {
-            let width = (collectionView.bounds.width - 8) / 3
-            return CGSize(width: width, height: width)
+            // Feed grid: 셀간 간격 1을 제외한 너비 삼등분
+            let numberOfColumns: CGFloat = 3
+            let spacing: CGFloat = 1
+            let totalSpacing = spacing * (numberOfColumns - 1)
+            let availableWidth = collectionView.bounds.width - totalSpacing
+            let itemWidth = floor(availableWidth / numberOfColumns)
+
+            // 피그마 셀 비율: 106:128 (width:height)
+            let itemHeight = floor(itemWidth * 128 / 106)
+
+            return CGSize(width: itemWidth, height: itemHeight)
         }
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        insetForSectionAt section: Int
+    ) -> UIEdgeInsets {
+        if collectionView == manageCoverView.feedCollectionView {
+            return .zero
+        }
+        return UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        minimumLineSpacingForSectionAt section: Int
+    ) -> CGFloat {
+        if collectionView == manageCoverView.feedCollectionView {
+            return 1
+        }
+        return 16
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        minimumInteritemSpacingForSectionAt section: Int
+    ) -> CGFloat {
+        if collectionView == manageCoverView.feedCollectionView {
+            return 1
+        }
+        return 16
     }
 }
 

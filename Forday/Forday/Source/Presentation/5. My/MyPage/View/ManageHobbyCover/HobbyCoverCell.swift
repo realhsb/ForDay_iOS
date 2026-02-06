@@ -12,10 +12,11 @@ import Kingfisher
 
 final class HobbyCoverCell: UICollectionViewCell {
 
-    // MARK: - Properties
+    // MARK: - UI Components
 
-    private let containerView = UIView()
-    private let coverImageView = UIImageView()
+    private let iconContainerView = UIView()
+    private let iconImageView = UIImageView()
+    private let selectionBorderView = UIView()
     private let cameraIconView = UIImageView()
     private let hobbyNameLabel = UILabel()
     private let dimView = UIView()
@@ -32,20 +33,64 @@ final class HobbyCoverCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Lifecycle
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        iconImageView.kf.cancelDownloadTask()
+        iconImageView.image = nil
+    }
+
     // MARK: - Configuration
 
     func configure(hobby: MyPageHobby) {
-        hobbyNameLabel.text = hobby.hobbyName
-
-        if let coverImageUrl = hobby.thumbnailImageUrl, !coverImageUrl.isEmpty {
-            coverImageView.kf.setImage(with: URL(string: coverImageUrl))
+        // Load thumbnail if available, otherwise show hobby-specific icon
+        if let thumbnailImageUrl = hobby.thumbnailImageUrl,
+           !thumbnailImageUrl.isEmpty,
+           let url = URL(string: thumbnailImageUrl) {
+            // Has thumbnail - load from URL
+            iconImageView.kf.setImage(
+                with: url,
+                placeholder: UIImage(systemName: "camera.fill"),
+                options: [
+                    .transition(.fade(0.2)),
+                    .forceRefresh  // Always fetch fresh image when URL changes
+                ]
+            )
+            iconImageView.contentMode = .scaleAspectFill
+            iconImageView.snp.remakeConstraints {
+                $0.edges.equalToSuperview()
+            }
         } else {
-            coverImageView.image = UIImage(systemName: "photo")
-            coverImageView.tintColor = .systemGray3
+            // No thumbnail - show hobby-specific icon
+            if let imageAsset = HobbyImageAsset(hobbyName: hobby.hobbyName) {
+                iconImageView.image = imageAsset.icon
+                iconImageView.contentMode = .scaleAspectFit
+            } else {
+                // Fallback if hobby name doesn't match
+                iconImageView.image = UIImage(systemName: "camera.fill")
+                iconImageView.contentMode = .scaleAspectFit
+            }
+            iconImageView.snp.remakeConstraints {
+                $0.center.equalToSuperview()
+                $0.width.height.equalTo(20)
+            }
         }
 
-        // Archived 취미는 dim 처리
-        dimView.isHidden = hobby.status != .archived
+        // Force layout update after remakeConstraints
+        iconContainerView.setNeedsLayout()
+        iconContainerView.layoutIfNeeded()
+
+        // Truncate hobby name if longer than 4 characters
+        hobbyNameLabel.setTextWithTypography(hobby.hobbyName.truncated(maxLength: 4), style: .body12)
+
+        // Apply dim for archived hobbies
+        let isArchived = hobby.status == .archived
+        dimView.isHidden = !isArchived
+        let alpha: CGFloat = isArchived ? 0.4 : 1.0
+        iconImageView.alpha = alpha
+        hobbyNameLabel.alpha = alpha
+        cameraIconView.alpha = alpha
     }
 }
 
@@ -53,71 +98,80 @@ final class HobbyCoverCell: UICollectionViewCell {
 
 extension HobbyCoverCell {
     private func style() {
-        containerView.do {
+        contentView.backgroundColor = .clear
+
+        iconContainerView.do {
+            $0.backgroundColor = .neutralWhite
+            $0.layer.cornerRadius = 24
+            $0.clipsToBounds = true
+        }
+
+        iconImageView.do {
+            $0.contentMode = .scaleAspectFill
+            $0.clipsToBounds = true
+        }
+
+        selectionBorderView.do {
+            $0.layer.cornerRadius = 24
+            $0.layer.borderWidth = 1
+            $0.layer.borderColor = UIColor.stroke001.cgColor
             $0.backgroundColor = .clear
         }
 
-        coverImageView.do {
-            $0.contentMode = .scaleAspectFill
-            $0.clipsToBounds = true
-            $0.layer.cornerRadius = 36
-            $0.backgroundColor = .systemGray6
-        }
-
         cameraIconView.do {
-            $0.image = UIImage(systemName: "camera.fill")
-            $0.tintColor = .white
+            $0.image = .Icon.cameraCircle
             $0.contentMode = .scaleAspectFit
-            $0.backgroundColor = .black.withAlphaComponent(0.6)
-            $0.layer.cornerRadius = 12
-            $0.clipsToBounds = true
         }
 
         hobbyNameLabel.do {
-            $0.font = .systemFont(ofSize: 12, weight: .medium)
-            $0.textColor = .label
+            $0.textColor = .neutral800
             $0.textAlignment = .center
-            $0.numberOfLines = 1
         }
 
         dimView.do {
-            $0.backgroundColor = .white.withAlphaComponent(0.7)
-            $0.layer.cornerRadius = 36
+            $0.backgroundColor = .white.withAlphaComponent(0.6)
+            $0.layer.cornerRadius = 24
             $0.isHidden = true
         }
     }
 
     private func layout() {
-        contentView.addSubview(containerView)
-        containerView.addSubview(coverImageView)
-        containerView.addSubview(dimView)
-        containerView.addSubview(cameraIconView)
-        containerView.addSubview(hobbyNameLabel)
+        contentView.addSubview(iconContainerView)
+        iconContainerView.addSubview(iconImageView)
+        contentView.addSubview(selectionBorderView)
+        contentView.addSubview(dimView)
+        contentView.addSubview(cameraIconView)
+        contentView.addSubview(hobbyNameLabel)
 
-        containerView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+        iconContainerView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(2)
+            $0.centerX.equalToSuperview()
+            $0.width.height.equalTo(48)
         }
 
-        coverImageView.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.centerX.equalToSuperview()
-            $0.width.height.equalTo(72)
+        iconImageView.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            $0.width.height.equalTo(20)
+        }
+
+        selectionBorderView.snp.makeConstraints {
+            $0.edges.equalTo(iconContainerView)
         }
 
         dimView.snp.makeConstraints {
-            $0.edges.equalTo(coverImageView)
+            $0.edges.equalTo(iconContainerView)
         }
 
         cameraIconView.snp.makeConstraints {
-            $0.trailing.equalTo(coverImageView.snp.trailing).offset(-2)
-            $0.bottom.equalTo(coverImageView.snp.bottom).offset(-2)
+            $0.trailing.equalTo(iconContainerView.snp.trailing).offset(4)
+            $0.bottom.equalTo(iconContainerView.snp.bottom).offset(4)
             $0.width.height.equalTo(24)
         }
 
         hobbyNameLabel.snp.makeConstraints {
-            $0.top.equalTo(coverImageView.snp.bottom).offset(8)
+            $0.top.equalTo(iconContainerView.snp.bottom).offset(4)
             $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalToSuperview()
+            $0.bottom.lessThanOrEqualToSuperview()
         }
     }
 }
