@@ -39,7 +39,10 @@ struct AppleLoginUseCase {
             refreshToken: authToken.refreshToken
         )
 
-        // 4. 전체 AuthToken 반환
+        // 4. 게스트 ID 삭제 (이전에 게스트 로그인 했을 수 있으므로)
+        try? tokenStorage.deleteGuestUserId()
+
+        // 5. 전체 AuthToken 반환
         return authToken
     }
 }
