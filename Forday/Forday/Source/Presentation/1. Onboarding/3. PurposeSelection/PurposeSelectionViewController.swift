@@ -136,8 +136,14 @@ extension PurposeSelectionViewController {
             self.purposeView.updateCustomInputButton(purposeName: purposeText)
             self.purposeView.selectedHobbyCard.setSelected(true)
             self.purposeView.collectionView.reloadData()
+
+            // 화면 전환 시작
             self.startTransition()
-            self.coordinator?.next(from: .purpose)
+
+            // 약간의 딜레이 후 다음 화면으로 (autoAdvance와 동일한 타이밍)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                self?.coordinator?.next(from: .purpose)
+            }
         }
         popup.modalPresentationStyle = .overFullScreen
         popup.modalTransitionStyle = .crossDissolve

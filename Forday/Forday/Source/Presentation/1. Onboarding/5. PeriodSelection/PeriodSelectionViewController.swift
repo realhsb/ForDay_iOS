@@ -149,6 +149,8 @@ extension PeriodSelectionViewController {
             .sink { [weak self] errorMessage in
                 if let error = errorMessage {
                     print("❌ 에러: \(error)")
+                    // 에러 시 화면 전환 상태 초기화
+                    self?.resetTransition()
                     // TODO: 에러 얼럿 표시
                 }
             }

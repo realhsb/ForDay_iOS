@@ -63,8 +63,6 @@ class NicknameViewController: BaseOnboardingViewController {
     // Actions
 
     override func nextButtonTapped() {
-        print("닉네임 설정 완료: \(viewModel.nickname)")
-
         // 다음 버튼 비활성화 (중복 클릭 방지)
         setNextButtonEnabled(false)
 
@@ -72,8 +70,6 @@ class NicknameViewController: BaseOnboardingViewController {
             do {
                 // 닉네임 설정 API 호출
                 try await viewModel.setNickname()
-
-                print("✅ 닉네임 설정 API 성공")
 
                 // 성공 시 홈으로
                 await MainActor.run {

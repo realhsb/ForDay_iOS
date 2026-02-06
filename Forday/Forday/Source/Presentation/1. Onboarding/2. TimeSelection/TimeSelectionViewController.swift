@@ -62,14 +62,11 @@ class TimeSelectionViewController: BaseOnboardingViewController {
     // Actions
 
     private func autoAdvance() {
-        guard let selectedTime = viewModel.selectedTime else { return }
+        guard viewModel.selectedTime != nil else { return }
         guard !isTransitioning else { return }
 
         // 이전 자동 진행 작업 취소
         autoAdvanceWorkItem?.cancel()
-
-        // Coordinator에게 데이터 전달
-        viewModel.selectTime(selectedTime)
 
         // 화면 전환 시작
         startTransition()

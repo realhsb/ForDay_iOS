@@ -115,7 +115,6 @@ extension OnboardingCompleteView {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(80)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(280)
-            $0.width.equalTo(240)
         }
 
         // PageControl
