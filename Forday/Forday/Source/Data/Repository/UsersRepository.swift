@@ -47,7 +47,7 @@ final class UsersRepository: UsersRepositoryInterface {
 
     // MARK: - Update Profile Image
 
-    func updateProfileImage(profileImageUrl: String) async throws -> UpdateProfileImageResult {
+    func updateProfileImage(profileImageUrl: String?) async throws -> UpdateProfileImageResult {
         let response = try await usersService.updateProfileImage(profileImageUrl: profileImageUrl)
         return response.toDomain()
     }

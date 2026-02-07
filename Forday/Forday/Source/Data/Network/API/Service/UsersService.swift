@@ -63,7 +63,7 @@ final class UsersService {
     }
     
     /// Users - 사용자 프로필 이미지 설정
-    func updateProfileImage(profileImageUrl: String) async throws -> DTO.UsersProfileImageUploadResponse {
+    func updateProfileImage(profileImageUrl: String?) async throws -> DTO.UsersProfileImageUploadResponse {
         return try await provider.request(.profileImageUpload(profileImageUrl: profileImageUrl))
     }
 
