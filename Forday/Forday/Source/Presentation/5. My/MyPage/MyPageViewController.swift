@@ -458,7 +458,7 @@ extension MyPageViewController {
     }
 
     private func showProfileEdit() {
-        coordinator?.showProfileEdit(currentProfile: viewModel.userProfile)
+        coordinator?.showProfileSettings()
     }
 
     private func showHobbyCoverManagement() {
