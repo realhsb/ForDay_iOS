@@ -36,13 +36,16 @@ final class ProfileHeaderView: UIView {
         nicknameLabel.setTextWithTypography(info.nickname, style: .header18)
         stickerCountLabel.setTextWithTypography("\(info.totalCollectedStickerCount)개 스티커 수집 중", style: .label14)
 
-        // Profile image
+        // Profile image (캐시 무시하고 항상 서버에서 새로 받아옴)
         if let imageUrlString = info.profileImageUrl,
            let imageUrl = URL(string: imageUrlString) {
             profileImageView.kf.setImage(
                 with: imageUrl,
                 placeholder: UIImage.Icon.defaultProfile,
-                options: [.transition(.fade(0.2))]
+                options: [
+                    .transition(.fade(0.2)),
+                    .forceRefresh
+                ]
             )
         } else {
             profileImageView.image = .Icon.defaultProfile
