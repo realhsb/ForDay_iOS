@@ -52,4 +52,10 @@ final class AuthService {
     func switchAccount(request: DTO.SwitchAccountRequest) async throws -> DTO.SwitchAccountResponse {
         return try await provider.request(.switchAccount(request: request))
     }
+
+    // MARK: - Withdraw (회원 탈퇴)
+
+    func withdraw() async throws -> DTO.WithdrawResponse {
+        return try await provider.request(.withdraw)
+    }
 }

@@ -13,7 +13,7 @@ extension DTO {
     }
 
     struct UsersFeedsData: Codable {
-        let totalFeedCount: Int
+        let totalFeedCount: Int?
         let lastRecordId: Int?
         let feedList: [FeedItem]
     }

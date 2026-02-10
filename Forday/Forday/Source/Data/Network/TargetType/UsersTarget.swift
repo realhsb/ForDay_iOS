@@ -14,7 +14,7 @@ enum UsersTarget {
     case setNickname(request: DTO.SetNicknameRequest)
     case feeds(hobbyIds: [Int], lastRecordId: Int?, feedSize: Int)
     case info                   /// 사용자 정보 조회
-    case profileImageUpload(profileImageUrl: String)     /// 사용자 프로필 이미지 설정
+    case profileImageUpload(profileImageUrl: String?)     /// 사용자 프로필 이미지 설정
     case hobbiesInProgress      /// 사용자 취미 진행 상단탭 조회
     case hobbyCards(lastHobbyCardId: Int?, size: Int)    /// 사용자 취미 카드 리스트 조회
     case scraps(lastRecordId: Int?, feedSize: Int)       /// 사용자 스크랩 목록 조회
@@ -93,7 +93,7 @@ extension UsersTarget: BaseTargetType {
             return .requestPlain
 
         case .profileImageUpload(let profileImageUrl):
-            var parameters: [String: Any] = ["profileImageUrl": profileImageUrl]
+            let parameters: [String: Any] = ["profileImageUrl": profileImageUrl as Any]
             return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
 
         case .hobbiesInProgress:

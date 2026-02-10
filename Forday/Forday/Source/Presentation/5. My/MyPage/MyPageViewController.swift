@@ -31,10 +31,13 @@ final class MyPageViewController: UIViewController {
 
     // Settings dropdown
     private var settingsDropdownBackgroundView: UIView?
-    private var settingsDropdownView: DropdownMenuView<MySettingsMenuItem>?
+    private var settingsDropdownView: UIView?  // Either DropdownMenuView<MySettingsMenuItem> or DropdownMenuView<GuestSettingsMenuItem>
 
     // Guest login bottom sheet
     private var hasShownGuestLoginSheet = false
+
+    // Track if hobbies need refresh (set by event bus, consumed by viewWillAppear)
+    private var needsHobbiesRefresh = false
 
     // MARK: - Initialization
 
@@ -58,6 +61,7 @@ final class MyPageViewController: UIViewController {
         setupCustomNavigationBar()
         setupRefreshControl()
         setupSegmentedControl()
+        setupScrollView()
         bind()
         setupEventBus()
         loadData()
@@ -66,6 +70,14 @@ final class MyPageViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+
+        // Refresh hobbies if flag is set (e.g., after cover image update)
+        if needsHobbiesRefresh {
+            needsHobbiesRefresh = false
+            Task {
+                await viewModel.refreshHobbies()
+            }
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -115,6 +127,10 @@ extension MyPageViewController {
         }
     }
 
+    private func setupScrollView() {
+        myPageView.scrollView.delegate = self
+    }
+
     private func setupEventBus() {
         // Listen to profile updates
         AppEventBus.shared.profileDidUpdate
@@ -128,9 +144,9 @@ extension MyPageViewController {
         // Listen to hobbies updates
         AppEventBus.shared.hobbiesDidUpdate
             .sink { [weak self] in
-                Task {
-                    await self?.viewModel.refreshHobbies()
-                }
+                // Set flag to refresh when view appears (after navigation completes)
+                // This ensures we get fresh data after server has updated
+                self?.needsHobbiesRefresh = true
             }
             .store(in: &cancellables)
 
@@ -179,6 +195,15 @@ extension MyPageViewController {
             .sink { [weak self] in
                 Task {
                     await self?.viewModel.refreshActivities()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Listen to scrap updates (add/remove)
+        AppEventBus.shared.scrapDidUpdate
+            .sink { [weak self] in
+                Task {
+                    await self?.viewModel.refreshScraps()
                 }
             }
             .store(in: &cancellables)
@@ -266,6 +291,9 @@ extension MyPageViewController {
         // Activity Grid ViewController
         let activityGridVC = ActivityGridViewController(viewModel: viewModel)
         activityGridVC.coordinator = coordinator
+        activityGridVC.onContentHeightChanged = { [weak self] height in
+            self?.myPageView.updateContentHeight(height)
+        }
         addChild(activityGridVC)
         self.activityGridVC = activityGridVC
 
@@ -277,6 +305,9 @@ extension MyPageViewController {
         // Scrap Grid ViewController
         let scrapGridVC = ScrapGridViewController(viewModel: viewModel)
         scrapGridVC.coordinator = coordinator
+        scrapGridVC.onContentHeightChanged = { [weak self] height in
+            self?.myPageView.updateContentHeight(height)
+        }
         addChild(scrapGridVC)
         self.scrapGridVC = scrapGridVC
     }
@@ -288,19 +319,16 @@ extension MyPageViewController {
         switch tab {
         case .activities:
             if let activityGridVC = activityGridVC {
-                activityGridVC.view.frame = myPageView.contentContainerView.bounds
                 myPageView.contentContainerView.addSubview(activityGridVC.view)
                 activityGridVC.view.snp.makeConstraints {
-                    $0.leading.trailing.equalToSuperview()
                     $0.top.equalToSuperview().offset(20)
-                    $0.bottom.equalToSuperview().offset(24)
+                    $0.leading.trailing.bottom.equalToSuperview()
                 }
                 activityGridVC.didMove(toParent: self)
             }
 
         case .hobbyCards:
             if let hobbyCardStackVC = hobbyCardStackVC {
-                hobbyCardStackVC.view.frame = myPageView.contentContainerView.bounds
                 myPageView.contentContainerView.addSubview(hobbyCardStackVC.view)
                 hobbyCardStackVC.view.snp.makeConstraints {
                     $0.edges.equalToSuperview()
@@ -310,7 +338,6 @@ extension MyPageViewController {
 
         case .scraps:
             if let scrapGridVC = scrapGridVC {
-                scrapGridVC.view.frame = myPageView.contentContainerView.bounds
                 myPageView.contentContainerView.addSubview(scrapGridVC.view)
                 scrapGridVC.view.snp.makeConstraints {
                     $0.edges.equalToSuperview()
@@ -370,25 +397,46 @@ extension MyPageViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissSettingsDropdown))
         backgroundView.addGestureRecognizer(tapGesture)
 
-        // Create dropdown
-        let dropdownView = DropdownMenuView(items: MySettingsMenuItem.allCases)
-        dropdownView.onItemSelected = { [weak self] menuItem in
-            self?.handleSettingsMenuSelection(menuItem)
+        // Create dropdown based on user type (guest vs social login)
+        let isGuest = TokenStorage.shared.loadGuestUserId() != nil
+
+        if isGuest {
+            // Guest user: Show only "전체설정" in neutral color
+            let dropdownView = DropdownMenuView(items: GuestSettingsMenuItem.menuItems)
+            dropdownView.onItemSelected = { [weak self] _ in
+                self?.handleGuestSettingsMenuSelection()
+            }
+            dropdownView.showInParent(view, below: myPageView.settingsButton)
+            settingsDropdownView = dropdownView
+        } else {
+            // Social login user: Show full menu with styled "전체설정"
+            let dropdownView = DropdownMenuView(items: MySettingsMenuItem.socialLoginMenuItems)
+            dropdownView.onItemSelected = { [weak self] menuItem in
+                self?.handleSettingsMenuSelection(menuItem)
+            }
+            dropdownView.showInParent(view, below: myPageView.settingsButton)
+            settingsDropdownView = dropdownView
         }
 
-        // Show dropdown below custom navigation (settings button)
-        dropdownView.showInParent(view, below: myPageView.settingsButton)
-
-        // Store references
+        // Store reference
         settingsDropdownBackgroundView = backgroundView
-        settingsDropdownView = dropdownView
     }
 
     @objc private func dismissSettingsDropdown() {
-        settingsDropdownView?.dismiss()
+        // Dismiss dropdown (handle both types)
+        if let dropdown = settingsDropdownView as? DropdownMenuView<MySettingsMenuItem> {
+            dropdown.dismiss()
+        } else if let dropdown = settingsDropdownView as? DropdownMenuView<GuestSettingsMenuItem> {
+            dropdown.dismiss()
+        }
         settingsDropdownBackgroundView?.removeFromSuperview()
         settingsDropdownView = nil
         settingsDropdownBackgroundView = nil
+    }
+
+    private func handleGuestSettingsMenuSelection() {
+        dismissSettingsDropdown()
+        showGeneralSettings()
     }
 
     private func handleSettingsMenuSelection(_ menuItem: MySettingsMenuItem) {
@@ -405,16 +453,12 @@ extension MyPageViewController {
 
         case .generalSettings:
             print("⚙️ General settings")
-            showComingSoonAlert(feature: "전체설정")
-
-        case .logout:
-            print("🚪 Logout")
-            showLogoutAlert()
+            showGeneralSettings()
         }
     }
 
     private func showProfileEdit() {
-        coordinator?.showProfileEdit(currentProfile: viewModel.userProfile)
+        coordinator?.showProfileSettings()
     }
 
     private func showHobbyCoverManagement() {
@@ -424,6 +468,12 @@ extension MyPageViewController {
         // Pass all hobbies to the viewModel (진행 중 + 보관)
         viewModel.setHobbies(self.viewModel.myHobbies)
 
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func showGeneralSettings() {
+        let vc = GeneralSettingsViewController()
+        vc.coordinator = coordinator
         navigationController?.pushViewController(vc, animated: true)
     }
 
@@ -525,6 +575,21 @@ extension MyPageViewController: GuestLoginBottomSheetDelegate {
     func guestLoginBottomSheetDidDismiss(_ controller: GuestLoginBottomSheetViewController) {
         // 바텀시트가 로그인 없이 닫힌 경우 홈 탭으로 이동
         coordinator?.switchToHomeTab()
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension MyPageViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        switch viewModel.currentTab {
+        case .activities:
+            activityGridVC?.checkLoadMoreIfNeeded(scrollView: scrollView)
+        case .scraps:
+            scrapGridVC?.checkLoadMoreIfNeeded(scrollView: scrollView)
+        case .hobbyCards:
+            break // No infinite scroll for hobby cards
+        }
     }
 }
 

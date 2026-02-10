@@ -33,6 +33,14 @@ final class HobbyFilterCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Lifecycle
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        iconImageView.kf.cancelDownloadTask()
+        iconImageView.image = nil
+    }
+
     // MARK: - Configuration
 
     func configure(with hobby: MyPageHobby, isSelected: Bool) {
@@ -40,14 +48,21 @@ final class HobbyFilterCell: UICollectionViewCell {
         if let thumbnailImageUrl = hobby.thumbnailImageUrl,
            !thumbnailImageUrl.isEmpty,
            let url = URL(string: thumbnailImageUrl) {
-            // Has thumbnail - load from URL
+            // Has thumbnail - load from URL (fill the circle)
             iconImageView.kf.setImage(
                 with: url,
-                placeholder: UIImage(systemName: "camera.fill")
+                placeholder: UIImage(systemName: "camera.fill"),
+                options: [
+                    .transition(.fade(0.2)),
+                    .forceRefresh  // Always fetch fresh image when URL changes
+                ]
             )
             iconImageView.contentMode = .scaleAspectFill
+            iconImageView.snp.remakeConstraints {
+                $0.edges.equalToSuperview()
+            }
         } else {
-            // No thumbnail - show hobby-specific icon
+            // No thumbnail - show hobby-specific icon (small centered)
             if let imageAsset = HobbyImageAsset(hobbyName: hobby.hobbyName) {
                 iconImageView.image = imageAsset.icon
                 iconImageView.contentMode = .scaleAspectFit
@@ -56,7 +71,15 @@ final class HobbyFilterCell: UICollectionViewCell {
                 iconImageView.image = UIImage(systemName: "camera.fill")
                 iconImageView.contentMode = .scaleAspectFit
             }
+            iconImageView.snp.remakeConstraints {
+                $0.center.equalToSuperview()
+                $0.width.height.equalTo(20)
+            }
         }
+
+        // Force layout update after remakeConstraints
+        iconContainerView.setNeedsLayout()
+        iconContainerView.layoutIfNeeded()
 
         // Truncate hobby name if longer than 4 characters
         nameLabel.setTextWithTypography(hobby.hobbyName.truncated(maxLength: 4), style: .body12)

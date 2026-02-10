@@ -16,7 +16,7 @@ enum AuthTarget {
     case refreshToken(request: DTO.TokenRefreshRequest)
     case validateToken
     case switchAccount(request: DTO.SwitchAccountRequest)
-//    case logout
+    case withdraw
 }
 
 extension AuthTarget: BaseTargetType {
@@ -39,19 +39,21 @@ extension AuthTarget: BaseTargetType {
             return AuthAPI.authValidate.endpoint
         case .switchAccount:
             return AuthAPI.switchAccount.endpoint
-//        case .logout:
-//            return AuthAPI.logout.endpoint
+        case .withdraw:
+            return AuthAPI.withdraw.endpoint
         }
     }
 
     var method: Moya.Method {
         switch self {
-        case .kakaoLogin, .appleLogin, .guestLogin, .refreshToken /*, .logout*/:
+        case .kakaoLogin, .appleLogin, .guestLogin, .refreshToken:
             return .post
-        case  .switchAccount:
+        case .switchAccount:
             return .patch
         case .validateToken:
             return .get
+        case .withdraw:
+            return .delete
         }
     }
 
@@ -67,19 +69,17 @@ extension AuthTarget: BaseTargetType {
             return .requestJSONEncodable(request)
         case .switchAccount(let request):
             return .requestJSONEncodable(request)
-        case .validateToken:
+        case .validateToken, .withdraw:
             return .requestPlain
-//        case .logout:
-//            return .requestPlain
         }
     }
 
     var headers: [String: String]? {
         var headers = ["Content-Type": "application/json"]
 
-        // switchAccount, validateToken은 인증 토큰 필요
+        // switchAccount, validateToken, withdraw는 인증 토큰 필요
         switch self {
-        case .switchAccount, .validateToken:
+        case .switchAccount, .validateToken, .withdraw:
             if let token = try? TokenStorage.shared.loadAccessToken() {
                 headers["Authorization"] = "Bearer \(token)"
             }

@@ -230,6 +230,11 @@ final class ActivityDetailViewModel {
             // 성공 시 상세 정보 다시 불러오기
             await fetchDetail()
 
+            // 스크랩 목록 갱신을 위해 이벤트 발송
+            await MainActor.run {
+                AppEventBus.shared.scrapDidUpdate.send()
+            }
+
             // 유저 목록이 열려있었다면 다시 불러오기 (forceRefresh로 무조건 갱신)
             if let showingType = wasShowingUsers {
                 await fetchReactionUsers(for: showingType, forceRefresh: true)
