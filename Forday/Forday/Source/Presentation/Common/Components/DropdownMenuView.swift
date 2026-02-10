@@ -14,10 +14,12 @@ import Then
 protocol DropdownMenuItem {
     var title: String { get }
     var textColor: UIColor { get }
+    var fontWeight: TypographyStyle { get }
 }
 
 extension DropdownMenuItem {
     var textColor: UIColor { .neutral800 }
+    var fontWeight: TypographyStyle { .body16 }
 }
 
 // MARK: - DropdownMenuView
@@ -216,7 +218,7 @@ extension DropdownMenuItemView {
         backgroundColor = .clear
 
         titleLabel.do {
-            $0.setTextWithTypography(item.title, style: .body16)
+            $0.setTextWithTypography(item.title, style: item.fontWeight)
             $0.textColor = item.textColor
         }
     }

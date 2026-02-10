@@ -24,6 +24,12 @@ final class ActivityGridViewController: UIViewController {
     private let activityCollectionView: UICollectionView
     private let emptyStateView = EmptyStateView()
 
+    // Height constraint for dynamic sizing
+    private var collectionViewHeightConstraint: Constraint?
+
+    // Callback for content height change (for parent scroll adjustment)
+    var onContentHeightChanged: ((CGFloat) -> Void)?
+
     // MARK: - Initialization
 
     init(viewModel: MyPageViewModel) {
@@ -64,6 +70,7 @@ extension ActivityGridViewController {
 
         activityCollectionView.do {
             $0.backgroundColor = .systemBackground
+            $0.isScrollEnabled = false  // Disable scroll - parent scrollView handles it
         }
     }
 
@@ -78,7 +85,10 @@ extension ActivityGridViewController {
 
         activityCollectionView.snp.makeConstraints {
             $0.top.equalTo(hobbyFilterView.snp.bottom).offset(24)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.lessThanOrEqualToSuperview()
+            // Store height constraint for dynamic updates
+            collectionViewHeightConstraint = $0.height.equalTo(0).priority(.high).constraint
         }
     }
 
@@ -89,6 +99,23 @@ extension ActivityGridViewController {
             ActivityPhotoCell.self,
             forCellWithReuseIdentifier: ActivityPhotoCell.identifier
         )
+
+        // Observe contentSize changes for dynamic height
+        activityCollectionView.publisher(for: \.contentSize)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] contentSize in
+                self?.updateCollectionViewHeight(contentSize.height)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateCollectionViewHeight(_ height: CGFloat) {
+        guard height > 0 else { return }
+        collectionViewHeightConstraint?.update(offset: height)
+
+        // Notify parent about height change (hobbyFilter height + spacing + collectionView height)
+        let totalHeight = 90 + 24 + height
+        onContentHeightChanged?(totalHeight)
     }
 
     private func setupHobbyFilter() {
@@ -193,7 +220,8 @@ extension ActivityGridViewController: UICollectionViewDelegate {
         }
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    /// Called by parent scrollView to trigger infinite scroll
+    func checkLoadMoreIfNeeded(scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height

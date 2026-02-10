@@ -27,6 +27,10 @@ final class ActivityPhotoCell: UICollectionViewCell {
     // Shared sticker image view
     private let stickerImageView = UIImageView()
 
+    // Store pending gradient for async application
+    private var pendingGradient: AppGradient?
+    private var isGradientMode: Bool = false
+
     // MARK: - Initialization
 
     override init(frame: CGRect) {
@@ -47,6 +51,8 @@ final class ActivityPhotoCell: UICollectionViewCell {
         imageView.image = nil
         stickerImageView.image = nil
         memoLabel.text = nil
+        pendingGradient = nil
+        isGradientMode = false
 
         // Remove gradient layers
         gradientContainerView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
@@ -56,10 +62,10 @@ final class ActivityPhotoCell: UICollectionViewCell {
         super.layoutSubviews()
 
         // Update gradient layer frame when bounds change
-        // This fixes the issue where gradient doesn't show initially
-        gradientContainerView.layer.sublayers?
-            .compactMap { $0 as? CAGradientLayer }
-            .forEach { $0.frame = gradientContainerView.bounds }
+        if isGradientMode,
+           let existingLayer = gradientContainerView.layer.sublayers?.first(where: { $0 is CAGradientLayer }) as? CAGradientLayer {
+            existingLayer.frame = gradientContainerView.bounds
+        }
     }
 
     // MARK: - Configuration
@@ -107,20 +113,37 @@ final class ActivityPhotoCell: UICollectionViewCell {
     }
 
     private func showGradientMode(memo: String?, stickerType: StickerType?) {
+        // Set gradient mode flag
+        isGradientMode = true
+
         // Hide image view, show gradient views
         imageView.isHidden = true
         gradientContainerView.isHidden = false
 
-        // Apply gradient background
-        if let stickerType = stickerType {
-            gradientContainerView.applyGradient(stickerType.gradient)
-        } else {
-            // Fallback to default gradient if sticker type unknown
-            gradientContainerView.applyGradient(DesignGradient.gradient001)
-        }
+        // Store gradient for layoutSubviews (handles timing issue)
+        let gradient = stickerType?.gradient ?? DesignGradient.gradient001
+        pendingGradient = gradient
+
+        // Remove existing gradient layers before applying new one
+        gradientContainerView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
 
         // Set memo text (max 2 lines)
         memoLabel.text = memo ?? ""
+
+        // Delay gradient application to next run loop when collection view has finished layout
+        DispatchQueue.main.async { [weak self] in
+            self?.applyPendingGradientIfNeeded()
+        }
+    }
+
+    private func applyPendingGradientIfNeeded() {
+        guard isGradientMode,
+              let gradient = pendingGradient,
+              gradientContainerView.bounds.width > 0 else { return }
+
+        // Remove existing and apply fresh gradient
+        gradientContainerView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
+        gradientContainerView.applyGradient(gradient)
     }
 }
 

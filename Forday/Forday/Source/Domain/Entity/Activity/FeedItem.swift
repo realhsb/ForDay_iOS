@@ -9,7 +9,7 @@ import Foundation
 
 
 struct FeedResult {
-    let totalFeedCount: Int
+    let totalFeedCount: Int?
     let lastRecordId: Int?
     let feedList: [FeedItem]
     let hasNext: Bool

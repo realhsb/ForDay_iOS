@@ -176,23 +176,14 @@ extension MainTabBarCoordinator: UITabBarControllerDelegate {
         }
     }
 
-    func showProfileEdit(currentProfile: UserInfo?) {
-        // Create ViewModel
-        let viewModel = EditProfileViewModel()
-
-        // Set initial profile if available
-        if let profile = currentProfile {
-            // TODO: Load actual profile image from URL when image loading is implemented
-            let placeholderImage = UIImage(systemName: "person.circle.fill")
-            viewModel.setInitialProfile(image: placeholderImage, nickname: profile.nickname)
-        }
-
+    func showProfileSettings() {
         // Create ViewController
-        let editProfileVC = EditProfileViewController(viewModel: viewModel)
+        let profileSettingsVC = ProfileSettingsViewController()
+        profileSettingsVC.coordinator = self
 
         // Push to MyPage navigation stack
         if let myPageNav = tabBarController.viewControllers?.last as? UINavigationController {
-            myPageNav.pushViewController(editProfileVC, animated: true)
+            myPageNav.pushViewController(profileSettingsVC, animated: true)
         }
     }
 

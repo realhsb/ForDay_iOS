@@ -53,7 +53,7 @@ class ManageHobbyCoverViewModel {
         await fetchFeeds(hobbyIds: [])
     }
 
-    /// 특정 취미의 피드 조회
+    /// 특정 취미의 피드 조회 (최대 12개)
     func fetchFeeds(hobbyIds: [Int]) async {
         await MainActor.run {
             self.isLoading = true
@@ -63,7 +63,7 @@ class ManageHobbyCoverViewModel {
             let result = try await usersRepository.fetchFeeds(
                 hobbyIds: hobbyIds,
                 lastRecordId: nil,
-                feedSize: 100
+                feedSize: 12
             )
 
             await MainActor.run {

@@ -13,6 +13,7 @@ enum AuthAPI {
     case appleLogin         /// 애플 로그인
     case guestLogin         /// 게스트 둘러보기 (게스트용 토큰 발급)
     case switchAccount      /// 게스트 → 소셜 로그인 전환
+    case withdraw           /// 회원 탈퇴
 
     var endpoint: String {
         switch self {
@@ -23,6 +24,7 @@ enum AuthAPI {
         case .appleLogin: return "/auth/apple"
         case .guestLogin: return "/auth/guest"
         case .switchAccount: return "/auth/switch-account"
+        case .withdraw: return "/auth/withdraw"
         }
     }
 }
